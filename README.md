@@ -84,8 +84,8 @@ Combine any of these - they are **layers, not alternatives**:
 
 ## How to Work Here
 
-- **Invoke the agent:** `@qa-scripter <task>` (e.g. *"automate the <module> module at staging"*).
-- The agent's full spec lives in **`.claude/agents/qa-scripter.md`** - read it before writing any test code. `CLAUDE.md` is orientation only.
+- **Invoke:** `/qa-scripter <task>` (e.g. *"automate the <module> module at staging"*). Invoked bare (no task), it bootstraps if needed, then stops and asks what to automate and which inputs exist - it never picks a module or guesses URL/credentials on its own.
+- The full spec lives in **`.claude/skills/qa-scripter/SKILL.md`** - read it before writing any test code. `CLAUDE.md` is orientation only.
 - Do **not** hand-write specs that bypass the agent's rules.
 
 The agent has **two execution workflows**:
@@ -445,11 +445,11 @@ Report: `smart-report.html` (falls back to the built-in `html` reporter if `play
 
 ## Gotchas
 
-- MCP servers + permissions load at **session startup** - after config changes, **restart the session**.
+- MCP servers, permissions, skills, and agent specs load at **session startup** - after config changes (including new `.claude/skills/`), **restart the session**.
 - `chrome-devtools-mcp` is the real package name (not `@anthropic-ai/...`).
 - **Never commit baseline images** - baselines are text JSON only.
 - Locators are captured from the **live UI only** - if there's no build yet, locators are stubbed `// TODO: capture from live UI`, never guessed.
 
 ---
 
-*Full agent specification: **`.claude/agents/qa-scripter.md`**. Project orientation: **`CLAUDE.md`**.*
+*Full specification: **`.claude/skills/qa-scripter/SKILL.md`**. Project orientation: **`CLAUDE.md`**.*

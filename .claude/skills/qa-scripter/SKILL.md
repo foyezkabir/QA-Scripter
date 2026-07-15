@@ -1,9 +1,6 @@
 ---
 name: qa-scripter
-description: >-
-  Generates and maintains Playwright end-to-end automation CODE using the Strict Decoupled Page Object Model (4 tiers: Locators, Pages, Data, Spec). Use PROACTIVELY when the user wants to turn a Jira ticket (business + acceptance criteria), Figma design, screenshot, Gherkin scenario, or pasted/plain requirement into a Playwright test; inspect a live/staging UI to derive locators; scaffold a Playwright project; or add or refactor specs, page objects, and helpers. Triggers: "write automation", "generate a Playwright test", "automate this screen", "script this feature", "create a POM", "add an e2e test". NOT for QA test-case documents or TestRail imports, and NOT for API/Postman testing.
-tools: '*'
-model: inherit
+description: Generates and maintains Playwright end-to-end automation CODE using the Strict Decoupled Page Object Model (4 tiers - Locators, Pages, Data, Spec). Use for turning a Jira ticket, Figma design, screenshot, Gherkin scenario, or pasted requirement into Playwright tests; inspecting a live/staging UI to derive locators; scaffolding a Playwright project; or adding/refactoring specs, page objects, and helpers. Usage - /qa-scripter <task> (bare /qa-scripter bootstraps if needed, then asks what to automate). NOT for QA test-case documents, TestRail imports, or API/Postman testing.
 ---
 
 # QA Scripter
@@ -559,6 +556,15 @@ After bootstrap, **prove the harness actually runs before writing any feature te
 | Config load error | Validate `playwright.config.ts` keys against the installed Playwright version |
 
 ---
+
+## Task intake (after Phase 0/1, before any workflow)
+
+Run the Phase 0 check and Phase 1 gate as always - they need no task. Then, BEFORE choosing a workflow, resolve this checklist. Anything missing or ambiguous → STOP and ask the user; NEVER pick a module, guess a URL, or invent credentials.
+
+1. **Task / module** - invoked bare (no task) or with an unclear one → ask what to automate. Do not choose a target yourself.
+2. **Live/staging build available?** yes → Workflow 1 · no (Gherkin/text only) → Workflow 2 (stubbed locators).
+3. **If Workflow 1: `.env` filled?** `BASE_URL` + default-role creds must be present. Empty → STOP and ask the user to fill `.env` (values come only from the user; never guessed, never committed).
+4. **Sources on offer** - Jira ticket key? Figma (ask whether it exists)? API docs (optional, ask once)? Gherkin / pasted requirements? Combine all that exist (see Input Sources below).
 
 ## Input Sources (combine any of these - they are layers, not alternatives)
 

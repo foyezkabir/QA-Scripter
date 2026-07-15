@@ -45,8 +45,8 @@ QA automation for our web app: turn a **Jira ticket** (business + acceptance cri
 Jira (`getJiraIssue` - AC drives the TC list) · Figma (`get_design_context` - intended UI, **never a locator source**) · Gherkin (scenario → TC) · pasted text/tables/screenshots · live UI (Chrome DevTools MCP - **the only source of locators**).
 
 ## How to work here
-- **Invoke the agent:** `@qa-scripter <task>` (e.g. "automate the <module> module at staging").
-- The agent's full spec lives in `.claude/agents/qa-scripter.md` - **read it before writing any test code.** This file is only orientation.
+- **Invoke:** `/qa-scripter <task>` (e.g. "automate the <module> module at staging"). Invoked bare (no task) → it bootstraps if needed, then STOPS and asks what to automate + which inputs exist (never picks a module or guesses URL/creds itself).
+- The full spec lives in `.claude/skills/qa-scripter/SKILL.md` - **read it before writing any test code.** This file is only orientation.
 - Do NOT hand-write specs that bypass the agent's rules below.
 
 ## Architecture - 4 code tiers + companions
@@ -91,5 +91,5 @@ Jira (`getJiraIssue` - AC drives the TC list) · Figma (`get_design_context` - i
 - Env/secrets in `.env` (gitignored); `BASE_URL` + credentials there. Committed template: `.env.example`.
 
 ## Gotchas
-- MCP servers + permissions load at **session startup** - after config changes, restart the session.
+- MCP servers, permissions, skills, and agent specs load at **session startup** - after config changes (including new `.claude/skills/`), restart the session.
 - `chrome-devtools-mcp` is the real package (not `@anthropic-ai/...`).
