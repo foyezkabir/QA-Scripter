@@ -190,7 +190,7 @@ Wire into `fixtures/base.ts` - setup before, teardown after, automatic.
 - Page-object fixtures = **per-test** (fresh instance each test).
 - API-setup fixtures = **per-test**; worker-scope only for expensive read-only shared state.
 
-**Split rule:** day one = single `fixtures/base.ts`. The moment you add API-setup fixtures (or page fixtures grow past ~6), split into `fixtures/pages.ts` + `fixtures/setup.ts` and combine with `mergeTests` in `base.ts`. Specs never change - still import only `base.ts`.
+**Split rule:** day one = `fixtures/base.ts` + `fixtures/evidence.ts` (failure evidence is standing; `base.ts` starts as `mergeTests(evidence)`). The moment you add API-setup fixtures (or page fixtures grow past ~6), split into `fixtures/pages.ts` + `fixtures/setup.ts` and merge them in `base.ts` too. Specs never change - still import only `base.ts`.
 
 *`<Module>` / `<Entity>` below are placeholders - substitute the real feature (e.g. for a Create Organisation module: `<Module>` = `Organisation`, `<Entity>` = `Org`).*
 
@@ -260,6 +260,22 @@ test('TC-01: Verify that a <entity> is created', async ({ <module>Page, cleanup 
 });
 ```
 Only a test that lists `seeded<Entity>` / `cleanup` in its args triggers that setup - fixtures stay lazy.
+
+## Failure evidence (companion - automatic proof on every failed test)
+
+Any failed test leaves a timestamped, durable evidence trail (settles "it worked at 12:30, you didn't test" disputes). Implemented as ONE auto fixture - zero spec changes.
+
+- **Source:** the full implementation lives in the committed template `.claude/templates/evidence.ts` - Phase 0 copies it verbatim to `fixtures/evidence.ts` (never re-invented).
+- **Trigger:** `fixtures/evidence.ts` (`{ auto: true }`, merged into `base.ts` via `mergeTests`) acts in teardown ONLY when `testInfo.status !== testInfo.expectedStatus`. Green runs leave nothing.
+- **Evidence stack (capture in this order):**
+  1. **PNG** - full-page screenshot to `failures/<module>/<TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png`. One folder per module (module = spec filename), FLAT inside - TC number + timestamp in the FILENAME, no per-TC subfolder (sort-by-name groups a TC's history chronologically). `<TC-XX>` parsed from the test title (the naming convention guarantees it).
+  2. **Toast recorder** - in the setup phase, `addInitScript` installs a MutationObserver on toast / `aria-live` containers; every toast's text + exact timestamp is pushed to an in-page array for the whole test. A screenshot can lose the race against a 2-second toast; the observer cannot. Drained on failure.
+  3. **Log line** - append to `failures/<module>/log.txt`: timestamp, TC id, first line of the error, the recorded toast lines. Text and COMMITTED - proof survives off-machine while heavy PNGs stay local.
+  4. **Video** + 5. **Trace** - `video: 'retain-on-failure'` and `trace: 'retain-on-failure'` in the config; the trace timeline has DOM snapshots + timestamps baked in - scrub to the exact toast moment.
+- **Safety:** capture is wrapped so it can NEVER throw and mask the real test failure; no assertions in the fixture (the fixture rule holds).
+- **Git:** `failures/**/*.png` gitignored; `failures/<module>/log.txt` committed.
+- Playwright's built-in screenshot-on-failure (`test-results/`, wiped each run, own naming) does NOT replace the durable PNG - the fixture writes its own copy.
+- Debug-only, never a default: `page.clock` can freeze timers so a toast never auto-dismisses (invasive - changes app timing).
 
 ## Roles & environment (`test.use()`)
 
@@ -401,7 +417,7 @@ Rules:
 
 **Always run this check first, before any other work.** Inspect the project:
 - If `package.json` is missing or `@playwright/test` is not in dependencies → run the full bootstrap below.
-- If `playwright.config.ts`, `fixtures/base.ts`, or `global-setup.ts` are missing → create only the missing ones.
+- If `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts`, or `global-setup.ts` are missing → create only the missing ones (`evidence.ts` always copied from `.claude/templates/evidence.ts`).
 - If everything already exists → skip Phase 0 entirely and go straight to the workflow.
 
 Announce what you will install before running install commands, then proceed. Every step is idempotent - safe to re-run.
@@ -415,13 +431,13 @@ npx playwright install chromium webkit firefox
 ```
 
 **Standard files** - create if missing:
-- `tsconfig.json`: strict, `target`/`lib` ES2020, `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`.
+- `tsconfig.json`: strict, `target` ES2020, `lib` ES2020 + DOM (browser-context code in `addInitScript`/`evaluate` - e.g. the evidence toast recorder - references `window`/`document`), `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`.
 - `.env` (all empty values; copy from the committed `.env.example` template, which documents every key):
   - `BASE_URL`
   - default-role creds `EMAIL` + `PASSWORD` (add `MOBILE` only if the app uses phone/OTP login)
   - **multi-role:** one cred pair per role - `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `CUSTOMER_EMAIL`/`CUSTOMER_PASSWORD`, … (added at onboarding when roles are known)
   - only if a module uses the API Setup Layer: `API_BASE_URL` (auth reuses a `.auth/*.json` session; add a token key only if the API rejects session cookies; no new npm dep needed)
-- `.gitignore`: `.env`, `.auth/`, `node_modules/`, `dist/`, `test-results/`, `smart-report.html`, `baselines/**/*.png` (never commit baseline images - text only), `.claude/settings.local.json`, `agent-enhancements.txt`. **Commit** `baselines/`, `findings/`, `traceability/`, and `plan/` (all text, auditable) - they are NOT ignored.
+- `.gitignore`: `.env`, `.auth/`, `node_modules/`, `dist/`, `test-results/`, `smart-report.html`, `baselines/**/*.png` (never commit baseline images - text only), `failures/**/*.png` (evidence PNGs stay local; `failures/**/log.txt` IS committed), `.claude/settings.local.json`, `agent-enhancements.txt`. **Commit** `baselines/`, `findings/`, `traceability/`, and `plan/` (all text, auditable) - they are NOT ignored.
 
 **Opinionated files** - create verbatim:
 
@@ -445,7 +461,8 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL,
     storageState: '.auth/user.json',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
+    video: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [
@@ -459,20 +476,17 @@ export default defineConfig({
 
 `fixtures/base.ts`
 ```typescript
-import { test as base } from '@playwright/test';
+import { mergeTests } from '@playwright/test';
+import { test as evidence } from './evidence';
 
-// Day-one stub. Fill per the "Fixtures - DI, scope, composition" section:
-// one fixture per page object; split into pages.ts + setup.ts and mergeTests once it grows.
-export const test = base.extend<{
-  // examplePage: ExamplePage;
-}>({
-  // examplePage: async ({ page }, use) => {
-  //   await use(new ExamplePage(page));
-  // },
-});
+// Day one: evidence only. Per "Fixtures - DI, scope, composition", add page-object
+// fixtures here; split into pages.ts + setup.ts and merge them once it grows.
+export const test = mergeTests(evidence);
 
 export { expect } from '@playwright/test';
 ```
+
+`fixtures/evidence.ts` - the failure-evidence auto fixture (see **Failure evidence**): copy VERBATIM from the committed template **`.claude/templates/evidence.ts`**. Never rewrite, re-derive, or "improve" it at scaffold time - the template IS the implementation; changes happen in the template file itself.
 
 `global-setup.ts`
 ```typescript
@@ -718,12 +732,16 @@ test('TC-XX: Verify that [description]', async () => {
 │   └── <module>.txt
 ├── plan/                  # persisted test plan (view × state × action → TC + tag) [committed]
 │   └── <module>.md
+├── failures/              # failure evidence trail [PNGs gitignored; log.txt committed]
+│   └── <module>/          #   <TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png + log.txt
 
 ├── setup/                 # API state seeding + teardown [LAZY - only if a module needs it]
 │   ├── apiClient.ts
 │   ├── <Entity>Setup.ts
 │   └── index.ts
 ├── fixtures/              # Playwright fixtures
+│   ├── base.ts            #   the ONLY file specs import
+│   └── evidence.ts        #   failure-evidence auto fixture
 ├── helpers/               # Helper utilities [REQUIRED] - control flow + generic helpers
 │   ├── LoopHelper.ts
 │   ├── ConditionalHelper.ts

@@ -22,6 +22,7 @@ All test-authoring work goes through the agent - you do **not** hand-write specs
 - [The UI Baseline & Self-Healing](#the-ui-baseline--self-healing)
 - [API Setup Layer](#api-setup-layer-companion-lazy)
 - [Findings Log](#findings-log-local-only)
+- [Failure Evidence (automatic)](#failure-evidence-automatic)
 - [Tagging & Traceability](#tagging--traceability)
 - [Test Naming & Steps](#test-naming--steps)
 - [Folder Structure](#folder-structure)
@@ -130,6 +131,7 @@ Before any feature work, the agent runs a one-time **Bootstrap (Phase 0)** and a
 | Findings (companion) | `findings/*.txt` | local defect notes - **NEVER auto-filed to Jira** [committed] |
 | Traceability (companion) | `traceability/*.txt` | generated TC↔AC coverage map, GAP-flagged [committed; only with a Jira ticket] |
 | Plan (companion) | `plan/*.md` | persisted test plan (view × state × action → TC), pre-code gate [committed] |
+| Evidence (companion) | `failures/<module>/` | auto-captured proof per failed test: PNG [gitignored] + `log.txt` [committed] |
 
 ---
 
@@ -208,7 +210,7 @@ Fixtures deliver a test its ready-made world, then clean up.
 - Spec top = imports only (no `beforeEach`/setup blocks). Request fixtures per-test in the callback args (`{ <module>Page, seeded<Entity> | cleanup }`).
 - **Scope:** page objects & API-setup fixtures are **per-test** (isolation; any-order/parallel-safe). Worker scope only for expensive read-only state.
 - Setup runs before `use()`, teardown after (runs even on failure). Lazy - only requested fixtures run. No assertions in a fixture.
-- **Split rule:** day one = single `fixtures/base.ts`. Once you add API-setup fixtures (or page fixtures grow past ~6), split into `fixtures/pages.ts` + `fixtures/setup.ts`, combined via `mergeTests` in `base.ts`. Specs never change.
+- **Split rule:** day one = `fixtures/base.ts` + `fixtures/evidence.ts` (failure evidence is standing; `base.ts` starts as `mergeTests(evidence)`). Once you add API-setup fixtures (or page fixtures grow past ~6), split into `fixtures/pages.ts` + `fixtures/setup.ts`, merged in `base.ts` too. Specs never change.
 
 **Two patterns - STRICT (decide by the entity's ROLE in the test, not the action name):**
 
@@ -281,6 +283,19 @@ Purpose: put a test into its starting state and clean up after, so the UI runs o
 
 ---
 
+## Failure Evidence (automatic)
+
+Any failed test leaves a timestamped proof trail - no spec changes needed (one `auto: true` fixture, `fixtures/evidence.ts`, merged into `base.ts`; scaffolded verbatim from the committed template `.claude/templates/evidence.ts`):
+
+- **PNG** - full-page screenshot to `failures/<module>/<TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png`. Flat per module, TC number + timestamp in the filename - sorting the folder groups each TC's failure history chronologically.
+- **Toast recorder** - a MutationObserver (installed via `addInitScript`) logs every toast's text + exact timestamp during the whole run. A screenshot can lose the race against a 2-second toast; the observer cannot.
+- **`failures/<module>/log.txt`** - one entry per failure: timestamp, TC id, error line, recorded toasts. Text and **committed**, so proof survives off-machine; the heavy PNGs stay gitignored.
+- **Video + trace** (`retain-on-failure` in the config) - the trace timeline carries DOM snapshots + timestamps; scrub to the exact toast moment when someone says "it was working".
+
+Capture fires ONLY when a test fails (green runs leave nothing) and is wrapped so it can never throw and mask the real failure.
+
+---
+
 ## Tagging & Traceability
 
 **Tags** (project convention, via `{ tag: [...] }` so titles stay clean):
@@ -334,12 +349,15 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 ├── findings/              # local defect notes - plain .txt, NEVER auto-filed [committed]
 ├── traceability/          # generated TC↔AC coverage map, GAP-flagged [committed; with a ticket]
 ├── plan/                  # persisted test plan (view × state × action → TC) [committed]
+├── failures/              # failure evidence trail [PNGs gitignored; log.txt committed]
+│   └── <module>/          #   <TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png + log.txt
 ├── setup/                 # API state seeding + teardown [LAZY]
 │   ├── apiClient.ts
 │   ├── <Entity>Setup.ts
 │   └── index.ts
 ├── fixtures/              # Playwright fixtures (specs import base.ts only)
 │   ├── base.ts
+│   ├── evidence.ts        # failure-evidence auto fixture
 │   ├── pages.ts           # (after split)
 │   └── setup.ts           # (after split)
 ├── helpers/               # control flow + generic stateless helpers (no utils/)
@@ -394,7 +412,7 @@ npm install --save-dev @playwright/test @types/node @faker-js/faker dotenv playw
 npx playwright install
 npx playwright install chromium webkit firefox
 ```
-Creates any missing standard files: `tsconfig.json` (strict), `.env` (copied from `.env.example`), `.gitignore`, `playwright.config.ts`, `fixtures/base.ts`, `global-setup.ts`. Verifies `npx tsc --noEmit` is clean and MCPs are connected.
+Creates any missing standard files: `tsconfig.json` (strict), `.env` (copied from `.env.example`), `.gitignore`, `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts` (copied verbatim from `.claude/templates/evidence.ts`), `global-setup.ts`. Verifies `npx tsc --noEmit` is clean and MCPs are connected.
 
 **Phase 1 - Smoke Test & Self-Heal** (first run only): generates a minimal `tests/smoke.spec.ts`, runs `npx tsc --noEmit` then `npx playwright test tests/smoke.spec.ts --project=chromium`, and self-heals red output (up to 5 attempts). On green it deletes the smoke spec and proceeds; on red after 5 attempts it STOPS and reports. Never continues on red.
 
@@ -421,7 +439,7 @@ npx playwright test --grep-invert @regression
 npx tsc --noEmit
 ```
 
-Report: `smart-report.html` (falls back to the built-in `html` reporter if `playwright-smart-reporter` can't load). CI-aware config: `retries: 2` and `workers: 1` under `CI`, trace `on-first-retry`, screenshot `only-on-failure`.
+Report: `smart-report.html` (falls back to the built-in `html` reporter if `playwright-smart-reporter` can't load). CI-aware config: `retries: 2` and `workers: 1` under `CI`, trace + video `retain-on-failure` (feeds the failure-evidence trail), screenshot `only-on-failure`.
 
 ---
 
