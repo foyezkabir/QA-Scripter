@@ -131,7 +131,7 @@ Before any feature work, the agent runs a one-time **Bootstrap (Phase 0)** and a
 | Findings (companion) | `findings/*.txt` | local defect notes - **NEVER auto-filed to Jira** [committed] |
 | Traceability (companion) | `traceability/*.txt` | generated TC↔AC coverage map, GAP-flagged [committed; only with a Jira ticket] |
 | Plan (companion) | `plan/*.md` | persisted test plan (view × state × action → TC), pre-code gate [committed] |
-| Evidence (companion) | `failures/<module>/` | auto-captured proof per failed test: PNG [gitignored] + `log.txt` [committed] |
+| Evidence (companion) | `failures/<module>/` | auto-captured proof per failed test: PNG + `log.txt` [entirely gitignored] |
 
 ---
 
@@ -289,7 +289,7 @@ Any failed test leaves a timestamped proof trail - no spec changes needed (one `
 
 - **PNG** - full-page screenshot to `failures/<module>/<TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png`. Flat per module, TC number + timestamp in the filename - sorting the folder groups each TC's failure history chronologically.
 - **Toast recorder** - a MutationObserver (installed via `addInitScript`) logs every toast's text + exact timestamp during the whole run. A screenshot can lose the race against a 2-second toast; the observer cannot.
-- **`failures/<module>/log.txt`** - one entry per failure: timestamp, TC id, error line, recorded toasts. Text and **committed**, so proof survives off-machine; the heavy PNGs stay gitignored.
+- **`failures/<module>/log.txt`** - one entry per failure: timestamp, TC id, error line, recorded toasts. The glanceable text record next to the PNGs (all of `failures/` stays local, gitignored).
 - **Video + trace** (`retain-on-failure` in the config) - the trace timeline carries DOM snapshots + timestamps; scrub to the exact toast moment when someone says "it was working".
 
 Capture fires ONLY when a test fails (green runs leave nothing) and is wrapped so it can never throw and mask the real failure.
@@ -349,7 +349,7 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 ├── findings/              # local defect notes - plain .txt, NEVER auto-filed [committed]
 ├── traceability/          # generated TC↔AC coverage map, GAP-flagged [committed; with a ticket]
 ├── plan/                  # persisted test plan (view × state × action → TC) [committed]
-├── failures/              # failure evidence trail [PNGs gitignored; log.txt committed]
+├── failures/              # failure evidence trail [entirely gitignored - local only]
 │   └── <module>/          #   <TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png + log.txt
 ├── setup/                 # API state seeding + teardown [LAZY]
 │   ├── apiClient.ts
@@ -408,7 +408,7 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 **Phase 0 - One-Time Bootstrap** (idempotent; skipped if everything already exists):
 ```bash
 [ -f package.json ] || npm init -y
-npm install --save-dev @playwright/test @types/node @faker-js/faker dotenv playwright-smart-reporter
+npm install --save-dev @playwright/test typescript @types/node @faker-js/faker dotenv playwright-smart-reporter
 npx playwright install
 npx playwright install chromium webkit firefox
 ```

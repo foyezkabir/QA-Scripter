@@ -270,10 +270,10 @@ Any failed test leaves a timestamped, durable evidence trail (settles "it worked
 - **Evidence stack (capture in this order):**
   1. **PNG** - full-page screenshot to `failures/<module>/<TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png`. One folder per module (module = spec filename), FLAT inside - TC number + timestamp in the FILENAME, no per-TC subfolder (sort-by-name groups a TC's history chronologically). `<TC-XX>` parsed from the test title (the naming convention guarantees it).
   2. **Toast recorder** - in the setup phase, `addInitScript` installs a MutationObserver on toast / `aria-live` containers; every toast's text + exact timestamp is pushed to an in-page array for the whole test. A screenshot can lose the race against a 2-second toast; the observer cannot. Drained on failure.
-  3. **Log line** - append to `failures/<module>/log.txt`: timestamp, TC id, first line of the error, the recorded toast lines. Text and COMMITTED - proof survives off-machine while heavy PNGs stay local.
+  3. **Log line** - append to `failures/<module>/log.txt`: timestamp, TC id, first line of the error, the recorded toast lines. The glanceable text record next to the PNGs.
   4. **Video** + 5. **Trace** - `video: 'retain-on-failure'` and `trace: 'retain-on-failure'` in the config; the trace timeline has DOM snapshots + timestamps baked in - scrub to the exact toast moment.
 - **Safety:** capture is wrapped so it can NEVER throw and mask the real test failure; no assertions in the fixture (the fixture rule holds).
-- **Git:** `failures/**/*.png` gitignored; `failures/<module>/log.txt` committed.
+- **Git:** the entire `failures/` folder is gitignored - evidence is a local working trail, never committed (1000 failed TCs would bloat the repo forever).
 - Playwright's built-in screenshot-on-failure (`test-results/`, wiped each run, own naming) does NOT replace the durable PNG - the fixture writes its own copy.
 - Debug-only, never a default: `page.clock` can freeze timers so a toast never auto-dismisses (invasive - changes app timing).
 
@@ -437,7 +437,7 @@ npx playwright install chromium webkit firefox
   - default-role creds `EMAIL` + `PASSWORD` (add `MOBILE` only if the app uses phone/OTP login)
   - **multi-role:** one cred pair per role - `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `CUSTOMER_EMAIL`/`CUSTOMER_PASSWORD`, … (added at onboarding when roles are known)
   - only if a module uses the API Setup Layer: `API_BASE_URL` (auth reuses a `.auth/*.json` session; add a token key only if the API rejects session cookies; no new npm dep needed)
-- `.gitignore`: `.env`, `.auth/`, `node_modules/`, `dist/`, `test-results/`, `smart-report.html`, `baselines/**/*.png` (never commit baseline images - text only), `failures/**/*.png` (evidence PNGs stay local; `failures/**/log.txt` IS committed), `.claude/settings.local.json`, `agent-enhancements.txt`. **Commit** `baselines/`, `findings/`, `traceability/`, and `plan/` (all text, auditable) - they are NOT ignored.
+- `.gitignore`: `.env`, `.auth/`, `node_modules/`, `dist/`, `test-results/`, `smart-report.html`, `baselines/**/*.png` (never commit baseline images - text only), `failures/` (the whole evidence trail stays local), `.claude/settings.local.json`, `agent-enhancements.txt`. **Commit** `baselines/`, `findings/`, `traceability/`, and `plan/` (all text, auditable) - they are NOT ignored.
 
 **Opinionated files** - create verbatim:
 
@@ -731,7 +731,7 @@ test('TC-XX: Verify that [description]', async () => {
 │   └── <module>.txt
 ├── plan/                  # persisted test plan (view × state × action → TC + tag) [committed]
 │   └── <module>.md
-├── failures/              # failure evidence trail [PNGs gitignored; log.txt committed]
+├── failures/              # failure evidence trail [entirely gitignored - local only]
 │   └── <module>/          #   <TC-XX>_<YYYY-MM-DD>_<HH-MM-SS>.png + log.txt
 
 ├── setup/                 # API state seeding + teardown [LAZY - only if a module needs it]

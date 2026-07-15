@@ -10,7 +10,7 @@ dist/
 test-results/
 playwright-report/
 smart-report.html
-failures/**/*.png
+failures/
 
 # baselines are text-only; never images
 baselines/**/*.png
