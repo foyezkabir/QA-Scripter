@@ -1,0 +1,20 @@
+# secrets & sessions
+.env
+.auth/
+
+# dependencies & build
+node_modules/
+dist/
+
+# test run artifacts
+test-results/
+playwright-report/
+smart-report.html
+failures/**/*.png
+
+# baselines are text-only; never images
+baselines/**/*.png
+
+# local-only working files
+.claude/settings.local.json
+agent-enhancements.txt

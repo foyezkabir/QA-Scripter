@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["chrome-devtools", "playwright"],
+  "permissions": {
+    "allow": [
+      "mcp__chrome-devtools",
+      "mcp__playwright",
+      "mcp__plugin_playwright_playwright",
+      "Bash(npx playwright:*)",
+      "Bash(npx chrome-devtools-mcp:*)",
+      "Bash(npm install:*)",
+      "Bash(npm init:*)"
+    ]
+  }
+}
