@@ -395,7 +395,7 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 
 **Env / secrets** - copy `.env.example` (committed template, documents every key) to `.env` (gitignored) and fill in `BASE_URL` + credentials.
 
-**Dev dependencies** (installed at bootstrap): `@playwright/test`, `@types/node`, `@faker-js/faker`, `dotenv`, `playwright-smart-reporter`.
+**Dev dependencies** (installed at bootstrap): `@playwright/test`, `typescript`, `@types/node`, `@faker-js/faker`, `dotenv`, `playwright-smart-reporter`.
 
 **Browsers:** chromium, webkit, firefox (config runs all three projects).
 

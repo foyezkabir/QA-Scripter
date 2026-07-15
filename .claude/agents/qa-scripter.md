@@ -425,13 +425,13 @@ Announce what you will install before running install commands, then proceed. Ev
 **Commands (run in order):**
 ```bash
 [ -f package.json ] || npm init -y
-npm install --save-dev @playwright/test @types/node @faker-js/faker dotenv playwright-smart-reporter
+npm install --save-dev @playwright/test typescript @types/node @faker-js/faker dotenv playwright-smart-reporter
 npx playwright install
 npx playwright install chromium webkit firefox
 ```
 
 **Standard files** - create if missing:
-- `tsconfig.json`: strict, `target` ES2020, `lib` ES2020 + DOM (browser-context code in `addInitScript`/`evaluate` - e.g. the evidence toast recorder - references `window`/`document`), `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`.
+- `tsconfig.json`: strict, `target` ES2020, `lib` ESNext + DOM (DOM for browser-context code in `addInitScript`/`evaluate`; ESNext because Playwright's own types use `Symbol.asyncDispose`), `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `skipLibCheck: true` (do not type-check node_modules), `types: ["node"]`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`. All verified working 2026-07-15.
 - `.env` (all empty values; copy from the committed `.env.example` template, which documents every key):
   - `BASE_URL`
   - default-role creds `EMAIL` + `PASSWORD` (add `MOBILE` only if the app uses phone/OTP login)
@@ -445,7 +445,6 @@ npx playwright install chromium webkit firefox
 ```typescript
 import 'dotenv/config';
 import { defineConfig, devices } from '@playwright/test';
-import { SmartReporter } from 'playwright-smart-reporter';
 
 export default defineConfig({
   testDir: './tests',
@@ -456,7 +455,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['list'],
-    [SmartReporter, { outputFile: 'smart-report.html' }],
+    ['playwright-smart-reporter', { outputFile: 'smart-report.html' }],
   ],
   use: {
     baseURL: process.env.BASE_URL,
