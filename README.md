@@ -84,7 +84,7 @@ Combine any of these - they are **layers, not alternatives**:
 
 ## How to Work Here
 
-- **Invoke:** `/qa-scripter <task>` (e.g. *"automate the <module> module at staging"*). Invoked bare (no task), it bootstraps if needed, then stops and asks what to automate and which inputs exist - it never picks a module or guesses URL/credentials on its own.
+- **Invoke:** `/qa-scripter <task>` (e.g. *"automate the <module> module at staging"*). **Every invocation - bare or with a task - runs Phase 0 (bootstrap) then Phase 1 (smoke to green) first; both need zero input.** Only once they pass green does it stop and ask for what's missing: a task answers *what to automate* (so it asks only for the remaining gaps - URL/credentials/sources); a bare call asks for the task too. It never picks a module or guesses URL/credentials on its own.
 - The full spec lives in **`.claude/skills/qa-scripter/SKILL.md`** - read it before writing any test code. `CLAUDE.md` is orientation only.
 - Do **not** hand-write specs that bypass the agent's rules.
 
@@ -414,7 +414,7 @@ npx playwright install chromium webkit firefox
 ```
 Creates any missing standard files: `tsconfig.json` (strict), `.env` (copied from `.env.example`), `.gitignore`, `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts` (copied verbatim from `.claude/templates/evidence.ts`), `global-setup.ts`. Verifies `npx tsc --noEmit` is clean and MCPs are connected.
 
-**Phase 1 - Smoke Test & Self-Heal** (first run only): generates a minimal `tests/smoke.spec.ts`, runs `npx tsc --noEmit` then `npx playwright test tests/smoke.spec.ts --project=chromium`, and self-heals red output (up to 5 attempts). On green it deletes the smoke spec and proceeds; on red after 5 attempts it STOPS and reports. Never continues on red.
+**Phase 1 - Smoke Test & Self-Heal** (first run only): runs BEFORE task intake and needs zero input. Generates a minimal `tests/smoke.spec.ts` (`expect(true).toBe(true)`), runs `npx tsc --noEmit` then `npx playwright test tests/smoke.spec.ts --project=chromium`, and self-heals red output (up to 5 attempts). If `.env` has no creds yet, it temporarily drops `storageState` so the harness smoke goes green without a login session (`.auth/user.json` does not exist until the first authenticated run after `.env` is filled). The app-reachability check (`goto('/')`) is deferred to the workflow start, when `BASE_URL` exists. On green it deletes the smoke spec and proceeds; on red after 5 attempts it STOPS and reports. Never continues on red.
 
 ---
 

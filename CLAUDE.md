@@ -45,7 +45,7 @@ QA automation for our web app: turn a **Jira ticket** (business + acceptance cri
 Jira (`getJiraIssue` - AC drives the TC list) · Figma (`get_design_context` - intended UI, **never a locator source**) · Gherkin (scenario → TC) · pasted text/tables/screenshots · live UI (Chrome DevTools MCP - **the only source of locators**).
 
 ## How to work here
-- **Invoke:** `/qa-scripter <task>` (e.g. "automate the <module> module at staging"). Invoked bare (no task) → it bootstraps if needed, then STOPS and asks what to automate + which inputs exist (never picks a module or guesses URL/creds itself).
+- **Invoke:** `/qa-scripter <task>` (e.g. "automate the <module> module at staging"). **Every invocation - bare or with a task - runs Phase 0 (bootstrap) then Phase 1 (smoke to green) FIRST; both need zero input.** Only after they pass green does it STOP and ask for what's missing: a task answers "what to automate" (so it asks only for the remaining gaps - URL/creds/sources); a bare call asks for the task too. It never picks a module or guesses URL/creds itself.
 - The full spec lives in `.claude/skills/qa-scripter/SKILL.md` - **read it before writing any test code.** This file is only orientation.
 - Do NOT hand-write specs that bypass the agent's rules below.
 
@@ -87,7 +87,7 @@ Jira (`getJiraIssue` - AC drives the TC list) · Figma (`get_design_context` - i
 ## Setup (already configured)
 - **MCP servers** (`.mcp.json`): `chrome-devtools` (primary UI inspection) + `playwright` (automation). Auto-connect at session start.
 - **Permissions** (`.claude/settings.json`, committed): MCP tools + `npx playwright` / `npm install` pre-approved - no prompts.
-- **First run:** the agent bootstraps deps/config (Phase 0), then runs a **smoke test + self-heal** to green (Phase 1) before writing real tests.
+- **Every invocation:** the agent runs Phase 0 (bootstrap deps/config) then Phase 1 (**smoke test + self-heal** to green) BEFORE asking anything or writing real tests. Both are zero-input and idempotent - they self-skip once already installed/proven, so only the first run actually installs and smokes.
 - Env/secrets in `.env` (gitignored); `BASE_URL` + credentials there. Committed template: `.env.example`.
 
 ## Gotchas
