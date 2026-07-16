@@ -185,6 +185,11 @@ page.getByRole('row').filter({ hasText: '<unique cell text>' }).getByTestId('row
 
 **Hidden items** (behind ⋮/dropdown): reveal first with an action, then chain - open the menu → `page.getByRole('menu').getByRole('menuitem', { name: 'Delete' })`.
 
+**Iframes** (payment widgets, embedded editors, reCAPTCHA, third-party forms): step into the frame, then chain a semantic locator inside it. Prefer `<semantic>.contentFrame()`; fall back to `frameLocator('<css>')` only when nothing semantic identifies the frame (+ comment). Cross-origin frames work. Never index a frame unless order-stable.
+```ts
+page.getByTitle('Payment form').contentFrame().getByRole('textbox', { name: 'Card number' })
+```
+
 ---
 
 ## Waiting & Retries

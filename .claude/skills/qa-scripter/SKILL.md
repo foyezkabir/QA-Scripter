@@ -41,6 +41,15 @@ page.getByRole('row').filter({ hasText: '<unique cell text>' }).getByTestId('row
 ```
 **Disambiguate by CONTEXT, never by position:** scope/chain, `.filter({ hasText: '…' })`, or `.filter({ has: <childLocator> })`. **Avoid `.nth(i)` / `.first()` / `.last()`** - index is order-dependent and breaks on re-sort, pagination, or new data. Positional selection is a last resort (like XPath/CSS): only when the set is genuinely order-stable and nothing in content distinguishes it - and add a comment why. **Hidden items (behind a ⋮/dropdown): reveal first with an action, then chain** - open the menu → `page.getByRole('menu').getByRole('menuitem', { name: 'Delete' })`. XPath → CSS only if chaining truly fails (comment why). Name by intent (`create<Entity>Button`, not `button3`).
 
+**Iframes - step into the frame, keep inner locators semantic.** Elements rendered inside an `<iframe>` (payment widgets, embedded editors, reCAPTCHA, third-party forms) are NOT reachable from the outer page. Enter the frame, then chain normal semantic locators inside it. **Prefer `<semantic>.contentFrame()`** so even the frame selector stays semantic; drop to `page.frameLocator('<css>')` only when nothing semantic identifies the frame element (comment why). Cross-origin frames work - Playwright pierces them. Never select a frame by index (`.nth()`) unless it is genuinely order-stable.
+```ts
+// Preferred - semantic frame selector, semantic inner locator
+page.getByTitle('Payment form').contentFrame().getByRole('textbox', { name: 'Card number' })
+// Fallback - only if the iframe has no title/name/role; comment why CSS
+page.frameLocator('iframe[data-testid="pay"]').getByRole('button', { name: 'Pay' })
+```
+Frame content auto-waits like any locator (`expect(...).toBeVisible()`), so no sleeps. During exploration/baseline, walk INTO every iframe and record its controls - an unexpanded frame is a coverage gap.
+
 ### Pages - philosophy
 Interactions only; import locators, never define selectors. Methods act and return values - **they never assert** (assertions live in specs; expose state getters like `getRowCount()`). Data comes in as params (none hard-coded). Auto-wait only, never `waitForTimeout()`. One object per page/component (a modal is its own).
 
@@ -666,6 +675,7 @@ Specs are linear & deterministic. **Prohibited in `tests/*.spec.ts`** - push eac
    4. **`getByText`** - For visible text content. Example: `getByText('Welcome')`
    5. **`getByTestId`** - Only when an element has no accessible name. Example: `getByTestId('row-menu')`
    6. **Chain Locators** - mix any of the above into one unique locator; disambiguate by **context**: `.filter({ hasText })`, `.filter({ has: <child> })`, scoping. Positional `.nth()`/`.first()`/`.last()` = **last resort only** (order-dependent, brittle) - comment why.
+   - **Iframes:** step into the frame first, then chain a semantic locator inside it. Prefer `<semantic>.contentFrame()` (e.g. `getByTitle('Payment form').contentFrame().getByRole('textbox', { name: 'Card number' })`); fall back to `frameLocator('<css>')` only when nothing semantic identifies the frame element (comment why). Never select the frame by index unless order-stable.
    7. **XPath** - When all semantic selectors fail. Example: `locator('//button[@data-testid="submit"]')`
    8. **CSS selectors** - ABSOLUTE LAST RESORT ONLY.
 

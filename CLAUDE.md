@@ -17,6 +17,7 @@ Playwright end-to-end automation project built around the **`qa-scripter`** agen
 `getByRole` → `getByLabel` → `getByPlaceholder` → `getByText` → `getByTestId` (no accessible name) → **chain any mix** → `XPath` → `CSS` (last resort, + comment).
 Never drop to XPath/CSS while a chained semantic locator is still possible.
 **Disambiguate by CONTEXT, not position:** `.filter({ hasText })` · `.filter({ has: <child> })` · scoping/chaining. `.nth()`/`.first()`/`.last()` are a **last resort** (order-dependent → flaky on re-sort/pagination) + comment why.
+**Iframes:** step into the frame, then chain a semantic locator inside it. Prefer `<semantic>.contentFrame()` (e.g. `getByTitle('Payment form').contentFrame().getByRole(...)`); fall back to `frameLocator('<css>')` only when nothing semantic identifies the frame (+ comment). Never index a frame unless order-stable.
 
 **WAITING - no sleeps, no loops (zero tolerance).** Wait declaratively; pick by *what* you're waiting on:
 - **On the page (DOM/locator)** → web-first assertion, it auto-polls: `expect(locator).toBeVisible()` / `.toHaveText()` / `.toHaveCount()`. Do **NOT** wrap these in `expect.poll`.
