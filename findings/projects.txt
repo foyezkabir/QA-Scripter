@@ -1,0 +1,20 @@
+Title: Projects module - creating a second Project with an identical name does not produce a second card [dev.app.velaops.ai]
+Type: functional
+Module: projects
+Description: Checklist expectation (TestRail case 61981) is that creating two Projects with an
+  identical name should save both as separate cards with no merge or collision - matching the
+  Tasks module's own confirmed behavior (see findings/tasks.txt: duplicate task names ARE allowed
+  as separate cards there). Projects appears to behave differently: after creating a project named
+  "QA Project blond VacJ2Y" and then creating a second project with the exact same name, only ONE
+  card with that name exists afterward (confirmed via repeated polling over 5s - the count settled
+  at 1, it never reached 2), rather than the two the checklist expects.
+Steps to reproduce:
+  1. Projects -> New Project -> Name: "Duplicate Check", Description: anything -> Create.
+  2. New Project again -> same exact Name "Duplicate Check" -> Create.
+  3. Return to the Projects list -> only one card named "Duplicate Check" exists.
+Actual result: Only one project card exists with the given name after two creation attempts.
+Expected result (per checklist): Both should exist as separate cards, consistent with how the
+  Tasks module handles duplicate names.
+Confidence: medium (needs-verification - not yet confirmed whether the second Create silently
+  failed, silently overwrote the first, or something else; worth a dev-side check of the
+  create-project endpoint's behavior on a name collision)

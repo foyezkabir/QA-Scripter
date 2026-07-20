@@ -1,0 +1,127 @@
+Title: Tasks module - Create/Edit Task Complexity buttons have no ARIA selected state [always, dev.app.velaops.ai]
+Type: UI / accessibility
+Module: tasks
+Description: The "Simple" / "Complex" task-complexity toggle-buttons in the Create Task and Edit Task
+  dialogs communicate which one is currently selected only via CSS classes
+  (selected: "border-primary bg-primary-subtle"; unselected: "border-border hover:border-primary/40").
+  Neither button has aria-pressed or aria-selected (confirmed via direct DOM inspection: both
+  attributes are null on both buttons in all states observed).
+Steps to reproduce:
+  1. Open Rex Dev agent (or any agent) -> Tasks -> New Task (or Edit an existing task).
+  2. Inspect the "Simple" and "Complex" buttons under "Task complexity" with a screen reader or via
+     element.getAttribute('aria-pressed') / ('aria-selected').
+Actual result: Both attributes are null regardless of which option is currently active - a screen
+  reader user has no programmatic way to tell which complexity is selected.
+Expected result: The active button should expose aria-pressed="true" (or similar) so assistive
+  technology can announce the current selection.
+Confidence: high
+
+Title: Tasks module - newly created task intermittently fails to appear in the list despite a successful API response [intermittent, dev.app.velaops.ai]
+Type: functional
+Module: tasks
+Description: While automating Create Task with Playwright, a freshly submitted task occasionally
+  never appears in the Tasks list even after 60s of waiting and a manual page reload - no error
+  toast or other feedback is shown to the user. A direct manual repro of the same steps immediately
+  afterward succeeded normally (POST /api/agents/<id>/automations returned 201, the follow-up GET
+  returned 200, and the task rendered), and 5/5 isolated Playwright scripts against the same
+  account also succeeded cleanly. Could not force a repeat failure on demand via an isolated
+  script - it only ever showed up during full automated suite runs against the Rex Dev agent.
+  Leading hypothesis (not confirmed): Rex Dev is an actively-running AI agent that autonomously
+  creates/manages its OWN scheduled tasks in the background (observed multiple new automations
+  appear on this agent - "Critical Bug Watch", "Urgent Email Watch", "Meeting Reminder Check",
+  "Hourly Ticket Movement Check", "Bi-Hourly Focus Check-in", "Nightly Wrap-up" - that nobody on
+  the QA side created). A real concurrent write from the agent's own backend process to the same
+  automations list a UI session is reading/writing to could plausibly cause a transient client-side
+  render/cache miss for one specific request without surfacing an error. Not confirmed as the exact
+  mechanism - needs a dev-side check of automations list-refresh/caching logic under concurrent
+  writes.
+Steps to reproduce:
+  1. Open an agent's Tasks tab -> New Task.
+  2. Fill Name + Task/Prompt, submit Create.
+  3. Occasionally (not every time, and not reproducible via an isolated one-off script) the task
+     does not appear in the list even after reload, with no visible error.
+Actual result: Silent non-appearance some of the time; no error surfaced to the user either way.
+Expected result: Either the task reliably appears every time (including under concurrent writes
+  from the agent's own background activity), or a clear error is shown when creation/refresh
+  fails - never a silent gap.
+Confidence: low (needs-verification - not reliably reproducible on demand; flagging given this
+  overlaps the project's named task-execution-reliability risk area per Luca's shutdown-threat
+  framing, and the concurrent-write hypothesis above is a plausible, testable lead for the dev team)
+
+Title: Tasks module - custom schedule "every N minutes/hours" silently clamps out-of-range values instead of rejecting them [always, dev.app.velaops.ai]
+Type: validation
+Module: tasks
+Description: The Custom schedule picker's "Run every" spinbutton (Frequency: Every N minutes /
+  Every N hours) documents a valid range of 1-59 minutes / 1-23 hours, but typing an out-of-range
+  value is never rejected - the input silently rewrites itself to the nearest valid bound and the
+  live label/cron preview updates to match, with no validation error shown at any point.
+Steps to reproduce:
+  1. Edit any task -> Schedule: Custom... -> Frequency: Every N minutes.
+  2. Type "0" into "Run every" -> value silently becomes "1", preview shows "Every minute" / "* * * * *".
+  3. Type "60" into the same field -> value silently becomes "59", preview shows "Every 59 minutes".
+  4. Switch Frequency to Every N hours, type "0" -> value silently becomes "1", preview "Every hour" / "0 * * * *".
+  5. (Also observed switching frequency itself clamps a carried-over out-of-range value, e.g. 59 minutes -> 23 hours automatically on switching to Every N hours.)
+Actual result: Invalid boundary values (0, 60 for minutes; 0 for hours) are silently coerced to the
+  nearest valid value (1, 59, 1 respectively) - no error message, no rejection, no indication to
+  the user that their entered value was invalid or changed.
+Expected result: Values outside 1-59 (minutes) / 1-23 (hours) should be rejected with a clear
+  validation error and not silently clamped or accepted, per the field's own documented range.
+Confidence: high
+
+Title: Tasks module - duplicate task names are permitted with zero delete-dialog disambiguation [always, dev.app.velaops.ai]
+Type: functional / UX
+Module: tasks
+Description: Creating a task with a name identical to an existing task is fully permitted at
+  creation - no blocking validation, no duplicate-name warning of any kind. Two tasks named
+  "QA Duplicate Check" were created back-to-back with identical schedules ("Every day at 9:00am").
+  Opening the delete confirmation for either card shows only the generic heading
+  "Delete QA Duplicate Check?" with no creation date, ID, schedule, or any other distinguishing
+  detail - a user has no way to tell which of the two identically-named tasks they are about to
+  permanently delete (deletion is irreversible per the dialog's own text).
+Steps to reproduce:
+  1. Open Rex Dev agent -> Tasks -> New Task -> Name: "QA Duplicate Check", any prompt -> Create.
+  2. New Task again -> same exact Name "QA Duplicate Check" -> Create.
+  3. Observe: both cards appear side by side, no warning at either creation step.
+  4. Click Delete on either card -> dialog reads "Delete QA Duplicate Check?" with no other info.
+Actual result: Duplicate names allowed silently; delete dialog cannot disambiguate between them.
+Expected result: Either block/warn on the duplicate name at creation, or the delete dialog should
+  show a distinguishing detail (creation date, ID, or schedule) so the wrong task can't be deleted
+  by mistake.
+Confidence: high
+
+Title: Tasks module - one deletion among several rapid back-to-back deletes silently no-ops [dev.app.velaops.ai]
+Type: functional
+Module: tasks
+Description: TestRail case 62203 tests creating 10 tasks and deleting a subset of 4 in quick
+  succession, expecting exactly the correct surviving set. Confirmed live, reproduced twice: after
+  sequentially submitting Delete -> Yes, delete for 4 tasks back-to-back, exactly one of the four
+  remained fully present in the list afterward each time - the other 3 deletes succeeded normally.
+  A different task was affected each run ("QA well-documented Task vBjQC2" the first time,
+  "QA different Task 7mgHpI" the second) - not a name-specific fluke. Between the two runs, the
+  test's own delete helper was hardened to explicitly wait for each card to fully detach from the
+  DOM before starting the next task's delete, ruling out a client-side race in the test itself as
+  the cause - the second failure happened with that wait already in place. Given this same agent is
+  independently documented elsewhere (above) to autonomously create its own background tasks
+  concurrently with a UI session's reads/writes, a genuine backend race on the automations list
+  under concurrent/rapid writes is the leading explanation.
+Steps to reproduce:
+  1. Create several tasks on one agent.
+  2. Delete 4 of them back-to-back via the UI, confirming each one's dialog fully closes (card
+     detaches) before starting the next delete.
+  3. Re-check the list afterward.
+Actual result: One of the four targeted tasks (a different one each run) was still present; the
+  other three were gone - with no error shown to the user at any point.
+Expected result: Every confirmed deletion should reliably remove its task, regardless of how
+  quickly subsequent deletes are triggered, or the UI should surface a clear error if one fails.
+Confidence: high (reproduced twice via a real automated Playwright test - tests/concurrency.spec.ts
+  TC-01 - with a client-side race in the test's own code explicitly ruled out between the two runs).
+  Follow-up (2026-07-20): a separate one-off cleanup script that deleted 16 leftover test tasks in
+  a tight loop (no pause between deletes, closing the browser immediately after the loop finished)
+  reported all 16 as successful, but NONE of the 16 had actually persisted when checked via a fresh
+  page load moments later - every one was still present. Manually deleting the same tasks one at a
+  time through normal interactive use, each confirmed by a full page reload before moving to the
+  next, worked reliably for all of them. This strongly suggests deletion is optimistic on the
+  frontend (the card is removed from view as soon as "Yes, delete" is clicked, without waiting for
+  the backend request to confirm), so anything that closes the tab/browser or navigates away
+  shortly after a batch of deletes can lose them silently with zero indication - a real risk for
+  any user who deletes several tasks and quickly closes the page.

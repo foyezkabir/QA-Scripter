@@ -1,0 +1,31 @@
+Title: Subagents - Enable/Disable toggle can send a stale (non-inverted) value on click, silently failing to change state [intermittent, dev.app.velaops.ai]
+Type: Functional / race condition
+Module: subagents
+Description: Clicking the per-subagent Enable/Disable switch fires PATCH /api/agents/:agentId/sub-agents/:id
+  with a computed { enabled: <bool> } body. On two separate confirmed occasions, the click sent the SAME
+  value the subagent already had (enabled:true when it was already enabled:true) instead of the inverse
+  (enabled:false), so the toggle visually and functionally did nothing - no error, no toast, just a silent
+  no-op. Captured via direct network inspection both times:
+  1. Manual exploration (Playwright MCP): clicking "Disable" on a freshly-created, already-enabled subagent
+     sent {"enabled":true} (a no-op); the very next click on the same switch correctly sent {"enabled":false}.
+  2. Automated test (Playwright trace, tests/subagents.spec.ts TC-09): PATCH .../sub-agents/ddd94f5c-9aaf-...
+     fired with body {"enabled":true} at 2026-07-17T09:12:14.509Z, immediately after the switch's rendered
+     aria-checked="true" had already been confirmed correct by a passing assertion moments earlier - so this
+     is not a stale-read problem on the test side, the click handler itself computed/sent the wrong value.
+  Both times the switch had accessible name "Disable" and aria-checked="true" (i.e. currently enabled)
+  immediately before the click that misfired.
+Steps to reproduce (now confirmed 3/3 via automated test - tests/subagents.spec.ts TC-09):
+  1. Create a brand-new subagent (it renders enabled/checked by default).
+  2. Without any other interaction, click its Disable/Enable switch for the very first time.
+  3. Inspect the PATCH payload (or re-check aria-checked): it stays at "true" - the first click on a
+     freshly-created subagent's toggle is a no-op, 3/3 times in automated re-runs.
+  4. A second click on the same switch then correctly flips it (confirmed both manually and in the earlier
+     exploration write-up) - only the FIRST-EVER click on a given subagent's toggle appears affected.
+Actual result: The switch requires two clicks to actually change a freshly-created subagent's enabled
+  state - the first click appears to register (focus/active state changes, a PATCH does fire) but the
+  PATCH body is a no-op {"enabled": <same value>} instead of the inverse, so nothing changes.
+Expected result: The very first click on a freshly-created subagent's toggle should send the inverse of
+  its current enabled state, same as every subsequent click does.
+Confidence: high (reproduced 3/3 in automated re-runs, isolated from other tests/timing noise, consistent
+  with the same no-op-on-first-click signature seen during manual live exploration - looks like the
+  toggle's change handler initializes from a stale/default value that only syncs after one round-trip).

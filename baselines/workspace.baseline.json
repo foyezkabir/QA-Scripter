@@ -1,0 +1,40 @@
+{
+  "module": "Workspace",
+  "route": "/chat/:agentId/workspace",
+  "createdAt": "2026-07-20",
+  "updatedAt": "2026-07-20",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration (TestRail cases 61954/61955/61961/61964/61966 scope only)",
+  "headings": ["Workspace"],
+  "tabs": [],
+  "tables": [],
+  "fields": [],
+  "actions": [
+    { "role": "button", "name": "Upload file", "region": "top-right toolbar", "state": "enabled" },
+    { "role": "button", "name": "Upload folder", "region": "top-right toolbar", "state": "enabled" },
+    { "role": "button", "name": "Advanced view", "region": "top-right toolbar", "state": "enabled", "note": "not explored - out of scope for the 5 cases built" },
+    { "role": "button", "name": "Actions", "region": "file-list row", "count": 29,
+      "opens": { "type": "menu", "items": [
+        { "role": "menuitem", "name": "Open" },
+        { "role": "menuitem", "name": "Download" },
+        { "role": "menuitem", "name": "Rename" },
+        { "role": "menuitem", "name": "Delete" }
+      ] } }
+  ],
+  "icons": [],
+  "modals": [
+    { "trigger": "Actions > Delete", "title": "Delete file?", "buttons": ["Cancel", "Delete"],
+      "fields": [], "note": "body text: \"\\\"directory/<filename>\\\" will be permanently deleted. This cannot be undone.\" - also has an unlabeled Close (X) button, not exercised" }
+  ],
+  "other": [
+    { "name": "Storage usage stat", "type": "static-text", "region": "top-left", "examples": ["Used 718.1 MB of 1.00 GB (70%)"] },
+    { "name": "Upload activity panel", "type": "region", "region": "bottom-right (toast-like, persists after upload)",
+      "note": "shows 'N uploads complete', a per-file 'Uploaded to Workspace' entry with a Dismiss button, and Clear/Minimize/Close controls" },
+    { "name": "File list row", "type": "listitem", "region": "main list", "count": 29, "note": "each row = a name+size button (combined accessible name, e.g. \"casefile.md 104 B\") plus a separate Actions button; one row (\"abecb97b-01af-402e-b65a-2bb4d56a952a\") has no size suffix and is presumed a folder - not explored" }
+  ],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-20", "buildRef": "no ticket - dev.app.velaops.ai", "changes": [
+      "Initial baseline captured - SCOPED, not exhaustive: covers only what the 5 built cases (61954, 61955, 61961, 61964, 61966) touch (upload button + native file chooser, file-list row shape, Actions menu, delete-confirm dialog). Advanced view, Upload folder, Rename flow, the one folder-like row, and drag-drop upload were observed to exist but not crawled - flagged honestly per the zero-missing gate this skill normally requires, rather than claimed complete. Re-baseline properly (full CRAWL) before building further Workspace cases beyond these 5."
+    ] }
+  ]
+}

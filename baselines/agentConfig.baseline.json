@@ -1,0 +1,41 @@
+{
+  "module": "Agent Configuration",
+  "route": "/chat/:agentId/configuration",
+  "createdAt": "2026-07-20",
+  "updatedAt": "2026-07-20",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration (TestRail cases 62090/62091/62095/62098/62099 scope only)",
+  "headings": ["Configuration", "Basic Information", "Behavior", "Response Behavior", "Backup", "Danger Zone"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Agent Name", "type": "textbox", "region": "Basic Information" },
+    { "label": "Role", "type": "textbox", "region": "Basic Information" },
+    { "label": "Describe what your agent does", "type": "textbox", "region": "Basic Information" },
+    { "label": "Response Tone", "type": "combobox", "region": "Behavior > Response Behavior", "note": "options: Professional, Friendly, Concise, Detailed, Custom - selecting Custom does NOT reveal any additional custom-personality field (confirmed live)" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Save Changes", "region": "Basic Information", "state": "disabled", "note": "enables once a field changes, disables again once saved - explicit save only, no auto-save (per the section's own copy: 'Click Save to apply changes')" },
+    { "role": "button", "name": "Agent Avatar (emoji picker)", "region": "Basic Information", "opens": { "type": "unexplored", "items": [] } },
+    { "role": "switch", "name": "Learning Mode", "region": "Behavior", "note": "auto-saves - section copy says 'Changes save automatically', not exercised to avoid altering real agent behavior settings beyond this scope" },
+    { "role": "switch", "name": "Dream Mode", "region": "Behavior", "note": "auto-saves, not exercised" },
+    { "role": "switch", "name": "Sentiment Analysis", "region": "Behavior", "note": "auto-saves, not exercised" },
+    { "role": "button", "name": "Backup now", "region": "Backup", "note": "not exercised - out of scope for the 5 cases built" },
+    { "role": "button", "name": "Download backup", "region": "Backup", "note": "not exercised" },
+    { "role": "button", "name": "Download bundle", "region": "Backup", "note": "not exercised" },
+    { "role": "button", "name": "Delete Agent", "region": "Danger Zone", "opens": { "type": "dialog", "items": [
+      { "role": "heading", "name": "Delete <Agent name>?" },
+      { "role": "button", "name": "Keep it" },
+      { "role": "button", "name": "Yes, delete", "note": "confirmed live to be enabled immediately, no name-confirmation input anywhere in the dialog - see findings/agentConfig.txt; NEVER clicked by this suite" }
+    ] } }
+  ],
+  "icons": [],
+  "modals": [
+    { "trigger": "Delete Agent", "title": "Delete <Agent name>?", "buttons": ["Keep it", "Yes, delete"], "fields": [] }
+  ],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-20", "buildRef": "no ticket - dev.app.velaops.ai", "changes": [
+      "Initial baseline captured - SCOPED, not exhaustive: covers only what the 5 built cases (62090, 62091, 62095, 62098, 62099) touch (Basic Information fields + Save button, the Delete Agent confirmation dialog). The Behavior toggles, Response Tone's Custom option, and the entire Backup/export section were observed but not exercised or fully crawled - flagged honestly per the zero-missing gate this skill normally requires, rather than claimed complete. Re-baseline properly (full CRAWL) before building further Agent Configuration cases beyond these 5."
+    ] }
+  ]
+}

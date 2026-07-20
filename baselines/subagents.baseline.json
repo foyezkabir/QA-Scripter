@@ -1,0 +1,99 @@
+{
+  "module": "Subagents",
+  "route": "/chat/:agentId/subagents",
+  "createdAt": "2026-07-16",
+  "updatedAt": "2026-07-16",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Subagents"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Search subagents…", "type": "textbox" },
+    { "label": "Name", "type": "textbox", "region": "Create/Edit dialog" },
+    { "label": "Description", "type": "textbox", "region": "Create/Edit dialog", "note": "optional - Create does not require it" },
+    { "label": "Instructions", "type": "textbox", "region": "Create/Edit dialog", "note": "required - Create stays disabled without it, even with Name filled" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Create Subagent", "region": "top-right" },
+    { "role": "button", "name": "Details", "region": "subagent-card", "count": "one per card" },
+    { "role": "button", "name": "Edit", "region": "subagent-card", "count": "one per card" },
+    { "role": "button", "name": "Delete", "region": "subagent-card", "count": "one per card" },
+    { "role": "switch", "name": "Disable | Enable", "region": "subagent-card", "state": "checked=enabled (name 'Disable'); unchecked=disabled (name 'Enable') - accessible name flips with state", "note": "PATCH /api/agents/:agentId/sub-agents/:id { enabled: bool } on click" }
+  ],
+  "icons": [
+    { "name": "🤖 icon picker", "type": "icon-button", "region": "Create/Edit dialog" }
+  ],
+  "other": [
+    { "name": "Subagent card", "type": "card", "region": "grid", "items": ["name (heading level 3)", "description (optional)", "Details/Edit/Delete buttons", "Disable/Enable switch"] }
+  ],
+  "modals": [
+    {
+      "trigger": "Create Subagent",
+      "title": "Create Subagent",
+      "description": "Give this helper a clear name and explicit instructions — the agent will route relevant requests here.",
+      "buttons": ["Cancel", "Create", "Close"],
+      "fields": ["Name", "Description", "Instructions"],
+      "notes": [
+        "Create disabled until BOTH Name and Instructions are filled (confirmed live: Name-only leaves it disabled, unlike the Projects module where Name alone suffices) - Description is optional.",
+        "On submit: subagent appears in the list immediately (enabled by default)."
+      ]
+    },
+    {
+      "trigger": "Edit (subagent card)",
+      "title": "Edit Subagent",
+      "description": "Give this helper a clear name and explicit instructions — the agent will route relevant requests here.",
+      "buttons": ["Cancel", "Save/Create", "Close"],
+      "fields": ["Name", "Description", "Instructions"],
+      "notes": ["Same field set and layout as Create, prefilled with the subagent's current Name/Description/Instructions."]
+    },
+    {
+      "trigger": "Details (subagent card)",
+      "title": "Subagent Details",
+      "description": "See what this helper does and change how it works anytime",
+      "buttons": ["Close"],
+      "fields": [],
+      "notes": [
+        "Shows subagent icon/name and a status pill ('Active').",
+        "'View instructions →' button.",
+        "Four stat blocks: Today (N runs), This week (N runs), All time (N runs), Success rate (— no runs yet, for a fresh subagent).",
+        "'Recent activity' section: heading + 'Nothing yet' tag when empty, plus empty-state copy 'No activity yet' / 'When your main assistant hands a task to this helper, it'll show up here with the result and the time it happened.'",
+        "Backed by GET /api/agents/:agentId/sub-agents/:id/invocations."
+      ]
+    },
+    {
+      "trigger": "Delete (subagent card)",
+      "title": "Delete <subagent name>?",
+      "description": "This will permanently remove this subagent. This can't be undone.",
+      "buttons": ["Keep it", "Yes, delete", "Close"],
+      "fields": [],
+      "notes": ["No soft-delete/undo - 'Yes, delete' is immediate and permanent per the dialog copy."]
+    }
+  ],
+  "views": [
+    {
+      "name": "Empty state - zero subagents",
+      "route": "/chat/:agentId/subagents",
+      "openedBy": "Navigate to Subagents with none created yet",
+      "headings": ["No subagents yet"],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [{ "role": "button", "name": "Create Subagent", "region": "empty-state-center" }],
+      "other": [{ "name": "empty-state copy", "text": "Create a subagent to handle a specific task — code reviews, customer support, lead scoring — the choice is yours." }]
+    },
+    {
+      "name": "Empty state - search no match",
+      "route": "/chat/:agentId/subagents",
+      "openedBy": "Type a non-matching term into Search subagents…",
+      "headings": ["No matches"],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [{ "role": "button", "name": "Create Subagent", "region": "empty-state-center" }],
+      "other": [{ "name": "empty-state copy", "text": "Try a different search term." }]
+    }
+  ],
+  "changelog": [
+    { "date": "2026-07-16", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

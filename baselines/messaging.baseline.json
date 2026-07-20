@@ -1,0 +1,49 @@
+{
+  "module": "Messaging",
+  "route": "/chat/:agentId/messaging",
+  "createdAt": "2026-07-17",
+  "updatedAt": "2026-07-17",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Messaging", "Connected channels"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Bot token", "type": "textbox", "region": "Telegram card", "note": "masked, prefilled ••••••••" },
+    { "label": "Allowed chat IDs (comma-separated)", "type": "textbox", "region": "Telegram card" },
+    { "label": "App ID", "type": "textbox", "region": "Microsoft Teams card" },
+    { "label": "Tenant ID", "type": "textbox", "region": "Microsoft Teams card" },
+    { "label": "App password", "type": "textbox", "region": "Microsoft Teams card" },
+    { "label": "Messaging endpoint (set this in Azure)", "type": "textbox-readonly", "region": "Microsoft Teams card", "note": "prefilled with this agent's real webhook URL" }
+  ],
+  "actions": [
+    { "role": "switch", "name": "(unnamed)", "region": "WhatsApp card", "state": "checked=Connected (permanent, pre-existing - never disconnect/re-pair, same convention as Telegram)" },
+    { "role": "button", "name": "Re-pair", "region": "WhatsApp card (connected)" },
+    { "role": "button", "name": "Disconnect", "region": "WhatsApp card (connected)" },
+    { "role": "switch", "name": "(unnamed)", "region": "Telegram card", "state": "checked=Connected (permanent, pre-existing - never disconnect)" },
+    { "role": "button", "name": "Disconnect", "region": "Telegram card" },
+    { "role": "switch", "name": "(unnamed)", "region": "Microsoft Teams card", "state": "unchecked=Disconnected baseline" },
+    { "role": "button", "name": "Copy messaging endpoint", "region": "Microsoft Teams card (expanded)" },
+    { "role": "button", "name": "Connect", "region": "Microsoft Teams card (expanded)", "state": "disabled until App ID + Tenant ID + App password all filled" }
+  ],
+  "icons": [],
+  "other": [
+    { "name": "Channel card", "type": "card", "region": "Connected channels list", "items": ["channel name", "description", "status label", "toggle switch", "expanded connect/pairing panel"] },
+    { "name": "WhatsApp Paired indicator", "type": "text", "region": "WhatsApp card (connected)", "text": "\"Paired\" + a phone-number field" }
+  ],
+  "modals": [
+    {
+      "trigger": "Show QR (WhatsApp card, when disconnected - captured before the live pairing below)",
+      "title": "Pair WhatsApp",
+      "description": "Open WhatsApp → Settings → Linked Devices → Link a Device, then scan the code below.",
+      "buttons": ["Pair WhatsApp", "Close"],
+      "fields": [],
+      "notes": ["No QR image visible until 'Pair WhatsApp' is clicked (not pursued - real pairing needs a physical phone, out of scope for automation). This dialog is no longer reachable through normal testing now that WhatsApp is permanently Connected - kept here as a structural record only."]
+    }
+  ],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-17", "buildRef": "no ticket - dev.app.velaops.ai",
+      "changes": ["Live drift: WhatsApp flipped from Disconnected to Connected/Paired mid-session (a real phone number was paired by another concurrent user/process on this shared dev agent, not by this test suite). User-confirmed decision: treat WhatsApp as a permanent, read-only reference channel from here on, same as Telegram - baseline updated to match, tests never disconnect/re-pair it."] },
+    { "date": "2026-07-17", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

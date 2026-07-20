@@ -1,0 +1,61 @@
+{
+  "module": "Skills",
+  "route": "/chat/:agentId/skills",
+  "createdAt": "2026-07-16",
+  "updatedAt": "2026-07-16",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Skills"],
+  "tabs": [
+    { "name": "Browse", "note": "default view - full catalog grid" },
+    { "name": "Installed (N)", "note": "flat list of installed-only skills, live count in the label" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search skills...", "type": "textbox" },
+    { "label": "Skill Name", "type": "textbox", "region": "Create Skill dialog", "required": true },
+    { "label": "Category", "type": "textbox", "region": "Create Skill dialog", "required": true, "default": "custom" },
+    { "label": "When to use it", "type": "textbox", "region": "Create Skill dialog", "required": true },
+    { "label": "Instructions for the agent", "type": "textbox-multiline", "region": "Create Skill dialog", "required": true }
+  ],
+  "actions": [
+    { "role": "button", "name": "Create skill", "region": "top-right" },
+    { "role": "button", "name": "All (58)", "region": "source-filter" },
+    { "role": "button", "name": "VelaOps (4)", "region": "source-filter" },
+    { "role": "button", "name": "Anthropic (17)", "region": "source-filter" },
+    { "role": "button", "name": "GitHub (37)", "region": "source-filter" },
+    { "role": "button", "name": "View details for <skill name>", "region": "skill-card", "count": 58 },
+    { "role": "button", "name": "Install <skill name>", "region": "skill-card", "note": "shown only when not installed" },
+    { "role": "generic", "name": "Installed on this agent", "region": "skill-card", "note": "badge shown instead of Install button when already installed" }
+  ],
+  "icons": [],
+  "other": [
+    { "name": "Installed-tab row", "type": "list-row", "region": "Installed (N) tab", "items": ["name", "install date", "'· tap to view' hint (catalog skills only)", "Uninstall button"] },
+    { "name": "Custom-created skill row", "type": "list-row", "region": "Installed (N) tab", "note": "row button renders disabled, no 'tap to view' hint - inconsistent with catalog-sourced rows, likely by-design (no file browser for inline-authored skills) but flagged as a UX inconsistency, not confirmed as a bug" }
+  ],
+  "modals": [
+    {
+      "trigger": "View details for <skill name>",
+      "title": "<skill name>",
+      "description": "",
+      "buttons": ["Close", "Install <name> OR Remove"],
+      "fields": [],
+      "notes": [
+        "Header: source badge (VelaOps/Anthropic/GitHub), version, author, license; GitHub-sourced skills additionally show a link to the exact pinned commit (e.g. 'github/awesome-copilot@fb80ec4').",
+        "Body: full rendered SKILL.md markdown (headings like 'When to use', 'How to use', code blocks, lists).",
+        "Sidebar panel 'FILES IN THIS SKILL': every file in the skill package with size, plus 'Installed at skills/<slug>/ in the agent's workspace. OpenClaw auto-discovers it on the next chat turn.'"
+      ]
+    },
+    {
+      "trigger": "Create skill",
+      "title": "Create Skill",
+      "description": "Writes a SKILL.md file directly into this agent's workspace.",
+      "buttons": ["Cancel", "Create Skill", "Close"],
+      "fields": ["Skill Name", "Category", "When to use it", "Instructions for the agent"],
+      "notes": ["All four fields marked required (*). Category defaults to 'custom' pre-filled."]
+    }
+  ],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-16", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

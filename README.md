@@ -29,6 +29,7 @@ All test-authoring work goes through the agent - you do **not** hand-write specs
 - [Setup & Tooling](#setup--tooling)
 - [Bootstrap & First Run](#bootstrap--first-run-what-the-agent-does)
 - [Running Tests](#running-tests)
+- [Daily VelaOps Checklist Pipeline](#daily-velaops-checklist-pipeline-testrail--confluence)
 - [Gotchas](#gotchas)
 
 ---
@@ -448,12 +449,98 @@ Report: `smart-report.html` (falls back to the built-in `html` reporter if `play
 
 ---
 
+## Daily VelaOps Checklist Pipeline (TestRail + Confluence)
+
+A separate, self-extending pipeline layered on top of the 4-tier suite above. It runs the daily
+VelaOps QA checklist (**TestRail Suite 201**, Project 17) end to end - pull today's cases, write a
+script the first time a case shows up (never again after that), execute, report to TestRail, and
+publish to Confluence. Trigger: say **"run checklist"** (routes to the global `qa-run-checklist`
+skill) - nothing here is invoked manually day to day.
+
+### The loop
+
+```
+pull today's cases (rotation state + daily-checklist.md)
+        │
+        ▼
+diff against the script registry
+        │
+   ┌────┴─────┐
+   │          │
+new case   already scripted
+   │          │
+   ▼          │
+/qa-scripter   │   (or write an apiTests/ script for API-only cases)
+ writes it     │
+   │           │
+   └────┬──────┘
+        ▼
+create TestRail run → execute (Playwright + API) → push results → close run → get summary
+        │
+        ▼
+publish Confluence report (agent-driven, via Atlassian MCP)
+```
+
+The script library grows itself: a case gets written once, then every later run just executes it.
+Manual/subjective cases (needs human judgment, coordinated outage simulation, etc.) never enter
+the registry - they stay a live LLM/human judgment call every day, same as before.
+
+### Pieces
+
+| File | Role |
+|---|---|
+| `testrail/testrailClient.ts` | TestRail API v2 wrapper - `getAllSections`, `getCasesForSection`/`getCaseIdsForSection`, `createRun`, `addResult`, `closeRun`, `getRunSummary`. Reads `TESTRAIL_URL`/`TESTRAIL_EMAIL`/`TESTRAIL_API_KEY`/`TESTRAIL_PROJECT_ID`/`TESTRAIL_SUITE_ID` from `.env` - never hardcoded, never scraped from another file. |
+| `datas/common/testrailRegistry.ts` | The case → script map. `REGISTRY: RegistryEntry[]`, one entry per automated case: `{ caseId, tcId, module, kind: 'playwright'|'api', tag?, specFile?, apiScript? }`. Helpers: `isScripted`, `unscriptedOf`, `scriptedOf`. |
+| `apiTests/<module>/<TC-id>.ts` | One file per API-only automated case (endpoints from network capture, never invented). Each exports `run(): Promise<{ status: 'passed'|'failed'|'blocked'; comment: string }>` per `apiTests/types.ts`. |
+| `scripts/runDailyChecklist.ts` | The orchestrator. `runDailyChecklist({ runName, description, caseIds })`: if any `caseIds` are unscripted, returns `{ status: 'needs-scripting', unscripted }` and does nothing else. Otherwise creates the run, runs the Playwright subset (`npx playwright test --grep <tags>`, parses the JSON report), runs each API subset script, pushes every result, closes the run, returns `{ status: 'completed', runId, summary }`. Run via `npm run run-checklist` (uses `tsx`, not `ts-node` - see Gotchas). |
+| `.qa-rotation-state.json` | Canonical rotation pointers (`medium_low_pointer`, `section22_pointer`, `last_run_date`) - the single copy; not duplicated at the old `D:\Projects\VelaOps` location anymore. |
+
+### What "writing a script" means per case type
+
+- **UI-automatable** (`Automation: 🤖 Auto (Playwright...)` in `daily-checklist.md`) → invoke
+  `/qa-scripter` for that module. Follows the normal 4-tier flow above (Locators/Pages/Data/Spec +
+  baseline), reusing an existing module's page object if one already covers that feature. Tag the
+  test `@case-<numeric TestRail id>` and add a `RegistryEntry` with `kind: 'playwright'`.
+- **API-automatable** (`Automation: 🤖 Auto (API: ...)`) → write `apiTests/<module>/<TC-id>.ts`
+  directly (plain HTTP, not a Playwright spec - this project's own rule is "never assert on an API
+  response in a spec," so these live outside `tests/`). Add a `RegistryEntry` with `kind: 'api'`.
+- **Manual** (`Automation: Manual...`) → never added to the registry. Handled live each day.
+
+### Self-heal, applied to this pipeline
+
+Locator drift inside a registered Playwright test is handled the normal way (see
+[The UI Baseline & Self-Healing](#the-ui-baseline--self-healing)) - fixed automatically before the
+result is ever pushed to TestRail. A case only reports **Failed** to TestRail when it's a real
+product defect, not UI drift; that defect also gets logged to `findings/<module>.txt` in the same
+run.
+
+### Confluence
+
+Target: **QA Hub space `QH`, folder `1213956107`** ("VOPS - Test Execution"), cloud ID
+`d71d92e5-d03d-4d72-afb8-6a916c9d992e`. Published via
+`mcp__plugin_atlassian_atlassian__createConfluencePage` (never the `claude.ai` connector) -
+this step is agent-driven, not scriptable, since MCP tools only exist inside a live session.
+
+### Status (as of the last run in this repo)
+
+- 3 cases live and proven against `dev.app.velaops.ai`: TestRail `61988`/`61989`/`61996`
+  (Section 07 - Tasks & Automations, TC-06/TC-07/TC-14). Two surfaced real product defects
+  (logged in `findings/tasks.txt`); one genuinely passes.
+- Full `createRun → addResult → closeRun` chain not yet exercised live in this repo (an
+  interruped Run 144 was open at build time - resolve that before the first live run here).
+- Sections 06/14/19 and the API-only cases across all four "automation-first" sections are not
+  yet scripted - they'll get written the first time `runDailyChecklist` reports them as
+  `needs-scripting`.
+
+---
+
 ## Gotchas
 
 - MCP servers, permissions, skills, and agent specs load at **session startup** - after config changes (including new `.claude/skills/`), **restart the session**.
 - `chrome-devtools-mcp` is the real package name (not `@anthropic-ai/...`).
 - **Never commit baseline images** - baselines are text JSON only.
 - Locators are captured from the **live UI only** - if there's no build yet, locators are stubbed `// TODO: capture from live UI`, never guessed.
+- **`ts-node` is broken against this repo's `typescript@^7.0.2` (beta)** - it throws on startup (`Cannot read properties of undefined (reading 'fileExists')`). Use **`tsx`** for any standalone TS script (`npm run run-checklist`, one-off lookups) instead.
 
 ---
 
