@@ -1,0 +1,48 @@
+Title: Configuration - the agent delete confirmation has no type-to-confirm safeguard at all [always, dev.app.velaops.ai]
+Type: functional / safety
+Module: agentConfig
+Description: TestRail case 62098 expects the delete confirmation's "Confirm Delete" button to stay
+  disabled until the agent's name is typed exactly (case-sensitive) - a standard safeguard against
+  accidentally destroying an agent and everything under it (subagents, conversations, files).
+  Confirmed live: clicking "Delete Agent" in the Danger Zone opens a dialog ("Delete <Agent name>?")
+  containing only a warning paragraph and two plain buttons, "Keep it" and "Yes, delete" - there is
+  no text input anywhere in the dialog, and "Yes, delete" is immediately clickable with no typed
+  confirmation of any kind required.
+Steps to reproduce:
+  1. Configuration page -> Danger Zone -> click "Delete Agent".
+  2. Inspect the resulting dialog.
+Actual result: "Yes, delete" is enabled the instant the dialog opens - no name field to type into,
+  no disabled-until-exact-match gating at all.
+Expected result (per checklist): The confirm button should stay disabled until the agent's exact
+  name is typed, matching the pattern this same platform already uses elsewhere for less
+  destructive actions (e.g. this is a stronger warning-only pattern than even the Subagent delete
+  confirmation, which at least requires a distinct confirming click rather than a name match - but
+  the AC specifically calls for name-typing here given the blast radius: the whole agent, its
+  subagents, conversations, and files, permanently).
+Confidence: high (reproduced via a real automated Playwright test - tests/agentConfig.spec.ts TC-04
+  - not a manual-tooling artifact; "Yes, delete" was never actually clicked during verification, to
+  avoid destroying the shared dev agent this entire test suite depends on)
+
+Title: Configuration - Save Changes stays enabled with a required field (Role) left blank [always, dev.app.velaops.ai]
+Type: functional
+Module: agentConfig
+Description: TestRail case 62091 expects that saving an agent configuration with a required field
+  left blank is rejected with a clear error message. Confirmed live: clearing the Role field
+  (leaving it completely empty) leaves the Basic Information "Save Changes" button fully enabled -
+  no validation error appears, nothing blocks the click. (The blank value was never actually saved
+  during verification - only the button's own state was inspected - so the real agent's Role was
+  never put into a blank/broken state.)
+Steps to reproduce:
+  1. Configuration page -> Basic Information -> clear the Role field entirely.
+  2. Observe the "Save Changes" button.
+Actual result: Button stays enabled with Role completely blank - no client-side required-field
+  validation at all for this field.
+Expected result (per checklist): Save should be rejected (button disabled, or a clear validation
+  error shown) when a required field like Role is left blank.
+Confidence: high (reproduced via a real automated Playwright test - tests/agentConfig.spec.ts TC-03
+  - not a manual-tooling artifact; the blank value was never actually submitted, per the test's own
+  design)
+Update (2026-07-20, TestRail case 61932, Dashboard section): confirmed the same lack of
+  required-field validation also applies to the Agent Name field itself (not just Role) - blanking
+  Agent Name on a second test agent ("QA-Scratch-Agent") also left Save Changes fully enabled. See
+  tests/dashboard.spec.ts TC-04.

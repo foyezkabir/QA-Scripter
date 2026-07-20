@@ -1,0 +1,88 @@
+{
+  "module": "Projects",
+  "route": "/chat/:agentId/projects",
+  "createdAt": "2026-07-16",
+  "updatedAt": "2026-07-16",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Projects"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Search projects…", "type": "textbox" },
+    { "label": "Name", "type": "textbox", "region": "Create/Settings dialog" },
+    { "label": "Description", "type": "textbox-multiline", "region": "Create/Settings dialog" },
+    { "label": "Instructions", "type": "richtext", "region": "Create/Settings dialog", "note": "toolbar: Bold, Italic, Code, Bullet List, Numbered List, Link" }
+  ],
+  "actions": [
+    { "role": "button", "name": "New Project", "region": "top-right" },
+    { "role": "combobox", "name": "Sort", "region": "toolbar", "state": "native <select>", "opens": { "type": "options", "items": [
+      { "role": "option", "name": "Sort: Recent" },
+      { "role": "option", "name": "Sort: Name" }
+    ] } },
+    { "role": "button", "name": "Delete project", "region": "project-card", "count": "one per card - no kebab menu needed" }
+  ],
+  "icons": [],
+  "other": [
+    { "name": "Project card", "type": "card", "region": "grid", "items": ["name", "description (optional in practice - see drift note)", "Updated <date>"] }
+  ],
+  "modals": [
+    {
+      "trigger": "New Project",
+      "title": "Create Project",
+      "description": "Create a workspace to group related conversations, instructions, and files.",
+      "buttons": ["Cancel", "Create", "Close"],
+      "fields": ["Name", "Description", "Instructions"],
+      "notes": [
+        "Create button disabled with empty Name; becomes enabled with Name alone - Description is NOT actually required despite app-guide documenting it as required (drift, live UI wins).",
+        "Instructions field is a rich-text editor with a Bold/Italic/Code/Bullet List/Numbered List/Link toolbar, prefilled with an example scaffold template (## describe what is the project / ## Project context / ## Project focus / ## Response style / ## Project rules) similar to the Tasks module's Goal/Context/Steps/Output scaffold.",
+        "On submit: toast 'Project created' + 'Slug: <slug> - files will live under projects/<slug>/', then navigates into the new project's chat view."
+      ]
+    },
+    {
+      "trigger": "Delete project (button on card)",
+      "title": "Delete <project name>?",
+      "description": "This will remove the project and its custom instructions. Conversations inside it stay in your chat history.",
+      "buttons": ["Keep it", "Yes, delete", "Close"],
+      "fields": [],
+      "notes": ["Contradicts app-guide section 7 which says deletion 'removes the project + all its conversations' - live UI copy explicitly says conversations persist. Flagged as doc/live drift in plan/projects.md, not filed as a confirmed bug."]
+    },
+    {
+      "trigger": "Settings button (project detail banner)",
+      "title": "Project Settings",
+      "description": "Edit the project details and instructions. Instructions are injected into every conversation that belongs to this project.",
+      "buttons": ["Close", "Save Changes", "Close"],
+      "fields": ["Name", "Description", "Instructions"],
+      "notes": ["Save Changes disabled until a field is actually changed. Same rich-text Instructions editor as Create, but placeholder here is just 'Tailor the agent's behavior for this project…' (no scaffold template on an existing project)."]
+    },
+    {
+      "trigger": "Files button (project detail banner)",
+      "title": "Project files — <project name>",
+      "description": "Drop files here to make them available to every conversation in this project.",
+      "buttons": ["Close"],
+      "fields": [],
+      "notes": [
+        "Breadcrumb navigation, 'Upload file' / 'Upload folder' / 'Advanced view' buttons.",
+        "New projects auto-create memory.md and project.md - both listed with size (e.g. '807 B') and an 'Actions' menu per file: Open, Download, Rename, Delete."
+      ]
+    }
+  ],
+  "views": [
+    {
+      "name": "Project detail (chat scoped to project)",
+      "route": "/chat/:agentId/projects/:projectId",
+      "openedBy": "Click a project card's 'Open project <name>' link",
+      "headings": ["Good morning/afternoon/evening, <user> (project-scoped: '...to help you with in <project name>?')"],
+      "tabs": [],
+      "tables": [],
+      "fields": [{ "label": "Type a message…", "type": "textbox-multiline" }],
+      "actions": [
+        { "role": "button", "name": "Files", "region": "project-banner" },
+        { "role": "button", "name": "Settings", "region": "project-banner" },
+        { "role": "button", "name": "<project name>", "region": "sidebar-top", "note": "project-switcher button in the sidebar, opens a dialog (not yet explored in depth)" }
+      ]
+    }
+  ],
+  "changelog": [
+    { "date": "2026-07-16", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

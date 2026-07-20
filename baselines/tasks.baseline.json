@@ -1,0 +1,78 @@
+{
+  "module": "Tasks",
+  "route": "/chat/:agentId/tasks",
+  "createdAt": "2026-07-16",
+  "updatedAt": "2026-07-16",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Tasks"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Name", "type": "textbox" },
+    { "label": "Description", "type": "textbox" },
+    { "label": "Schedule", "type": "combobox" },
+    { "label": "Task / Prompt", "type": "textbox-multiline" },
+    { "label": "Schedule label (shown in the task list)", "type": "textbox" },
+    { "label": "Cron (0 9 * * 1-5), interval (every 1h), or one-shot (at 2026-07-10T09:00Z)", "type": "textbox" }
+  ],
+  "actions": [
+    { "role": "button", "name": "New Task", "region": "top-right", "state": "enabled" },
+    { "role": "button", "name": "Edit", "region": "task-card", "count": 14, "state": "enabled" },
+    { "role": "button", "name": "Delete", "region": "task-card", "count": 14, "state": "enabled" },
+    { "role": "switch", "name": "Disable | Enable (flips with state - accessible name is the NEXT action, not current state)", "region": "task-card", "count": 14 }
+  ],
+  "icons": [
+    { "name": "Edit (pencil)", "type": "icon-button", "region": "task-card", "note": "visually hover-revealed; present in a11y tree regardless of hover" },
+    { "name": "Delete (trash)", "type": "icon-button", "region": "task-card", "note": "visually hover-revealed; present in a11y tree regardless of hover" },
+    { "name": "Account menu", "type": "icon-button", "region": "bottom-left" }
+  ],
+  "other": [
+    { "name": "Schedule human-readable label per card", "type": "static-text", "region": "task-card", "examples": ["Every weekday at 9:00am", "Every Monday at 9:00am", "Monthly on the 1st at 9:00am"] },
+    { "name": "Task complexity pill per card", "type": "badge", "region": "task-card", "examples": ["Simple"], "note": "no Complex-tagged task observed live; Complex confirmed only as a selectable option in Create/Edit dialog" },
+    { "name": "Description text per card", "type": "static-text", "region": "task-card" },
+    { "name": "App-shell chrome (shared across all agent-section routes, not Tasks-specific)", "type": "other", "region": "sidebar", "items": [
+      "Expand/Open sidebar toggle button", "New chat button", "Search conversations button",
+      "Agent-sections nav: Projects, Tasks, Workspace, Tools, Messaging, Skills, Subagents, Settings (links)",
+      "Account menu button (bottom of main content)"
+    ] }
+  ],
+  "modals": [
+    {
+      "trigger": "New Task",
+      "title": "Create Task",
+      "description": "Give the task a name, pick when it runs, and tell the agent exactly what to do.",
+      "buttons": ["Cancel", "Create", "Close"],
+      "fields": ["Name", "Description", "Schedule", "Task / Prompt", "Task complexity (Simple/Complex buttons)", "Enabled (switch)"],
+      "notes": [
+        "Create button disabled until Name AND Task/Prompt are both filled (Description optional) - no submit-then-error validation message, purely disabled-state gating.",
+        "Task/Prompt textbox auto-inserts a 'Goal / Context / Steps / Output' scaffold as real text on focus (not a placeholder) - undocumented in the app guide, flagged as drift not a bug.",
+        "Schedule combobox presets: 'Every morning at 9am', 'Every hour', 'Every weekday at 9am', 'Every Monday at 9am', 'Every day at noon', 'Every evening at 6pm', 'Every 30 minutes', 'Custom…'.",
+        "Selecting Custom reveals a picker: Frequency combobox (Every N minutes/Every N hours/Hourly/Daily/Weekly/Monthly), At-time hour+minute comboboxes, timezone display (observed: Asia/Dhaka), live human label + live cron expression preview.",
+        "'Advanced cron' button (inside Custom) swaps the picker for two raw text inputs: schedule label + cron/interval/one-shot expression (accepts 'cron', 'every Nm/h', 'at <ISO>'). 'Back to picker' returns to the structured picker.",
+        "Task complexity: two toggle-buttons, 'Simple' (default, 'Faster, lighter model') and 'Complex' ('Most capable model')."
+      ]
+    },
+    {
+      "trigger": "Edit (per task card)",
+      "title": "Edit Task",
+      "description": "Give the task a name, pick when it runs, and tell the agent exactly what to do.",
+      "buttons": ["Cancel", "Save Changes", "Close"],
+      "fields": ["Name", "Description", "Schedule", "Task / Prompt", "Task complexity", "Enabled"],
+      "notes": [
+        "Same field set as Create Task; pre-filled with the task's current values.",
+        "A stored cron that exactly matches a preset's cron string normalizes back to the preset dropdown value (e.g. '0 9 * * *' displays as 'Every morning at 9am', not as Custom) rather than staying in raw/custom mode."
+      ]
+    },
+    {
+      "trigger": "Delete (per task card)",
+      "title": "Delete <task name>?",
+      "description": "The scheduled task will stop running. This can't be undone.",
+      "buttons": ["Keep it", "Yes, delete"],
+      "fields": []
+    }
+  ],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-16", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "module": "Tools",
+  "route": "/chat/:agentId/tools",
+  "createdAt": "2026-07-20",
+  "updatedAt": "2026-07-20",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration (TestRail case 62167 scope only)",
+  "headings": ["Tools", "Available Tools", "Connected"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Search Google, Notion, Linear…", "type": "textbox", "region": "Available Tools toolbar" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Connect", "region": "tile", "count": 8, "state": "enabled" },
+    { "role": "button", "name": "Try again", "region": "tile", "note": "shown for expired connections and unfinished OAuth sign-in attempts, replaces Connect" },
+    { "role": "button", "name": "Manage", "region": "connected-list row" },
+    { "role": "button", "name": "<Tool> permission", "region": "tile", "opens": { "type": "unexplored", "items": [] }, "note": "shows 'Read-only' or 'Read + write' - not yet expanded/explored, out of scope for TC-01" },
+    { "role": "button", "name": "<Category> N", "region": "Available Tools grid", "note": "category accordion header (Google Workspace, Microsoft 365, Atlassian, Productivity, Developer, Scheduling, Finance & Accounting) - all observed expanded by default, collapse behavior not explored" }
+  ],
+  "icons": [
+    { "name": "<Tool> icon", "type": "img", "region": "tile", "count": 21 }
+  ],
+  "other": [
+    { "name": "Active connections stat", "type": "static-text", "region": "top-left", "examples": ["11 of 21 available"] },
+    { "name": "Mode policy stat", "type": "static-text", "region": "top-right", "examples": ["Read-only by default."] },
+    { "name": "Connected count badge", "type": "badge", "region": "Connected section header", "examples": ["11 active"] },
+    { "name": "Category count badge", "type": "badge", "region": "category header", "examples": ["Google Workspace 5", "Microsoft 365 4", "Atlassian 2", "Productivity 5", "Developer 1", "Scheduling 2", "Finance & Accounting 2"] },
+    { "name": "Connection status text", "type": "static-text", "region": "tile", "examples": ["Connected", "Connection expired. Click Try again to reconnect.", "A previous sign-in attempt was left unfinished. Click Try again to retry."] },
+    { "name": "manage above ↑ note", "type": "static-text", "region": "Available Tools tile (for already-connected tools also listed here)", "note": "tools connected via a category also appear in the Available Tools grid pointing back to the Connected section" }
+  ],
+  "modals": [],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-20", "buildRef": "no ticket - dev.app.velaops.ai", "changes": [
+      "Initial baseline captured - SCOPED, not exhaustive: covers only what TestRail case 62167 (abort OAuth popup) touches (tile Connect/Try-again states, category grid structure, Connected section). Individual tool permission dropdowns, category collapse/expand, and Manage dialog contents were observed but not fully crawled/verified - flagged honestly rather than claimed complete, per the zero-missing gate this skill normally requires. Re-baseline properly (full CRAWL) before building further Tools cases beyond 62167."
+    ] }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "module": "Profile & Settings",
+  "route": "/profile, /profile/edit, /settings/security, /settings/privacy",
+  "createdAt": "2026-07-20",
+  "updatedAt": "2026-07-20",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration (TestRail cases 62150/62152/62154/62161 scope only)",
+  "headings": ["Profile", "Personal Information", "Edit Personal Information", "Settings", "Password", "Two-factor authentication", "Downloads", "Privacy"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Full name", "type": "textbox", "region": "/profile/edit" },
+    { "label": "Email", "type": "textbox", "region": "/profile/edit", "note": "read-only - 'managed by your identity provider and can't be changed here'" },
+    { "label": "Company", "type": "textbox", "region": "/profile/edit" },
+    { "label": "Role", "type": "textbox", "region": "/profile/edit" },
+    { "label": "Current password", "type": "textbox (password)", "region": "/settings/security" },
+    { "label": "New password", "type": "textbox (password)", "region": "/settings/security" },
+    { "label": "Confirm new password", "type": "textbox (password)", "region": "/settings/security" }
+  ],
+  "actions": [
+    { "role": "link", "name": "Edit", "region": "/profile" },
+    { "role": "button", "name": "Save Changes", "region": "/profile/edit" },
+    { "role": "button", "name": "Update password", "region": "/settings/security", "state": "disabled", "note": "enables once all 3 password fields are filled" },
+    { "role": "button", "name": "Enable", "region": "/settings/security - Two-factor authentication", "note": "not exercised - would require a hard-to-reverse real 2FA setup on the shared account" },
+    { "role": "button", "name": "Delete Account", "region": "/settings/privacy", "opens": { "type": "dialog", "items": [
+      { "role": "heading", "name": "Delete your account?" },
+      { "role": "link", "name": "support@velaops.ai (mailto)" },
+      { "role": "button", "name": "Got it" },
+      { "role": "button", "name": "Close" }
+    ] } }
+  ],
+  "icons": [],
+  "modals": [],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-20", "buildRef": "no ticket - dev.app.velaops.ai", "changes": [
+      "Initial baseline captured - SCOPED, not exhaustive: covers only what the 4 built cases (62150, 62152, 62154, 62161) touch. /settings (General - DeepSeek API key section), /settings/notifications (Quiet Hours, Browser/Email toggles), /settings/usage, and the 2FA enable flow were observed but not crawled or exercised - flagged honestly per the zero-missing gate this skill normally requires, rather than claimed complete. Re-baseline properly (full CRAWL) before building further Profile & Settings cases beyond these 4."
+    ] }
+  ]
+}

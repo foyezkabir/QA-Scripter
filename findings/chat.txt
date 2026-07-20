@@ -1,0 +1,102 @@
+Title: Chat - agent flickers to a transient "Agent is getting ready…" not-ready state even after dashboard reports it Active [intermittent, dev.app.velaops.ai]
+Type: functional
+Module: chat
+Description: While automating message-send, the composer went from enabled ("Type a message…")
+  back to disabled with placeholder "Agent is getting ready…" at the exact moment a message was
+  being submitted - after the dashboard had already reported the agent as "Active" and fully
+  booted (6/6 steps complete, "Open chat" button present) moments earlier. The typed text remained
+  in the field but neither Send nor the suggestion chips were clickable during this window.
+Steps to reproduce:
+  1. Activate the Rex Dev agent from the dashboard and wait for "Open chat" / full ready state.
+  2. Open the chat surface and immediately attempt to send a message.
+  3. Occasionally (not on every attempt) the composer flips to disabled with "Agent is getting
+     ready…" for a period before becoming interactive again, with no visible explanation to the
+     user for why a supposedly-ready agent just stopped accepting input.
+Actual result: A "ready" agent can silently become temporarily unresponsive mid-session with a
+  vague placeholder and no toast/banner explaining why.
+Expected result: Either the agent should not report Active/ready until it can reliably accept
+  input, or a clear status banner should explain the transient reconnect (matching the "Status
+  banner ... generating, error" states documented for the composer - "reconnecting" seems to be a
+  real, undocumented state).
+Confidence: medium (directly observed and reproduced once with full DOM evidence; overlaps the
+  project's named chat/response-reliability shutdown-threat category, so worth dev-side triage
+  even without a guaranteed repro trigger)
+Update (2026-07-20, TestRail case 62212): found a concrete, more reliable trigger for this same
+  state - two independent browser sessions sending a message to the SAME conversation within
+  milliseconds of each other (tests/concurrency.spec.ts TC-02). After both sends, reloading the
+  conversation showed neither concurrent message anywhere in the transcript (only the earlier,
+  non-concurrent opening exchange remained) and the composer was stuck on "Agent is getting
+  ready…". Both messages were silently lost, not just delayed - no error, no retry, no trace of
+  either send. This looks like the backend enters this not-ready state when two near-simultaneous
+  requests hit the same conversation, and whatever is in flight at that moment gets dropped rather
+  than queued or retried.
+
+Title: Chat - two sessions sending to the same conversation within milliseconds of each other can silently lose both messages [dev.app.velaops.ai]
+Type: functional
+Module: chat
+Description: TestRail case 62212 expects that two tabs/sessions sending concurrently to the same
+  agent chat preserve correct message ordering with no drops. Confirmed live: with two independent
+  authenticated browser sessions open to the same conversation, sending one message from each at
+  the same time (via Promise.all, no artificial delay) resulted in NEITHER message appearing in
+  the conversation after a reload - the transcript showed only the single earlier exchange that
+  preceded the concurrent pair. The composer was left showing "Agent is getting ready…" (see the
+  related finding above - the same transient not-ready state, but now with a concrete trigger).
+Steps to reproduce:
+  1. Open the same conversation in two separate authenticated sessions (two browser contexts, same
+     account).
+  2. From both, send a message at approximately the same instant.
+  3. Reload the conversation.
+Actual result: Neither concurrently-sent message appears anywhere in the transcript; no error is
+  shown to either sender.
+Expected result: Both messages should be preserved and correctly ordered, even when sent at nearly
+  the same time from different sessions - never silently dropped.
+Confidence: high (reproduced via a real automated Playwright test - tests/concurrency.spec.ts TC-02
+  - not a manual-tooling artifact; uses two genuinely separate browser contexts, not two locators
+  on one page)
+
+Title: Chat - specific conversation permanently fails to load its history, silently falls back to the empty new-chat state [always reproduces on this one conversation, dev.app.velaops.ai]
+Type: functional
+Module: chat
+Description: Conversation "QA TC-05 injection test" (id 87c3f280-bc97-4fbd-b1b5-8f4475d708a7) on
+  the Rex Dev agent no longer loads at all - navigating directly to its URL, or clicking its
+  sidebar link, both land on the empty "Good evening, ... What would you like Rex Dev to help you
+  with today?" state instead of the conversation's messages. The sidebar entry itself still exists
+  and is clickable; the URL in the browser correctly shows the conversation's id. Other
+  conversations on the same agent (checked: "What can you help me with today?",
+  188eca74-3d13-4f12-a755-b6f5ab6ea008) load their full history normally, so this is isolated to
+  this one conversation, not a general Chat regression.
+Steps to reproduce:
+  1. On the Rex Dev agent, open conversation id 87c3f280-bc97-4fbd-b1b5-8f4475d708a7 (sidebar title
+     "QA TC-05 injection test"), either via direct URL or by clicking its sidebar link.
+Actual result: Always shows the empty/new-chat state instead of the conversation's messages. No
+  error is shown - looks indistinguishable from a fresh, empty conversation.
+Expected result: The conversation's saved messages should render, or a clear error/"this
+  conversation could not be loaded" message should appear instead of silently presenting as empty.
+Confidence: high (reproduced 2/2 manually via direct navigation and via sidebar-link click;
+  confirmed other conversations on the same agent load correctly, isolating the defect to this one
+  conversation)
+
+Title: Chat - reloading the page while a reply is still streaming resets the view to the empty new-chat state, hiding the in-progress conversation [dev.app.velaops.ai]
+Type: functional
+Module: chat
+Description: TestRail case 61908 expects that reloading mid-reply should not corrupt or duplicate
+  the conversation. Confirmed live: sending a message, reloading the page while the reply is still
+  streaming (Stop generating visible, composer disabled), then waiting - the page does NOT resume
+  showing the conversation or its in-progress/completed reply. Instead it silently falls back to
+  the empty "Good afternoon, <user> - What would you like Rex Dev to help you with today?" state,
+  as if no conversation existed. The conversation's sidebar entry still exists and is clickable
+  (title correctly shows the sent message), but the main view after reload shows the empty state,
+  not the conversation. This is the same class of defect as the "conversation permanently fails to
+  load its history" finding above, but freshly triggered here specifically by a mid-stream reload
+  rather than affecting one pre-existing stale conversation.
+Steps to reproduce:
+  1. Open the Rex Dev agent, send a message that generates a slow/long reply.
+  2. While "Stop generating" is visible (reply still streaming), reload the page (F5/page.reload()).
+  3. Wait for the page to finish loading.
+Actual result: Main view shows the empty new-chat state; the just-sent message and its reply
+  (partial or complete) are not shown. The URL still points at the conversation's id.
+Expected result: Reloading mid-reply should either resume showing the streaming/completed reply,
+  or at minimum reload and display the conversation's messages so far - never silently reset to
+  looking like a brand-new, empty conversation.
+Confidence: high (reproduced via a real automated Playwright test - tests/chat.spec.ts TC-20 -
+  not a manual-tooling artifact)

@@ -1,0 +1,73 @@
+{
+  "module": "Chat",
+  "route": "/chat/:agentId[/:convId]",
+  "createdAt": "2026-07-16",
+  "updatedAt": "2026-07-16",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration",
+  "headings": ["Good morning/afternoon/evening, <name>"],
+  "tabs": [],
+  "tables": [],
+  "fields": [
+    { "label": "Type a message…", "type": "textbox-multiline", "note": "placeholder becomes 'Agent is starting up…' and the field is disabled while the agent is warming/booting" }
+  ],
+  "actions": [
+    { "role": "button", "name": "New Chat", "region": "sidebar-top" },
+    { "role": "textbox", "name": "Search in chat", "region": "sidebar-top" },
+    { "role": "button", "name": "Filter recent chats", "region": "sidebar-top" },
+    { "role": "button", "name": "Add files", "region": "composer", "state": "disabled while warming" },
+    { "role": "button", "name": "<model name> e.g. 'DeepSeek V4 Pro (Direct)'", "region": "composer", "opens": { "type": "menu", "items": [
+      { "role": "button", "name": "DeepSeek V4 Flash (Direct)" },
+      { "role": "button", "name": "DeepSeek V4 Pro (Direct)" }
+    ], "notes": ["Header text: 'PRIMARY MODEL (APPLIES TO ALL CONVERSATIONS)'", "Warning: 'Switching will briefly reload the agent.' - confirmed disruptive, not automated"] } },
+    { "role": "button", "name": "Speech to text", "region": "composer" },
+    { "role": "button", "name": "Send message", "region": "composer", "state": "disabled until text entered; replaced by 'Stop generating' while a reply streams" },
+    { "role": "button", "name": "What can you do for me?", "region": "empty-state-chips" },
+    { "role": "button", "name": "How are my projects performing?", "region": "empty-state-chips" },
+    { "role": "button", "name": "Draft an email to a client", "region": "empty-state-chips" },
+    { "role": "button", "name": "More options", "region": "sidebar-conversation-row", "count": "one per conversation", "opens": { "type": "menu", "items": [
+      { "role": "button", "name": "Rename" },
+      { "role": "button", "name": "Pin", "note": "undocumented in app-guide - flagged as drift, not confirmed as a bug" },
+      { "role": "button", "name": "Delete chat" }
+    ] } }
+  ],
+  "icons": [
+    { "name": "Collapse/Expand sidebar", "type": "icon-button", "region": "sidebar-top" }
+  ],
+  "other": [
+    { "name": "Per-message action row (assistant turn)", "type": "button-group", "region": "message", "items": ["Copy", "Retry", "Read aloud", "Like", "Unlike"] },
+    { "name": "Per-message action row (user turn)", "type": "button-group", "region": "message", "items": ["Copy", "Edit", "Regenerate response"] },
+    { "name": "Token usage footer per assistant reply", "type": "static-text", "region": "message", "example": "137.3k input tokens / 14.7k cached tokens / 4 output tokens" },
+    { "name": "Warming/boot progress list (cold start)", "type": "static-text-list", "region": "main", "examples": ["Embedding service", "Tool integrations", "Installing WhatsApp plugin", "Installing Teams plugin", "Running diagnostics", "Starting gateway"] }
+  ],
+  "modals": [
+    {
+      "trigger": "Delete chat (conversation kebab menu)",
+      "title": "Delete chat?",
+      "description": "\"<conversation title>\" and all its messages will be permanently deleted. This cannot be undone.",
+      "buttons": ["Cancel", "Delete", "Close"],
+      "fields": []
+    }
+  ],
+  "views": [
+    {
+      "name": "Dashboard agent card",
+      "route": "/dashboard",
+      "openedBy": "Back link from agent shell, or direct nav",
+      "headings": ["Agents"],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [
+        { "role": "button", "name": "Activate & Chat", "region": "agent-card", "state": "shown only when agent status = Inactive" },
+        { "role": "button", "name": "Configure agent", "region": "agent-card" },
+        { "role": "button", "name": "Open chat", "region": "agent-card", "state": "shown only when agent status = Active and fully booted" },
+        { "role": "button", "name": "Reload agent", "region": "agent-card", "state": "shown only when Active" },
+        { "role": "button", "name": "Stop agent", "region": "agent-card", "state": "shown only when Active" },
+        { "role": "button", "name": "Agent is booting", "region": "agent-card", "state": "disabled - transient, shown only mid-activation with a 'Finishing up… N/6' progress counter" }
+      ]
+    }
+  ],
+  "changelog": [
+    { "date": "2026-07-16", "buildRef": "no ticket - dev.app.velaops.ai", "changes": ["Initial baseline captured"] }
+  ]
+}

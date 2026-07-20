@@ -1,0 +1,21 @@
+Title: Workspace - uploading a file with a name that already exists silently overwrites it instead of being blocked [dev.app.velaops.ai]
+Type: functional
+Module: workspace
+Description: TestRail case 61964 expects that uploading a file whose name matches an existing
+  Workspace file is blocked. Confirmed live: uploading "qa-dup-test.txt", then immediately
+  re-uploading the identical file name again, produced no error, no conflict prompt, and no
+  rename/overwrite confirmation. The file listing still shows exactly one row for that name (no
+  visible content difference, since the second upload was byte-identical), and the "Upload
+  activity" panel logged both attempts as successful ("2 uploads complete", two separate
+  "Uploaded to Workspace" entries) - i.e. the second upload silently replaced the first with no
+  warning of any kind, rather than being blocked.
+Steps to reproduce:
+  1. Workspace page -> Upload file -> pick any local file (e.g. qa-dup-test.txt).
+  2. Confirm it appears in the listing.
+  3. Click Upload file again and pick the exact same file/name a second time.
+Actual result: Second upload succeeds silently, overwriting the first; no error/conflict/rename
+  prompt is shown at any point.
+Expected result (per checklist): Uploading a duplicate file name should be blocked, with a clear
+  indication to the user (error, rename prompt, or overwrite confirmation).
+Confidence: high (reproduced via a real automated Playwright test - tests/workspace.spec.ts TC-04
+  - not a manual-tooling artifact)

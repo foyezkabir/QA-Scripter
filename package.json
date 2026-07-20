@@ -1,0 +1,31 @@
+{
+  "name": "qa-scripter",
+  "version": "1.0.0",
+  "description": "A Playwright end-to-end test-automation project built around the **`qa-scripter`** agent. It turns a **Jira ticket**, **Figma design**, **Gherkin scenario**, **pasted requirement**, or the **live UI** into maintainable Playwright tests using a **Strict Decoupled Page Object Model**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run-checklist": "tsx scripts/runDailyChecklist.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/foyezkabir/QA-Scripter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/foyezkabir/QA-Scripter/issues"
+  },
+  "homepage": "https://github.com/foyezkabir/QA-Scripter#readme",
+  "devDependencies": {
+    "@faker-js/faker": "^10.5.0",
+    "@playwright/test": "^1.61.1",
+    "@types/node": "^26.1.1",
+    "dotenv": "^17.4.2",
+    "playwright-smart-reporter": "^1.6.5",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2"
+  }
+}

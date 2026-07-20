@@ -1,0 +1,58 @@
+Title: Skills - "Installed on this agent" badge is exposed only via a title-attribute tooltip, no accessible name/text [always, dev.app.velaops.ai]
+Type: UI / accessibility
+Module: skills
+Description: The badge shown on already-installed skill cards is a <span title="Installed on this
+  agent"> with a checkmark icon and no visible text content, aria-label, or ARIA role. Its only
+  accessible signal is the HTML title attribute (a hover tooltip), confirmed via direct DOM
+  inspection.
+Steps to reproduce:
+  1. Open any agent's Skills page -> Browse tab.
+  2. Inspect an already-installed skill card's badge (top-right corner, green check).
+Actual result: Screen readers get no meaningful announcement beyond whatever a title-attribute
+  tooltip happens to expose (unreliable across assistive tech); sighted keyboard-only users get no
+  tooltip at all without a mouse hover.
+Expected result: The badge should have a proper accessible name (e.g. visually-hidden text or
+  aria-label="Installed on this agent") so its state is announced without depending on a mouse-only
+  tooltip.
+Confidence: high
+
+Title: Skills - skill detail modal has no role="dialog" (or any ARIA modal semantics) [always, dev.app.velaops.ai]
+Type: UI / accessibility
+Module: skills
+Description: Clicking "View details for <skill>" opens a modal built from plain fixed-position
+  <div> elements with no role="dialog", aria-modal, or accessible name on the container - confirmed
+  via direct DOM inspection (walked the full ancestor chain from the modal's own heading, every
+  node had role=null). This is inconsistent with the Create Task / Create Project modals on the
+  same platform, which correctly expose role="dialog" with a description. The Create Skill modal
+  (a sibling feature on this same page) also correctly uses role="dialog".
+Steps to reproduce:
+  1. Open any agent's Skills page -> Browse tab -> click "View details for <any skill>".
+  2. Inspect the resulting modal's DOM ancestry, or query it with an accessibility tree tool.
+Actual result: No role="dialog"/aria-modal anywhere - screen readers won't announce it as a modal,
+  won't trap focus semantically, and assistive tech has no way to identify it as an overlay.
+Expected result: The skill detail modal should use the same dialog semantics as every other modal
+  on the platform (Create Task, Create Project, Create Skill all do this correctly).
+Confidence: high
+
+Title: Skills - creating a custom skill with a name that already exists is blocked with no visible feedback to the user [always, dev.app.velaops.ai]
+Type: functional / UX
+Module: skills
+Description: TestRail case 62037 expects that creating a second custom skill with the exact same
+  name as an existing one prompts for a different name. Confirmed live: the backend correctly
+  rejects the duplicate (network tab shows a 409 Conflict from
+  POST /api/skills-v2/agents/:agentId/install-custom), and no duplicate card/row is created
+  (Installed count stayed at 14 both before and after the second attempt) - the block itself works.
+  However, the UI shows absolutely nothing to the user when this happens: no error toast, no
+  inline field error, no message of any kind. The Create Skill dialog just sits there unchanged
+  after clicking "Create Skill" a second time with the same name, as if nothing happened - a user
+  would have no way to know their submission was rejected or why.
+Steps to reproduce:
+  1. Skills page -> Create skill -> fill in a name (e.g. "QA Dup Skill Test") + required fields ->
+     Create Skill. Confirm it appears in the Installed tab.
+  2. Create skill again -> use the exact same name + any field values -> Create Skill.
+Actual result: Request fails with 409 (visible only in DevTools network/console); dialog remains
+  open with no visible error message, no rename prompt, nothing indicating the submission failed.
+Expected result (per checklist): Attempting to reuse an existing custom skill name should prompt
+  the user for a different name, not fail invisibly.
+Confidence: high (reproduced via a real automated Playwright test - tests/skills.spec.ts TC-14 -
+  not a manual-tooling artifact; backend 409 confirmed via console message)

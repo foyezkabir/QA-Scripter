@@ -1,0 +1,31 @@
+{
+  "module": "Dashboard",
+  "route": "/dashboard",
+  "createdAt": "2026-07-20",
+  "updatedAt": "2026-07-20",
+  "buildRef": "no ticket - dev.app.velaops.ai live exploration (TestRail cases 61920/61924/61931/61932 scope only)",
+  "headings": ["Agents"],
+  "tabs": [],
+  "tables": [],
+  "fields": [],
+  "actions": [
+    { "role": "link", "name": "New Agent", "region": "top-right" },
+    { "role": "button", "name": "Open chat (Let's Chat)", "region": "agent card", "count": 2 },
+    { "role": "button", "name": "Reload agent", "region": "agent card", "count": 2 },
+    { "role": "button", "name": "Stop agent", "region": "agent card", "count": 2 },
+    { "role": "button", "name": "Activate & Chat", "region": "agent card", "note": "replaces Stop agent once a card is Inactive" },
+    { "role": "button", "name": "Configure agent", "region": "agent card", "note": "observed only while the card is mid-boot ('Running diagnostics… N/6'), links to /chat/:id/configuration" }
+  ],
+  "icons": [],
+  "other": [
+    { "name": "Status badge", "type": "static-text", "region": "agent card", "examples": ["Active", "Inactive"] },
+    { "name": "2FA nudge banner", "type": "banner", "region": "top of page", "examples": ["Protect your account. Enable two-factor authentication for an extra layer of security."], "note": "dismissible, not exercised further" }
+  ],
+  "modals": [],
+  "views": [],
+  "changelog": [
+    { "date": "2026-07-20", "buildRef": "no ticket - dev.app.velaops.ai", "changes": [
+      "Initial baseline captured - SCOPED, not exhaustive: covers only what the 4 built cases (61920, 61924, 61931, 61932) touch (agent cards' Stop/Activate/status badge, and the generic invalid-agent-id route check). The booting/diagnostics sequence, the 2FA banner's dismiss persistence, and any card menu beyond what's shown were observed but not fully crawled - flagged honestly per the zero-missing gate this skill normally requires, rather than claimed complete."
+    ] }
+  ]
+}

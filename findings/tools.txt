@@ -1,0 +1,20 @@
+Title: Tools module - aborting an OAuth sign-in popup mid-flow leaves the tile in an error state, not a clean Unconnected revert [dev.app.velaops.ai]
+Type: functional
+Module: tools
+Description: TestRail case 62167 expects that closing a third-party OAuth popup before completing
+  sign-in cleanly returns the tool tile to its original Not Connected state, with no error message
+  and no lingering broken state. Confirmed live (Linear tile, Productivity category): after
+  clicking Connect, waiting for the real OAuth popup (app opened a genuine external sign-in
+  window), and closing that popup before completing sign-in, the tile does NOT return to a plain
+  "Connect" button. Instead it shows: "The sign-in window closed before authorization finished.
+  Click Try again to retry." with a "Try again" button replacing "Connect".
+Steps to reproduce:
+  1. Tools page -> any Not-Connected tool (e.g. Linear) -> click Connect.
+  2. Real OAuth popup opens (e.g. app.linear.app or similar external sign-in page).
+  3. Close the popup window before completing sign-in.
+  4. Tile now shows the error text above + a "Try again" button, not the original plain "Connect".
+Actual result: Tile lands in a distinct error/retry state, not the original Unconnected state.
+Expected result (per checklist): Tile should cleanly return to Not Connected with no error message
+  and no lingering broken state.
+Confidence: high (reproduced via a real automated Playwright test using page.waitForEvent('popup')
+  + popup.close() - not a manual-tooling artifact; see tests/tools.spec.ts TC-01)

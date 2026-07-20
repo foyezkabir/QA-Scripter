@@ -1,0 +1,21 @@
+Title: Messaging - saving Microsoft Teams credentials with an invalid Tenant ID connects immediately instead of failing [always, dev.app.velaops.ai]
+Type: functional
+Module: messaging
+Description: TestRail case 62072 expects that saving Teams credentials with an incorrect Tenant ID
+  moves the connection to a Failed status (without a silent auto-retry loop). Confirmed live:
+  filling App ID / App password with plausible-looking values and Tenant ID with a clearly invalid,
+  non-existent string ("this-is-not-a-valid-tenant-id-!!!"), then clicking Connect, immediately
+  flips the channel status to "Connected" - the same as with genuinely valid-shaped credentials.
+  There is no synchronous (or apparent asynchronous) validation against Azure AD/Bot Framework at
+  all before reporting success.
+Steps to reproduce:
+  1. Messaging page -> Microsoft Teams -> toggle open -> fill App ID (any GUID-shaped string) and
+     App password (any string) -> fill Tenant ID with an obviously invalid value.
+  2. Click Connect.
+Actual result: Status immediately shows "Connected" - no Failed state, no error, no validation
+  against the real Tenant ID at all.
+Expected result (per checklist): An incorrect Tenant ID should move the connection to Failed
+  status, not silently report Connected.
+Confidence: high (reproduced via a real automated Playwright test - tests/messaging.spec.ts TC-09
+  - not a manual-tooling artifact; also independently corroborated by a pre-existing code comment
+  in datas/messaging/MessagingData.ts noting the same lack of synchronous Azure validation)
