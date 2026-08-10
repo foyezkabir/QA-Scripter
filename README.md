@@ -13,6 +13,8 @@ All test-authoring work goes through the agent - you do **not** hand-write specs
 - [Inputs the Agent Accepts](#inputs-the-agent-accepts)
 - [How to Work Here](#how-to-work-here)
 - [The Workflow (end to end)](#the-workflow-end-to-end)
+- [Enforcement: the rules are hooks](#enforcement-the-rules-are-hooks-not-an-honour-system)
+- [Subagent: crawl-surface](#subagent-crawl-surface)
 - [Architecture: 4 Code Tiers and Companions](#architecture-4-code-tiers-and-companions)
 - [Tier Rules](#tier-rules)
 - [Locators: Strict Source and Priority](#locators-strict-source-and-priority)
@@ -102,16 +104,52 @@ The agent has **two execution workflows**:
 Gaps come from missed **states/transitions**, not missed buttons - and you can't see states without data. Run this fully **before any locator or test**:
 
 1. **MAP** - enumerate every route/view/entry point (nav + AC + Figma) before going deep.
-2. **CRAWL** - worklist of surfaces; expand every ⋮/menu/dropdown/tab/accordion/modal; new surfaces re-queue; **done only at empty worklist**.
-3. **MODEL** - per view: states (empty/loading/populated/error/disabled/role-gated/terminal), transitions + preconditions, data in/out, validation. **Seed data via API to force non-happy states.**
+2. **CRAWL** - worklist of surfaces; expand every ⋮/menu/dropdown/tab/accordion/modal; new surfaces re-queue; **done only at empty worklist**. **Each surface is crawled by a `crawl-surface` subagent** (see [Subagent](#subagent-crawl-surface)) - one per surface, so snapshots never crowd the main context.
+3. **MODEL** - per view: states (empty/loading/populated/error/disabled/role-gated/terminal), transitions + preconditions, data in/out, validation. **Seed data via API to force non-happy states.** Every state actually reached is recorded in the baseline's `states[]` and **must have a test** - the `Stop` gate enforces it. A state you could not reach gets `"reached": false` + a reason, which is a documented limitation rather than a gap.
 4. **TRIANGULATE** - AC ↔ Figma ↔ live: in AC/Figma not live = missing/bug; in live not AC = unspec'd; Figma ≠ live = drift.
 5. **PLAN (persisted)** - write `plan/<module>.md` (view × state × action → `TC-XX` + tag). On disk, so it survives context compaction and feeds traceability.
-6. **CRITIC (gate)** - FAIL & loop if any AC / observed state / transition / error / validation / role-gated element has 0 tests. Proceed only at **zero-missing**.
+6. **CRITIC (gate)** - FAIL & loop if any AC / observed state / transition / error / validation / role-gated element has 0 tests. Proceed only at **zero-missing**. **Machine-verified:** `qa-coverage.mjs` + `qa-crawl.mjs` run on `Stop` and block the turn until this holds - see [Enforcement](#enforcement-the-rules-are-hooks-not-an-honour-system).
 7. **GENERATE** the 4 tiers from the plan.
 
 ### Phase 0 & 1 (first run)
 
 Before any feature work, the agent runs a one-time **Bootstrap (Phase 0)** and a **Smoke Test + Self-Heal (Phase 1)** to prove the harness runs green. See [Bootstrap & First Run](#bootstrap--first-run-what-the-agent-does).
+
+---
+
+## Enforcement: the rules are hooks, not an honour system
+
+Every "zero tolerance" rule in this README is enforced **mechanically** by hooks in `.claude/hooks/` (wired in `.claude/settings.json`). A violation **blocks the write** and returns the rule id, the line, and the fix. That binds any agent or session touching the repo - not just one that remembered to read the docs. Full rule table: **`.claude/hooks/RULES.md`**.
+
+| Event | Hook | What it does |
+|---|---|---|
+| `Setup` | `qa-setup.mjs` | mechanical half of Phase 0: deps, `tsconfig.json`, `.env`, `fixtures/evidence.ts`, `eslint.config.mjs` + `qa-rules.mjs` → root, companion dirs. Idempotent; refuses to run outside this project |
+| `SessionStart` | `session-status.mjs` | prints which gates are armed, which lint tier is live, project readiness, empty `.env` keys. Reports only |
+| `PreToolUse` | `qa-guard.mjs` | **refuses any write to `.env` or `.auth/**`** |
+| `PostToolUse` | `qa-lint.mjs` | **21 lint rules** - ESLint (AST) when installed, regex fallback before `npm install` |
+| `PostToolUse` | `evidence-drift.sh` | `fixtures/evidence.ts` must match its template exactly |
+| `Stop` | `qa-coverage.mjs` | **requirement coverage** - reconciles `plan/` ↔ `tests/` ↔ `traceability/` |
+| `Stop` | `qa-crawl.mjs` | **crawl completeness** - reconciles `baselines/` ↔ `plan/` (controls **and** states) |
+
+**What the lint gate catches:** spec control flow (`if`/`for`/`try`/ternary) · `waitForTimeout` · `expect.poll` around a locator · XPath/CSS/`.nth()`/`frameLocator` with no justifying comment · tier leaks (`new XPage()`, direct `pages/` import, `beforeEach`, inline faker) · assertions in pages/fixtures/setup · logic in locators · login in a spec · hard-coded credentials · `test.use()` inside `test()` · test-name format · tags in the title · missing assertion intent message · multi-phase test with no `test.step()` · duplicated selector · `networkidle` · `describe.serial` · timeouts over 60s.
+
+**The two `Stop` gates make the CRITIC step provable.** They refuse to let a turn end on: a planned TC with no test · a test in no plan · a `GAP` line · a **`Coverage:` line that disagrees with reality** · a duplicate TC id · a missing tier tag · a **control in the baseline nobody planned to test** · a **state observed live with no test** · a shallow crawl (`"views": []`, unexpanded `opens`, columnless tables, no `states[]`).
+
+This is **requirement coverage, not istanbul/c8 line coverage** - a Playwright suite exercises the app, not itself.
+
+**Run the same checks yourself:** `npx eslint .` and `npx tsc --noEmit` (both wired as `npm run lint` / `npm run typecheck`).
+
+**What no hook can check** - and where the responsibility stays human: whether an assertion is *meaningful*; whether the plan itself was thorough (the gate proves the artifacts agree, not that exploration was complete); transitions and preconditions between states.
+
+---
+
+## Subagent: `crawl-surface`
+
+`.claude/agents/crawl-surface.md` crawls **one** UI surface (a view, tab, modal, or expanded menu) and returns only a **baseline JSON fragment**.
+
+**Mandatory for MAP/CRAWL and baseline capture:** one subagent per surface, dispatched in parallel where surfaces are independent. The accessibility snapshots stay in the subagent's context, so exploration doesn't degrade under context pressure - which is the main reason surfaces get missed. The main agent orchestrates (worklist → dispatch → merge fragments) and never snapshots a surface to inventory it.
+
+A fragment marked `"failed": true` means that surface was **not** captured: re-dispatch or record it - never treat it as empty.
 
 ---
 
@@ -394,13 +432,24 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 | `chrome-devtools` | `chrome-devtools-mcp@latest` | **Primary** UI inspection - `take_snapshot`, `take_screenshot`, navigation, clicks; the source of locators |
 | `playwright` | `@playwright/mcp@latest` | Secondary / fallback browser automation |
 
-**Permissions** (`.claude/settings.json`, committed) - pre-approved so there are no prompts:
-- `mcp__chrome-devtools`, `mcp__playwright`, `mcp__plugin_playwright_playwright`
-- `npx playwright:*`, `npx chrome-devtools-mcp:*`, `npm install:*`, `npm init:*`
+**Permissions** (`.claude/settings.json`, committed) - 31 rules, pre-approved so there are no prompts:
+- **MCP:** `mcp__chrome-devtools`, `mcp__playwright`, `mcp__plugin_playwright_playwright` (prefix rules - they cover every tool on those servers, snapshots and clicks included)
+- **Playwright:** `npx playwright test:*`, `install:*`, `show-report:*`
+- **Lint / types:** `npx eslint:*`, `npx tsc:*`, `npm run lint:*`, `npm run typecheck:*`
+- **Scaffold:** `npm install:*`, `npm init:*`, `date:*`, `mkdir -p:*`, `cp .claude/templates/:*`
+- **Hooks:** `node .claude/hooks/:*`
+- **Read-only:** `cat`, `ls`, `head`, `tail`, `wc`, `grep`, `find`, `git status/diff/log`
+- **Denied:** reading `.env` and `.auth/**`. Writes to both are blocked by the `PreToolUse` hook.
 
-**Env / secrets** - copy `.env.example` (committed template, documents every key) to `.env` (gitignored) and fill in `BASE_URL` + credentials.
+The skill also declares `allowed-tools` in its frontmatter (browser tools + `Agent`, needed to spawn `crawl-surface`), which pre-approves them for the invoking turn.
 
-**Dev dependencies** (installed at bootstrap): `@playwright/test`, `typescript`, `@types/node`, `@faker-js/faker`, `dotenv`, `playwright-smart-reporter`.
+**Env / secrets** - the `Setup` hook copies `.env.example` (committed template, documents every key) to `.env` (gitignored) with **values left empty**. Fill in `BASE_URL` + credentials yourself: the agent is **blocked** from writing `.env` or `.auth/**` by the `PreToolUse` hook, and `SessionStart` reports any keys still empty.
+
+**Dev dependencies** (installed by the `Setup` hook at bootstrap): `@playwright/test`, `typescript`, `@types/node`, `@faker-js/faker`, `dotenv`, `playwright-smart-reporter`, `eslint`, `typescript-eslint`.
+
+**Playwright version:** unpinned, so bootstrap installs the current release (1.62.x at the time of writing). The scaffolded config uses `retryStrategy: 'isolated'` (PW ≥1.62) so retries run at the end, one at a time in a single worker - a retry can't be polluted by a neighbour still running.
+
+**Lint config:** `eslint.config.mjs` + `qa-rules.mjs` are copied to the project root from `.claude/hooks/lint/` by the `Setup` hook. They must sit at the root - ESLint resolves its config from the cwd upward and never searches subdirectories. **Never edit them to silence a violation;** change the source in `.claude/hooks/lint/`.
 
 **Browsers:** chromium, webkit, firefox (config runs all three projects).
 
@@ -410,14 +459,22 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 
 ## Bootstrap & First Run (what the agent does)
 
-**Phase 0 - One-Time Bootstrap** (idempotent; skipped if everything already exists):
-```bash
-[ -f package.json ] || npm init -y
-npm install --save-dev @playwright/test typescript @types/node @faker-js/faker dotenv playwright-smart-reporter
-npx playwright install
-npx playwright install chromium webkit firefox
+**Phase 0 - One-Time Bootstrap** (idempotent; skipped if everything already exists). It runs in two halves:
+
+**a) The `Setup` hook** (`.claude/hooks/qa-setup.mjs`) does the mechanical part *before the agent acts*, so it cannot be half-done or skipped:
 ```
-Creates any missing standard files: `tsconfig.json` (strict), `.env` (copied from `.env.example`), `.gitignore`, `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts` (copied verbatim from `.claude/templates/evidence.ts`), `global-setup.ts`. Verifies `npx tsc --noEmit` is clean and MCPs are connected.
+npm init -y  +  npm install --save-dev @playwright/test typescript @types/node
+               @faker-js/faker dotenv playwright-smart-reporter eslint typescript-eslint
+tsconfig.json (strict)  ·  .env from .env.example (values left EMPTY)
+eslint.config.mjs + qa-rules.mjs -> project root   (arms the AST lint tier)
+fixtures/evidence.ts from .claude/templates/evidence.ts   (verbatim)
+npm scripts: lint, typecheck   ·   baselines/ plan/ traceability/ findings/
+```
+It refuses to run unless the directory is unmistakably this project, and never overwrites an existing file.
+
+**b) The agent** then writes what needs judgement, verbatim from SKILL.md: `playwright.config.ts`, `fixtures/base.ts`, `global-setup.ts` - then installs browsers (`npx playwright install chromium webkit firefox`) and verifies `npx tsc --noEmit` and `npx eslint .` are both clean.
+
+> **`global-setup.ts` ships with its login block commented out.** That is the one piece needing real work: fill it from the live login page (locators captured live, credentials from `.env`), or `.auth/*.json` is never produced and every test runs unauthenticated.
 
 **Phase 1 - Smoke Test & Self-Heal** (first run only): runs BEFORE task intake and needs zero input. Generates a minimal `tests/smoke.spec.ts` (`expect(true).toBe(true)`), runs `npx tsc --noEmit` then `npx playwright test tests/smoke.spec.ts --project=chromium`, and self-heals red output (up to 5 attempts). If `.env` has no creds yet, it temporarily drops `storageState` so the harness smoke goes green without a login session (`.auth/user.json` does not exist until the first authenticated run after `.env` is filled). The app-reachability check (`goto('/')`) is deferred to the workflow start, when `BASE_URL` exists. On green it deletes the smoke spec and proceeds; on red after 5 attempts it STOPS and reports. Never continues on red.
 
@@ -441,19 +498,27 @@ npx playwright test --grep "@smoke|@critical"
 npx playwright test --grep-invert @regression
 
 # type check
-npx tsc --noEmit
+npx tsc --noEmit      # or: npm run typecheck
+
+# lint - the SAME 21-rule AST ruleset the write-time hook enforces.
+# A green run means the suite already satisfies every Core Restriction.
+npx eslint .          # or: npm run lint
 ```
 
-Report: `smart-report.html` (falls back to the built-in `html` reporter if `playwright-smart-reporter` can't load). CI-aware config: `retries: 2` and `workers: 1` under `CI`, trace + video `retain-on-failure` (feeds the failure-evidence trail), screenshot `only-on-failure`.
+Report: `smart-report.html` (falls back to the built-in `html` reporter if `playwright-smart-reporter` can't load). CI-aware config: `retries: 2` and `workers: 1` under `CI`, `retryStrategy: 'isolated'` (retries run at the end, one at a time), trace + video `retain-on-failure` (feeds the failure-evidence trail), screenshot `only-on-failure`.
 
 ---
 
 ## Gotchas
 
-- MCP servers, permissions, skills, and agent specs load at **session startup** - after config changes (including new `.claude/skills/`), **restart the session**.
+- MCP servers, permissions, skills, **hooks**, and **agent specs** load at **session startup** - after any config change, **restart the session**. The `SessionStart` line tells you which gates are armed, so you can confirm the restart took effect.
 - `chrome-devtools-mcp` is the real package name (not `@anthropic-ai/...`).
-- **Never commit baseline images** - baselines are text JSON only.
+- **Never commit baseline images** - baselines are text JSON only. `baselines/` itself **is** committed (it's the self-heal reference *and* the crawl gate's checklist); `failures/` is entirely gitignored.
 - Locators are captured from the **live UI only** - if there's no build yet, locators are stubbed `// TODO: capture from live UI`, never guessed.
+- **Capture the baseline BEFORE writing the plan.** The baseline is the checklist the plan is written against - planning first means planning from memory, and the `Stop` gate will catch the gaps.
+- **Never edit a hook, `eslint.config.mjs`, `qa-rules.mjs`, a plan row, or a `Coverage:` line to make a gate pass.** Fix the code. If a rule is genuinely wrong for a case, raise it.
+- The lint config at the project root is a **copy** - the source of truth is `.claude/hooks/lint/`. Edit the root file and your change is lost on a fresh clone.
+- If a `crawl-surface` fragment comes back `"failed": true`, that surface was **not** captured. Re-dispatch it; a blank is not the same as "nothing there".
 
 ---
 

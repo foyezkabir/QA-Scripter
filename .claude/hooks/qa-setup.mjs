@@ -97,6 +97,18 @@ function main() {
     }
   }
 
+  /* --- 1b. fixtures/evidence.ts - the one file with a committed template --- */
+  // CLAUDE.md requires this be scaffolded VERBATIM from the template, and
+  // evidence-drift.sh blocks any divergence. Copying it here removes the only
+  // way that rule can be broken. playwright.config.ts / base.ts /
+  // global-setup.ts stay the agent's job: they are written from SKILL.md and
+  // then adapted per app, so a hook must not own them.
+  if (existsSync(p('.claude', 'templates', 'evidence.ts')) && !has('fixtures', 'evidence.ts')) {
+    if (!existsSync(p('fixtures'))) mkdirSync(p('fixtures'), { recursive: true });
+    copyFileSync(p('.claude', 'templates', 'evidence.ts'), p('fixtures', 'evidence.ts'));
+    note('copied fixtures/evidence.ts from .claude/templates/evidence.ts');
+  }
+
   /* --- 2. tsconfig.json ---------------------------------------------------- */
   if (!has('tsconfig.json')) {
     writeFileSync(p('tsconfig.json'), JSON.stringify(TSCONFIG, null, 2) + '\n');

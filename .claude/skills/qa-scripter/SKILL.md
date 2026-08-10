@@ -441,6 +441,13 @@ Rules:
 - **Do NOT** use `expect.poll` for locators - web-first assertions already handle that.
 - `LoopHelper` repeats an **action** N times - it is **NOT** a waiter. Wait on a condition with `expect.poll` / `toPass`.
 - Never `waitForTimeout()`.
+- **`AbortSignal` (PW ≥1.62) is a CANCELLER, not a waiter.** Most actions and assertions accept `{ signal }`, so an operation can be cancelled from outside:
+  ```typescript
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), 1_000);
+  await page.getByRole('button', { name: 'Submit' }).click({ signal: controller.signal });
+  ```
+  Passing a signal **does not disable the default timeout** (`timeout: 0` does). In a spec you almost never need this - a plain web-first assertion is the right tool, and `setTimeout` in a spec is a sleep by another name. Legitimate use is inside a **helper** wrapping a genuinely cancellable operation (e.g. abandoning a long export). Never reach for it to "make a flaky wait pass".
 
 ## Phase 0: One-Time Bootstrap
 
@@ -485,6 +492,9 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  retryStrategy: 'isolated', // PW ≥1.62: retries run at the END, one at a time in a
+                             // single worker - a retry can't be polluted by a neighbour
+                             // still running. Default 'immediate' retries in place.
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['list'],
