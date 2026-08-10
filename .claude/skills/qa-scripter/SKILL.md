@@ -1,6 +1,7 @@
 ---
 name: qa-scripter
 description: Generates and maintains Playwright end-to-end automation CODE using the Strict Decoupled Page Object Model (4 tiers - Locators, Pages, Data, Spec). Use for turning a Jira ticket, Figma design, screenshot, Gherkin scenario, or pasted requirement into Playwright tests; inspecting a live/staging UI to derive locators; scaffolding a Playwright project; or adding/refactoring specs, page objects, and helpers. Usage - /qa-scripter <task> (bare /qa-scripter bootstraps if needed, then asks what to automate). NOT for QA test-case documents, TestRail imports, or API/Postman testing.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, TodoWrite, mcp__chrome-devtools__take_snapshot, mcp__chrome-devtools__take_screenshot, mcp__chrome-devtools__navigate_page, mcp__chrome-devtools__new_page, mcp__chrome-devtools__select_page, mcp__chrome-devtools__list_pages, mcp__chrome-devtools__close_page, mcp__chrome-devtools__click, mcp__chrome-devtools__hover, mcp__chrome-devtools__fill, mcp__chrome-devtools__fill_form, mcp__chrome-devtools__type_text, mcp__chrome-devtools__press_key, mcp__chrome-devtools__drag, mcp__chrome-devtools__upload_file, mcp__chrome-devtools__handle_dialog, mcp__chrome-devtools__wait_for, mcp__chrome-devtools__evaluate_script, mcp__chrome-devtools__resize_page, mcp__chrome-devtools__emulate, mcp__chrome-devtools__list_network_requests, mcp__chrome-devtools__get_network_request, mcp__chrome-devtools__list_console_messages, mcp__chrome-devtools__get_console_message, mcp__playwright__browser_snapshot, mcp__playwright__browser_navigate, mcp__playwright__browser_navigate_back, mcp__playwright__browser_click, mcp__playwright__browser_hover, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_select_option, mcp__playwright__browser_press_key, mcp__playwright__browser_drag, mcp__playwright__browser_drop, mcp__playwright__browser_file_upload, mcp__playwright__browser_handle_dialog, mcp__playwright__browser_wait_for, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_evaluate, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_resize, mcp__playwright__browser_tabs, mcp__playwright__browser_find, mcp__playwright__browser_close
 ---
 
 # QA Scripter
@@ -86,9 +87,10 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
 - **Never gate on colors, exact sizes, or pixel diffs** - too volatile, they flood false drift.
 - **EXHAUSTIVE - MISS NOTHING (strict).** Capture **everything present in the snapshot, whatever it is** - do NOT scan for a fixed list of element types. Walk the entire accessibility tree and account for every node. Before recording, expand every hidden surface: open each `⋮`/kebab/overflow menu, every dropdown, accordion, and tab, and record their **nested items** under the control that opens them (`opens`). Hover to reveal hidden row actions. A surface you did not expand is a control you WILL miss.
 - **The element types named anywhere in this file are EXAMPLES, not the checklist.** Buttons, icons, tables, columns, tabs, fields, menu items, sub-views are illustrative. If the page has anything else - badges, chips, toggles, steppers, status pills, tags, tooltips, banners, breadcrumbs, pagination, counts, empty-state text, anything - capture it too. Searching only for the named types drops quality; the standard is *total coverage of what is actually on the page*. When unsure whether something counts, include it (use a generic `other[]` key if it fits no other field).
+- **STATES, not just controls (strict).** Record a `states[]` per view: which of `empty · loading · populated · error · disabled/invalid · role-gated:<role> · terminal` you actually **reached**, and `how` you forced it (usually API seeding). A state you could not reach gets `"reached": false` + `why` - that is a recorded finding, not a blank. **This is the point of the whole exercise:** gaps come from missed states, not missed buttons, and `qa-crawl.mjs` requires a plan row for every state you marked `reached: true`. Listing a state you never reached to satisfy the gate is falsifying the record.
 - **RECURSIVE - capture every view (strict).** A module is NOT just its list page. Navigate INTO a representative record's detail page and every sub-view / nested route reachable within the module, and record each under `views[]` with its own headings, tabs, tables, fields, and actions. **Every table - on the list AND on any detail page - must be recorded** as `{ name, columns, rowActions, hasRowMenu }`. A nested table on a detail page is not optional; capture its columns and per-row actions. Capture depth = every view a user can reach inside this module.
 
-**Baseline shape:**
+**Baseline shape** - this is the **merged** file. The per-surface *fragment* shape the subagent returns is defined in `.claude/agents/crawl-surface.md` (a subagent does not inherit this skill, so it needs its own copy). **The two are deliberately parallel: change a key here and you MUST change it there** - a drifted schema means fragments the crawl gate rejects.
 ```json
 {
   "module": "<Module>",
@@ -98,6 +100,13 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
   "buildRef": "<TICKET-KEY> @ <commit if known>",
   "headings": ["<Page heading>", "<Section heading>"],
   "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true,  "how": "seeded 2 records via API" },
+    { "name": "empty",     "reached": true,  "how": "deleted all records via API" },
+    { "name": "loading",   "reached": true,  "how": "throttled network, captured skeleton" },
+    { "name": "error",     "reached": false, "why": "no way to force a 500 from the UI or API" },
+    { "name": "role-gated:<role>", "reached": true, "how": "logged in as <role>; <control> hidden" }
+  ],
   "tables": [
     { "name": "<List table>", "columns": ["<Column>", "<Column>", "<Column>"],
       "rowActions": ["<Row action>", "<Row action>"], "hasRowMenu": true }
@@ -122,6 +131,10 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
   "views": [
     { "name": "<Detail view>", "route": "/<module-route>/:id", "openedBy": "<how it is reached>",
       "headings": ["<Detail heading>", "<Sub-section heading>"],
+      "states": [
+        { "name": "populated", "reached": true, "how": "seeded via API" },
+        { "name": "empty", "reached": false, "why": "record always has at least one member" }
+      ],
       "tabs": ["<Tab>", "<Tab>"],
       "tables": [
         { "name": "<Nested table>", "columns": ["<Column>", "<Column>"],
@@ -146,13 +159,13 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
 *(No `screenshots` field - images are transient, not stored. `createdAt` never changes; `updatedAt` + newest-first `changelog` give a readable audit trail of what changed and when.)*
 
 ### Capture flow (first test for a module, or an explicit "re-baseline" at sprint start)
-1. Navigate to the module.
-2. `take_snapshot` of the main view; **open every modal, dropdown, and ⋮ menu and snapshot those too** (per Exploration & test-planning → CRAWL). Then **navigate into a representative record's detail page and every sub-view reachable in the module**, snapshotting each - including every table on those pages (record columns + row actions), every tab, and every nested menu. Record each sub-view under `views[]`.
-3. Take a screenshot **only to read placement** (top-right, toolbar, row, etc.); write that placement into each element's `region`, then discard the image - do not save or commit it.
-4. Build the baseline JSON from the snapshots - roles, accessible names, icons, regions, counts, states, modal structure.
+1. Establish the MAP worklist for the module (routes/views from nav + AC + Figma). You do not navigate the browser yourself here - the subagents do.
+2. **Dispatch a `crawl-surface` subagent per surface** - the main view, then every modal/dropdown/⋮ menu, then a representative record's detail page and every sub-view reachable in the module (each with its tables, tabs and nested menus). One subagent per surface, in parallel where independent; **you do not snapshot these yourself** (see Exploration & test-planning → CRAWL, MANDATORY block). Each returns a JSON fragment: `"surface": "list"` merges at the top level, `"surface": "view"` appends to `views[]`. A `"failed": true` fragment means NOT captured - re-dispatch it; never record it as empty.
+3. Placement (`region`) and the a11y detail come back **inside each subagent's fragment** - the subagent takes the transient screenshot and discards it. You never handle images.
+4. **Merge the fragments** into one baseline JSON: `"surface": "list"` merges at the top level, `"surface": "view"` appends to `views[]`. Union the `states[]` per view. A `"failed": true` fragment means that surface was NOT captured - re-dispatch it; never record it as empty.
 5. Set `createdAt` and `updatedAt` to today's date (get it via `date +%Y-%m-%d`), seed `changelog` with one entry: `{ date, buildRef, changes: ["Initial baseline captured"] }`.
 6. Write `baselines/<module>.baseline.json` (text only).
-7. **Completeness re-verification (STRICT - mandatory gate):** after writing, re-snapshot the live page and menus, then compare **every** interactive element in the live snapshot against the JUST-WRITTEN baseline file:
+7. **Completeness re-verification (STRICT - mandatory gate):** each subagent already self-verified its own surface to zero-missing, so your job here is the *seams*: confirm every surface from the MAP worklist produced a fragment, every fragment got merged, no `"failed": true` remains, and every view carries a `states[]`. Re-dispatch a subagent for anything unaccounted for. Then check the merged file:
    - The rule is **TOTAL, not a checklist**: every node present in the live snapshot of every view (list + all detail/sub-pages, with all menus/dropdowns/accordions expanded) must be represented in the baseline JSON - **regardless of what kind of element it is.** Do not verify against a fixed list of types; walk the entire snapshot tree and account for each node, including nested `opens.items`, each `tables[].columns` + row actions, and each entry under `views[]`.
    - The types named above are examples. Badges, chips, toggles, status pills, tooltips, banners, breadcrumbs, pagination, counts, empty-state text - or anything else the page happens to have - must be accounted for too. If it fits no existing key, record it under a generic `other[]`.
    - **Anything in the live snapshot but not in the file = FAIL.** Add it and re-verify. Repeat until missing = **zero**.
@@ -434,19 +447,23 @@ Rules:
 **Always run this check first, before any other work.** Inspect the project:
 - If `package.json` is missing or `@playwright/test` is not in dependencies → run the full bootstrap below.
 - If `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts`, or `global-setup.ts` are missing → create only the missing ones (`evidence.ts` always copied from `.claude/templates/evidence.ts`).
+- `eslint.config.mjs` + `qa-rules.mjs` at the project root: **the Setup hook copies these** from `.claude/hooks/lint/` (they must sit at the root - ESLint resolves its config from cwd upward, never a subdirectory). They arm the AST lint tier; without them enforcement degrades to a narrower regex guard. Verify they exist; if missing, copy them **verbatim**. Enforcement infrastructure, not a per-project template - **never edit them to silence a violation.**
 - If everything already exists → skip Phase 0 entirely and go straight to the workflow.
 
 Announce what you will install before running install commands, then proceed. Every step is idempotent - safe to re-run.
 
+> **The mechanical half is already done for you.** The `Setup` hook (`.claude/hooks/qa-setup.mjs`) runs before you do and has handled: `npm init` + the 8 dev deps, `eslint.config.mjs` + `qa-rules.mjs` copied to the project root (this arms the AST lint tier - **if it were missing, enforcement would silently fall back to the weaker regex guard**), `tsconfig.json`, `.env` seeded from `.env.example`, the `lint`/`typecheck` npm scripts, and the `baselines/ plan/ traceability/ findings/` dirs. It reports what it did and self-skips when already satisfied.
+>
+> **So VERIFY these, do not redo them.** What remains genuinely yours: the browser binaries, `playwright.config.ts`, `fixtures/`, `global-setup.ts`, and proving the smoke test green.
+
 **Commands (run in order):**
 ```bash
-[ -f package.json ] || npm init -y
-npm install --save-dev @playwright/test typescript @types/node @faker-js/faker dotenv playwright-smart-reporter
+# deps: already installed by the Setup hook - verify, then get the browsers:
 npx playwright install
 npx playwright install chromium webkit firefox
 ```
 
-**Standard files** - create if missing:
+**Standard files** - the Setup hook creates `tsconfig.json`, `.env`, `eslint.config.mjs`, `qa-rules.mjs` and the companion dirs. Verify they exist; recreate only if the hook reported a failure.
 - `tsconfig.json`: strict, `target` ES2020, `lib` ESNext + DOM (DOM for browser-context code in `addInitScript`/`evaluate`; ESNext because Playwright's own types use `Symbol.asyncDispose`), `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `skipLibCheck: true` (do not type-check node_modules), `types: ["node"]`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`. All verified working 2026-07-15.
 - `.env` (all empty values; copy from the committed `.env.example` template, which documents every key):
   - `BASE_URL`
@@ -527,8 +544,9 @@ export default globalSetup;
 
 **Verify before writing any test:**
 - `npx tsc --noEmit` → zero errors required.
+- `npx eslint .` → zero errors required. This is the same AST ruleset the `qa-lint` hook runs on every write, so a green run here means the suite already satisfies the CLAUDE.md restrictions. Add `"lint": "eslint ."` to `package.json` scripts.
 - MCPs connected (configured in `.mcp.json`, auto-connect at session start):
-  - **Chrome DevTools MCP** (`chrome-devtools-mcp`) - PRIMARY tool for UI inspection: `take_snapshot`, `take_screenshot`, navigation, clicks. Prefer this for exploring and deriving locators.
+  - **Chrome DevTools MCP** (`chrome-devtools-mcp`) - PRIMARY tool for UI inspection: `take_snapshot`, `take_screenshot`, navigation, clicks. Prefer this for exploring and deriving locators. **During MAP/CRAWL these are driven by the `crawl-surface` subagent, not by you** - you call them directly only for self-heal diffing and verifying an individual locator.
   - **Playwright MCP** (`@playwright/mcp@latest`) - secondary/fallback for browser automation.
 
 ---
@@ -627,7 +645,9 @@ From text you may derive the **TC list** (one `TC-XX` per scenario), **Page meth
 
 ## Exploration & test-planning - NO GAPS (run fully before any locator or test)
 
-**Gaps come from missed *states/transitions*, not missed buttons - and you can't see states without data.** Do NOT write a locator or test until step 6 passes. Tools: Chrome DevTools MCP (`take_snapshot`, `take_screenshot`) + Playwright MCP (`browser_navigate`, `browser_click`, `browser_snapshot`).
+**Gaps come from missed *states/transitions*, not missed buttons - and you can't see states without data.** Do NOT write a locator or test until step 6 passes.
+
+**Who drives the browser here:** the **`crawl-surface` subagent** does the snapshotting for MAP/CRAWL (see the MANDATORY block below) using Chrome DevTools MCP (`take_snapshot`, `take_screenshot`) + Playwright MCP (`browser_navigate`, `browser_click`, `browser_snapshot`). You orchestrate: maintain the worklist, dispatch a subagent per surface, merge the returned JSON. You use those browser tools directly only in *later* steps - self-heal diffing and verifying an individual locator.
 
 **1. MAP (breadth-first).** Enumerate every route/view/entry point of the module (from nav + AC + Figma) before going deep - establishes the outer boundary so no whole view is missed.
 
@@ -638,6 +658,20 @@ From text you may derive the **TC list** (one `TC-XX` per scenario), **Page meth
 - every form field (label, placeholder, type); blur + submit-empty + submit-invalid
 - every tab/toggle view; pagination/infinite scroll
 - role-gated elements (note which role)
+
+### MANDATORY: the crawl runs in subagents, not in your context
+
+**You MUST delegate every surface to the `crawl-surface` subagent** (`.claude/agents/crawl-surface.md`) via the Agent tool - **one invocation per surface**, dispatched in parallel (multiple Agent calls in a single message) whenever the surfaces are independent. This is not an optimisation you may weigh; it is how this step is performed.
+
+**Do NOT call `take_snapshot` / `browser_snapshot` yourself during MAP or CRAWL.** If you find yourself snapshotting a view to inventory it, you have skipped the delegation - stop and dispatch a subagent instead. (Your own snapshot calls are reserved for *later* steps: self-heal diffing and verifying a single locator.)
+
+**Why this is mandatory, not preferred:** a full-module crawl run inline floods your context with accessibility snapshots. Exploration then degrades exactly when it should be most thorough - and *that* is the mechanism by which surfaces get missed, which is the failure this whole sequence exists to prevent. Delegating is what keeps the crawl exhaustive at surface #14 as it was at surface #1.
+
+**How to dispatch:** give each subagent (a) the module name, and (b) the route or the click path to reach its surface ("click the first row, then the Members tab"). Start from the MAP worklist; every newly-discovered surface a fragment reveals gets **its own** subagent, re-queued until the worklist is empty.
+
+**Merging:** collect the returned JSON fragments into `baselines/<module>.baseline.json` - `"surface": "list"` fragments merge at the top level, `"surface": "view"` fragments append to `views[]`. A fragment marked `"failed": true` means that surface was **NOT** captured: re-dispatch it, or record the failure explicitly. **Never treat a failed fragment as an empty surface** - that is how a blank becomes a false "nothing there".
+
+**The `Stop` gate checks the result either way.** `qa-crawl.mjs` compares the finished baseline against your plan and blocks the turn on missing controls or shallow-crawl smells (`"views": []`, unexpanded `opens`, columnless tables). Crawling inline does not bypass that gate - it just makes failing it more likely.
 
 **3. MODEL the logic (per view - where gaps hide).** Capture the state machine, not just elements:
 - **States:** empty · loading · populated · error · disabled/invalid · role-gated · terminal.
@@ -651,6 +685,15 @@ From text you may derive the **TC list** (one `TC-XX` per scenario), **Page meth
 **5. PLAN - persist it (`plan/<module>.md`, committed).** Write the plan to disk, NOT just in context - it must survive context compaction and be auditable. Each row = **view × state × action/rule → intended `TC-XX` + tag**. This plan feeds the traceability map.
 
 **6. COMPLETENESS CRITIC - gate before code (STRICT).** Fail and loop if ANY: AC with 0 TCs · observed state with 0 tests · transition / error / validation uncovered · role-gated element not tested per role. Proceed only at zero-missing (same discipline as the Baseline gate).
+
+> **This step is now MACHINE-VERIFIED - you cannot end the turn until it passes.**
+> `.claude/hooks/qa-crawl.mjs` (on `Stop`) treats `baselines/<module>.baseline.json` as the crawl's output and the plan's checklist: **every** control in it - action, icon, tab, heading, field, modal, table column, row action, nested ⋮ item, sub-view - must be named in a plan row or a test, or the turn is blocked with the exact list of what you missed. It also rejects a **shallow** baseline: menu-like controls with no expanded `opens.items`, `"modals": []`, `"views": []`, or tables with no columns.
+>
+> Consequences for how you work:
+> - **Capture the baseline BEFORE writing the plan.** The baseline is the checklist you plan against; writing the plan first means planning from memory, which is where gaps come from.
+> - **Expand every menu during capture.** An unexpanded ⋮ records as an empty `opens` and is reported as a shallow crawl.
+> - **Never trim the baseline to make the gate pass.** It records what EXISTS. If a control is deliberately not tested, keep it in the baseline and add an out-of-scope plan row saying why.
+> - If a surface genuinely does not exist in this module, note that in `changelog[]` so absence is a recorded finding rather than a blank.
 
 **7. GENERATE** the 4-tier code from the plan.
 
