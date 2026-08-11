@@ -87,6 +87,7 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
 - **Never gate on colors, exact sizes, or pixel diffs** - too volatile, they flood false drift.
 - **EXHAUSTIVE - MISS NOTHING (strict).** Capture **everything present in the snapshot, whatever it is** - do NOT scan for a fixed list of element types. Walk the entire accessibility tree and account for every node. Before recording, expand every hidden surface: open each `⋮`/kebab/overflow menu, every dropdown, accordion, and tab, and record their **nested items** under the control that opens them (`opens`). Hover to reveal hidden row actions. A surface you did not expand is a control you WILL miss.
 - **The element types named anywhere in this file are EXAMPLES, not the checklist.** Buttons, icons, tables, columns, tabs, fields, menu items, sub-views are illustrative. If the page has anything else - badges, chips, toggles, steppers, status pills, tags, tooltips, banners, breadcrumbs, pagination, counts, empty-state text, anything - capture it too. Searching only for the named types drops quality; the standard is *total coverage of what is actually on the page*. When unsure whether something counts, include it (use a generic `other[]` key if it fits no other field).
+- **Absence must be DECLARED, never left blank.** An empty `modals: []` / `views: []` / `fields: []` is ambiguous - "I did not look" and "there is genuinely nothing" serialise identically, so the crawl gate blocks on it. If a surface truly does not exist (a standalone auth form has no modals and no sub-views), record it positively in **`verifiedAbsent`** with the **evidence**: `{ "surface": "modals", "how": "12 programmatic dialog counts across 7 probes + a native-dialog listener that caught nothing" }`. A declaration **without** a `how` is rejected - it is a bare `[]` with extra steps. Never invent a fake entry to get past the gate.
 - **STATES, not just controls (strict).** Record a `states[]` per view: which of `empty · loading · populated · error · disabled/invalid · role-gated:<role> · terminal` you actually **reached**, and `how` you forced it (usually API seeding). A state you could not reach gets `"reached": false` + `why` - that is a recorded finding, not a blank. **This is the point of the whole exercise:** gaps come from missed states, not missed buttons, and `qa-crawl.mjs` requires a plan row for every state you marked `reached: true`. Listing a state you never reached to satisfy the gate is falsifying the record.
 - **RECURSIVE - capture every view (strict).** A module is NOT just its list page. Navigate INTO a representative record's detail page and every sub-view / nested route reachable within the module, and record each under `views[]` with its own headings, tabs, tables, fields, and actions. **Every table - on the list AND on any detail page - must be recorded** as `{ name, columns, rowActions, hasRowMenu }`. A nested table on a detail page is not optional; capture its columns and per-row actions. Capture depth = every view a user can reach inside this module.
 
@@ -145,6 +146,9 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
       "fields": [{ "label": "<Field label>", "type": "text-readonly" }],
       "actions": [{ "role": "button", "name": "<Detail action>", "region": "top-right", "state": "enabled" }]
     }
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "<what you did that PROVED nothing is there>" }
   ],
   "changelog": [
     { "date": "YYYY-MM-DD", "buildRef": "<TICKET-KEY>",
@@ -561,7 +565,8 @@ export default globalSetup;
 - `npx tsc --noEmit` → zero errors required.
 - `npx eslint .` → zero errors required. This is the same AST ruleset the `qa-lint` hook runs on every write, so a green run here means the suite already satisfies the CLAUDE.md restrictions. Add `"lint": "eslint ."` to `package.json` scripts.
 - MCPs connected (configured in `.mcp.json`, auto-connect at session start):
-  - **Chrome DevTools MCP** (`chrome-devtools-mcp`) - PRIMARY tool for UI inspection: `take_snapshot`, `take_screenshot`, navigation, clicks. Prefer this for exploring and deriving locators. **During MAP/CRAWL these are driven by the `crawl-surface` subagent, not by you** - you call them directly only for self-heal diffing and verifying an individual locator.
+  - **Chrome DevTools MCP** (`chrome-devtools-mcp`, launched `--isolated`) - PRIMARY tool for UI inspection: `take_snapshot`, `take_screenshot`, navigation, clicks. Prefer this for exploring and deriving locators. **During MAP/CRAWL these are driven by the `crawl-surface` subagent, not by you** - you call them directly only for self-heal diffing and verifying an individual locator.
+  - **If Chrome DevTools MCP errors, fall through to Playwright MCP immediately** - it is a separate server with its own browser, so a broken Chrome profile does not affect it. Only if **both** are unusable do you drop to a Playwright script run via Bash, and then **say so**: that path is far slower and is the usual reason a crawl drags. `"browser is already running for ... chrome-profile"` means a stale Chrome holds `SingletonLock`; **a session restart does not clear it** (the lock belongs to the Chrome process). Tell the user to close that Chrome - never retry it surface by surface.
   - **Playwright MCP** (`@playwright/mcp@latest`) - secondary/fallback for browser automation.
 
 ---

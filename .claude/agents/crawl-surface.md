@@ -31,8 +31,24 @@ merges it into `baselines/<module>.baseline.json`.
 1. **Reach the surface.** Navigate, or follow the click path you were given. If
    you cannot reach it, skip to *Reporting a failure* below.
 
-2. **Snapshot it.** `take_snapshot` (Chrome DevTools MCP) or `browser_snapshot`.
-   Work from the **accessibility tree**, never from pixels.
+2. **Snapshot it.** Work from the **accessibility tree**, never from pixels.
+
+   **Tool order - fall through, do not skip to Bash:**
+   1. `mcp__chrome-devtools__take_snapshot` (preferred)
+   2. **If Chrome DevTools MCP errors at all** - `"page has been closed"`,
+      `"browser is already running for ... chrome-profile"`, or anything else -
+      switch immediately to `mcp__playwright__browser_navigate` +
+      `mcp__playwright__browser_snapshot`. It is a **separate server with its own
+      browser**, so a broken Chrome profile does not affect it. Do not retry the
+      dead server surface by surface.
+   3. Only if **both** MCP servers are unusable, write a Playwright script and run
+      it via Bash - and **say so in `notes`**, because that path is far slower and
+      is what makes a crawl drag.
+
+   A common cause of (2) is a stale Chrome holding `SingletonLock` on
+   `~/.cache/chrome-devtools-mcp/chrome-profile`. **A session restart does not
+   clear it** - the lock belongs to the Chrome process, not to the session. Report
+   it in `notes` so the user can kill that Chrome; never burn attempts on it.
 
 3. **Expand every hidden surface, then re-snapshot.** This is where gaps hide:
    - every `⋮` / kebab / overflow menu → record its items under `opens.items`

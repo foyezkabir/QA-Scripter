@@ -512,7 +512,8 @@ Report: `smart-report.html` (falls back to the built-in `html` reporter if `play
 ## Gotchas
 
 - MCP servers, permissions, skills, **hooks**, and **agent specs** load at **session startup** - after any config change, **restart the session**. The `SessionStart` line tells you which gates are armed, so you can confirm the restart took effect.
-- `chrome-devtools-mcp` is the real package name (not `@anthropic-ai/...`).
+- `chrome-devtools-mcp` is the real package name (not `@anthropic-ai/...`). It is launched `--isolated` so each run gets a throwaway profile - without that, a stale Chrome holds `SingletonLock` on `~/.cache/chrome-devtools-mcp/chrome-profile` and every call fails with *"browser is already running"*. **A session restart does NOT clear that lock** (it belongs to the Chrome process) - close the Chrome window, or `kill` the PID holding it.
+- **If Chrome DevTools MCP fails, the crawler falls through to Playwright MCP** - a separate server with its own browser. Only if both are dead does it drop to running Playwright scripts via Bash, which is far slower and is the usual cause of a crawl dragging; it reports that in `notes`.
 - **Never commit baseline images** - baselines are text JSON only. `baselines/` itself **is** committed (it's the self-heal reference *and* the crawl gate's checklist); `failures/` is entirely gitignored.
 - Locators are captured from the **live UI only** - if there's no build yet, locators are stubbed `// TODO: capture from live UI`, never guessed.
 - **Capture the baseline BEFORE writing the plan.** The baseline is the checklist the plan is written against - planning first means planning from memory, and the `Stop` gate will catch the gaps.

@@ -19,3 +19,6 @@ baselines/**/*.png
 .claude/settings.local.json
 agent-enhancements.txt
 claude-code-extensibility-reference.txt
+
+# Playwright MCP scratch output
+.playwright-mcp/

@@ -163,17 +163,45 @@ function shallowSmells(b) {
       `an unexpanded menu is a control you WILL miss. Open each and record its nested items.`,
     );
   }
-  if (!(b.modals ?? []).length) {
+  // An empty array is ambiguous: "I did not look" and "there is genuinely nothing"
+  // serialise identically. The remedy is a POSITIVE declaration - `verifiedAbsent`
+  // names each surface the crawl proved absent, with the evidence. That is
+  // auditable (it sits in a committed file and a reviewer can challenge it),
+  // whereas a bare [] is not. Declaring something absent that later appears is a
+  // baseline-drift finding like any other.
+  const declared = new Set(
+    Array.isArray(b.verifiedAbsent)
+      ? b.verifiedAbsent.map((x) => (typeof x === 'string' ? x : x?.surface)).filter(Boolean)
+      : [],
+  );
+  const evidenceFor = (k) =>
+    (Array.isArray(b.verifiedAbsent) ? b.verifiedAbsent : [])
+      .find((x) => typeof x !== 'string' && x?.surface === k)?.how ?? null;
+
+  if (!(b.modals ?? []).length && !declared.has('modals')) {
     smells.push(
       `"modals": [] - no modal or confirmation captured anywhere. Most modules have at least ` +
-      `a create/confirm dialog. If this one genuinely has none, say so explicitly.`,
+      `a create/confirm dialog. If this module genuinely has none, declare it: ` +
+      `"verifiedAbsent": [{ "surface": "modals", "how": "<how you proved it>" }].`,
     );
   }
-  if (!views.length) {
+  if (!views.length && !declared.has('views')) {
     smells.push(
       `"views": [] - only the list page was captured. SKILL.md requires navigating INTO a ` +
-      `representative record's detail page and every sub-view reachable in the module.`,
+      `representative record's detail page and every sub-view reachable in the module. ` +
+      `A single-view module (e.g. a standalone auth form) declares it: ` +
+      `"verifiedAbsent": [{ "surface": "views", "how": "<how you proved it>" }].`,
     );
+  }
+  // A declaration with no evidence is worthless - demand the `how`.
+  for (const k of declared) {
+    if (!evidenceFor(k)) {
+      smells.push(
+        `"verifiedAbsent" declares "${k}" but gives no "how" - an absence claim needs its ` +
+        `evidence (what you did that proved nothing is there), or it is just a bare [] with ` +
+        `extra steps.`,
+      );
+    }
   }
   const colless = tables.filter((t) => !(t?.columns ?? []).length);
   if (colless.length) {
@@ -182,8 +210,12 @@ function shallowSmells(b) {
       `${colless.map((t) => t?.name ?? '?').join(', ')} - every table needs its columns and row actions.`,
     );
   }
-  if (!(b.fields ?? []).length && !views.some((v) => (v?.fields ?? []).length)) {
-    smells.push(`no fields captured in any view - forms/filters/search inputs are testable surfaces.`);
+  if (!(b.fields ?? []).length && !views.some((v) => (v?.fields ?? []).length) && !declared.has('fields')) {
+    smells.push(
+      `no fields captured in any view - forms/filters/search inputs are testable surfaces. ` +
+      `A genuinely read-only module declares it: ` +
+      `"verifiedAbsent": [{ "surface": "fields", "how": "<how you proved it>" }].`,
+    );
   }
 
   // The MODEL step, not the CRAWL step: a control list without states means the

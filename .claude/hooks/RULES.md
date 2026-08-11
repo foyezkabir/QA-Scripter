@@ -141,6 +141,21 @@ tests/*.spec.ts  -> what it actually wrote
   machine never explored). These matter because *"I did not look"* and *"nothing was
   there"* both serialise to an empty array.
 
+**Declaring a genuine absence.** A module with no modals or no sub-views (a standalone
+auth form, say) would otherwise be unsatisfiable. Declare it in the baseline:
+
+```json
+"verifiedAbsent": [
+  { "surface": "modals", "how": "12 programmatic dialog counts across 7 probes + a native-dialog listener that caught nothing" },
+  { "surface": "views",  "how": "three standalone routes; no record detail page exists" }
+]
+```
+
+Accepted for `modals`, `views` and `fields`. The `how` is **required** - a declaration
+without evidence is rejected, since it would be a bare `[]` with extra steps. The
+claim is auditable: it sits in a committed file, a reviewer can challenge it, and if
+the surface later appears that is baseline drift like any other.
+
 **Implications for the workflow:**
 - capture the baseline **before** writing the plan - it is the checklist
 - expand every menu during capture, or it reads as shallow

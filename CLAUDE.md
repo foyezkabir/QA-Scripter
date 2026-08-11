@@ -113,4 +113,4 @@ Selector rules (XPath/CSS/`.nth()`/`frameLocator`) pass if a **real justifying c
 
 ## Gotchas
 - MCP servers, permissions, skills, and agent specs load at **session startup** - after config changes (including new `.claude/skills/`), restart the session.
-- `chrome-devtools-mcp` is the real package (not `@anthropic-ai/...`).
+- `chrome-devtools-mcp` is the real package (not `@anthropic-ai/...`), launched `--isolated` so a stale Chrome cannot lock its profile. `"browser is already running for ... chrome-profile"` = a live Chrome holds `SingletonLock`; **restarting the session does not clear it** - close that Chrome. On any Chrome DevTools MCP error, fall through to Playwright MCP rather than dropping to Bash scripts.
