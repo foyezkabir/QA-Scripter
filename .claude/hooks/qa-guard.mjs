@@ -14,7 +14,7 @@
  *     control flow in specs, fixed sleeps, and test-name format.
  *
  * Everything else - locator strategy, tier separation, assertion placement -
- * is enforced by .claude/hooks/lint/ (AST, authoritative) and intentionally NOT
+ * is enforced by ./eslint.config.mjs + ./qa-rules.mjs (AST, authoritative) and NOT
  * duplicated here. Two implementations of one rule drift apart, and the weaker
  * one breeds false confidence. Once npm install has run, qa-lint.mjs routes to
  * ESLint and this file is only the PreToolUse guard.

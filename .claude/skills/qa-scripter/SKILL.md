@@ -18,10 +18,10 @@ You are a **senior test automation engineer** specializing in Playwright and Typ
 **This gate is mandatory and runs on EVERY invocation - bare or with a task. Do NOT ask the user anything, and do NOT choose a workflow, until steps A and B are complete.** A task in the invocation does not let you skip A/B; a bare invocation does not let you jump to C.
 
 - **A. Phase 0 - Bootstrap check.** Run the Phase 0 check first (see [Phase 0](#phase-0-one-time-bootstrap)). Deps/config missing → install and scaffold now (needs no task, no inputs). Everything already present → self-skip instantly.
-- **B. Phase 1 - Prove the harness green.** Run the [Phase 1](#phase-1-smoke-test--self-heal-first-run-only) smoke self-heal (needs no task, no inputs). Run the **zero-input harness smoke** (`expect(true).toBe(true)`) with **login bypassed** - if `.env` has no creds yet, temporarily drop `storageState` for this run so it can go green without a session. Already proven on a prior run → self-skip. The app-reachability check (`goto('/')`) is NOT part of this gate - it waits for BASE_URL and folds into the workflow start.
+- **B. Phase 1 - Prove the harness green.** Run the [Phase 1](#phase-1-smoke-test--self-heal-first-run-only) smoke self-heal (needs no task, no inputs). Run the **zero-input harness smoke** (`expect(true).toBe(true)`) with **login bypassed via `SMOKE_NO_AUTH=1`** (a config switch in `playwright.config.ts`, not a hand edit) so it goes green without a session. Already proven on a prior run → self-skip. The app-reachability check (`goto('/')`) is NOT part of this gate - it waits for BASE_URL and folds into the workflow start.
 - **C. Task intake - only now ask.** After A and B are green, resolve the [Task intake](#task-intake-after-phase-01-before-any-workflow) checklist. Ask ONLY for what is missing: a task supplied in the invocation answers "what to automate," so ask only for the remaining gaps (URL/creds in `.env`, sources); a bare invocation asks for the task too. Never pick a module, guess a URL, or invent credentials.
 
-`.auth/user.json` is created later - the first time the suite runs after `.env` is filled (global-setup logs in). It does NOT exist during A or B, which is why B bypasses `storageState`.
+`.auth/user.json` is created later - the first time the suite runs after `.env` is filled (global-setup logs in). It does NOT exist during A or B, which is why B runs with `SMOKE_NO_AUTH=1`.
 
 ## The 4-Tier Model
 
@@ -454,7 +454,7 @@ Rules:
 **Always run this check first, before any other work.** Inspect the project:
 - If `package.json` is missing or `@playwright/test` is not in dependencies → run the full bootstrap below.
 - If `playwright.config.ts`, `fixtures/base.ts`, `fixtures/evidence.ts`, or `global-setup.ts` are missing → create only the missing ones (`evidence.ts` always copied from `.claude/templates/evidence.ts`).
-- `eslint.config.mjs` + `qa-rules.mjs` at the project root: **the Setup hook copies these** from `.claude/hooks/lint/` (they must sit at the root - ESLint resolves its config from cwd upward, never a subdirectory). They arm the AST lint tier; without them enforcement degrades to a narrower regex guard. Verify they exist; if missing, copy them **verbatim**. Enforcement infrastructure, not a per-project template - **never edit them to silence a violation.**
+- `eslint.config.mjs` + `qa-rules.mjs` live **at the project root and are committed there** - ESLint resolves its config from the cwd upward and never searches a subdirectory, so the root is the only place they work. They arm the AST lint tier; if either goes missing, enforcement silently degrades to the narrower regex guard (the `Setup` hook warns when it notices). **Never edit them to silence a violation** - they are enforcement infrastructure, not a per-project template.
 - If everything already exists → skip Phase 0 entirely and go straight to the workflow.
 
 Announce what you will install before running install commands, then proceed. Every step is idempotent - safe to re-run.
@@ -498,11 +498,16 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [
     ['list'],
-    ['playwright-smart-reporter', { outputFile: 'smart-report.html' }],
+    // './' matters: a BARE filename resolves relative to testDir, so the report
+    // lands in tests/ where the .gitignore entry does not match it.
+    ['playwright-smart-reporter', { outputFile: './smart-report.html' }],
   ],
   use: {
     baseURL: process.env.BASE_URL,
-    storageState: '.auth/user.json',
+    // Phase 1 runs before any session file exists. There is no CLI flag to drop
+    // storageState, so it is a config switch: SMOKE_NO_AUTH=1 npx playwright test.
+    // Normal runs are unaffected and still load .auth/user.json.
+    ...(process.env.SMOKE_NO_AUTH ? {} : { storageState: '.auth/user.json' }),
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -565,7 +570,7 @@ export default globalSetup;
 
 After bootstrap, **prove the harness actually runs before writing any feature test.** Do not proceed to a workflow until this passes green. This self-heal loop is *your* behavior as the agent - it is NOT loop logic inside a test file.
 
-**Zero-input gate (part of the [Invocation sequence](#invocation-sequence---run-in-this-exact-order-every-qa-scripter-call), step B).** Phase 1 runs BEFORE task intake and needs no task, URL, or creds. Run the harness-only smoke (`expect(true).toBe(true)`) - if `.env` has no creds, temporarily drop `storageState` so login is bypassed and it can go green with zero input (`.auth/user.json` legitimately does not exist yet). "First run only": once green on a prior run, self-skip on later invocations - do not re-run the loop every call. The app-reachability variant (`goto('/')`) is deferred to the workflow start, when BASE_URL exists.
+**Zero-input gate (part of the [Invocation sequence](#invocation-sequence---run-in-this-exact-order-every-qa-scripter-call), step B).** Phase 1 runs BEFORE task intake and needs no task, URL, or creds. Run the harness-only smoke (`expect(true).toBe(true)`) with **`SMOKE_NO_AUTH=1`** so login is bypassed and it goes green with zero input (`.auth/user.json` legitimately does not exist yet). That env var is a **config switch already in `playwright.config.ts`** - there is no CLI flag for dropping `storageState`, so never hand-edit the config to bypass auth. "First run only": once green on a prior run, self-skip on later invocations - do not re-run the loop every call. The app-reachability variant (`goto('/')`) is deferred to the workflow start, when BASE_URL exists.
 
 1. **Generate a minimal smoke spec** `tests/smoke.spec.ts`:
    ```typescript
@@ -580,7 +585,8 @@ After bootstrap, **prove the harness actually runs before writing any feature te
 
 2. **Run the gate commands in order:**
    - `npx tsc --noEmit`
-   - `npx playwright test tests/smoke.spec.ts --project=chromium`
+   - `npx eslint .`
+   - `SMOKE_NO_AUTH=1 npx playwright test tests/smoke.spec.ts --project=chromium`
 
 3. **Self-heal loop - if anything comes back red:**
    - Read the actual error output; do not guess.
@@ -591,7 +597,11 @@ After bootstrap, **prove the harness actually runs before writing any feature te
 
 4. **If still red after 5 attempts:** STOP. Report the exact failing command, the error output, and every fix you tried. Leave `tests/smoke.spec.ts` in place for debugging and **explicitly tell the user it was kept** so it is never a silent leftover. Never continue on red.
 
-5. **Once green:** delete `tests/smoke.spec.ts` (it was only a harness check) and confirm to the user it was removed, then proceed to the requested workflow.
+5. **Once green - clean up, with this exact command** (both paths are pre-approved in `.claude/settings.json`, so it runs without a prompt):
+   ```bash
+   rm -f tests/smoke.spec.ts tests/smart-report.html
+   ```
+   Then confirm to the user it was removed and proceed to the requested workflow. **Do not end the turn with either file on disk** - a leftover smoke spec pollutes the suite and trips the `Stop` coverage gate (a test in no plan). `tests/smart-report.html` only appears if the reporter's `outputFile` lost its `./` prefix; if it exists, fix the config too.
 
 > The ONLY file Phase 1 creates is `tests/smoke.spec.ts` - always removed on green, kept-and-reported on red. Run artifacts it may produce (`test-results/`, `smart-report.html`, `.auth/`, `playwright-report/`) are all gitignored and safe to leave.
 
@@ -600,9 +610,10 @@ After bootstrap, **prove the harness actually runs before writing any feature te
 |---------|-----|
 | `Cannot find module` | Correct the import path, or re-run the install command |
 | `browserType.launch: Executable doesn't exist` | `npx playwright install <browser>` |
-| `.auth/user.json` not found | Ensure `global-setup.ts` ran; if no login yet, temporarily remove `storageState` from config for the smoke run |
+| `.auth/user.json` not found | Ensure `global-setup.ts` ran. During Phase 1 there is no session yet - run with `SMOKE_NO_AUTH=1` (the config switch). **Never hand-edit `storageState` out of the config.** |
 | TypeScript errors | Fix the offending file, re-run `npx tsc --noEmit` |
-| Config load error | Validate `playwright.config.ts` keys against the installed Playwright version |
+| Config load error | Validate `playwright.config.ts` keys against the installed Playwright version (`npm ls @playwright/test`) |
+| Report written to `tests/smart-report.html` | The reporter resolves a **bare** filename relative to `testDir`. Use `outputFile: './smart-report.html'` so it lands at the root where `.gitignore` matches it |
 
 ---
 

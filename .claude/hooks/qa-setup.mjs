@@ -86,15 +86,14 @@ function main() {
 
   if (!isOurs()) return 0; // not this project - do nothing, silently
 
-  /* --- 1. lint config at the project root (the silent-failure path) --------- */
-  // ESLint only resolves eslint.config.mjs from the root, never a subdirectory.
+  /* --- 1. lint config sanity check ---------------------------------------- */
+  // eslint.config.mjs + qa-rules.mjs live at the project root and are COMMITTED
+  // there - ESLint only resolves its config from the cwd upward, never a
+  // subdirectory, so the root is the only place they can work. Nothing to copy;
+  // just report if they went missing, because their absence silently downgrades
+  // enforcement to the narrower regex guard.
   for (const f of ['eslint.config.mjs', 'qa-rules.mjs']) {
-    const src = p('.claude', 'hooks', 'lint', f);
-    if (!existsSync(src)) continue;
-    if (!has(f)) {
-      copyFileSync(src, p(f));
-      note(`copied ${f} to project root (AST lint tier)`);
-    }
+    if (!has(f)) note(`WARNING: ${f} missing from the project root - the AST lint tier is OFF (regex fallback only). Restore it from git.`);
   }
 
   /* --- 1b. fixtures/evidence.ts - the one file with a committed template --- */

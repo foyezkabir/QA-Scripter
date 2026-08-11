@@ -123,7 +123,7 @@ Every "zero tolerance" rule in this README is enforced **mechanically** by hooks
 
 | Event | Hook | What it does |
 |---|---|---|
-| `Setup` | `qa-setup.mjs` | mechanical half of Phase 0: deps, `tsconfig.json`, `.env`, `fixtures/evidence.ts`, `eslint.config.mjs` + `qa-rules.mjs` → root, companion dirs. Idempotent; refuses to run outside this project |
+| `Setup` | `qa-setup.mjs` | mechanical half of Phase 0: deps, `tsconfig.json`, `.env`, `fixtures/evidence.ts`, npm scripts, companion dirs; warns if the root lint config is missing. Idempotent; refuses to run outside this project |
 | `SessionStart` | `session-status.mjs` | prints which gates are armed, which lint tier is live, project readiness, empty `.env` keys. Reports only |
 | `PreToolUse` | `qa-guard.mjs` | **refuses any write to `.env` or `.auth/**`** |
 | `PostToolUse` | `qa-lint.mjs` | **21 lint rules** - ESLint (AST) when installed, regex fallback before `npm install` |
@@ -449,7 +449,7 @@ The skill also declares `allowed-tools` in its frontmatter (browser tools + `Age
 
 **Playwright version:** unpinned, so bootstrap installs the current release (1.62.x at the time of writing). The scaffolded config uses `retryStrategy: 'isolated'` (PW ≥1.62) so retries run at the end, one at a time in a single worker - a retry can't be polluted by a neighbour still running.
 
-**Lint config:** `eslint.config.mjs` + `qa-rules.mjs` are copied to the project root from `.claude/hooks/lint/` by the `Setup` hook. They must sit at the root - ESLint resolves its config from the cwd upward and never searches subdirectories. **Never edit them to silence a violation;** change the source in `.claude/hooks/lint/`.
+**Lint config:** `eslint.config.mjs` + `qa-rules.mjs` sit **at the project root** and are committed there - ESLint resolves its config from the cwd upward and never searches subdirectories, so the root is the only place they work. `qa-rules.mjs` is a local ESLint plugin holding the 10 rules that need the source text and comment table (the comment-aware locator rules, test-name format, `test.use()` placement); the other ~11 are `no-restricted-syntax` selectors in the config. **Never edit either to silence a violation.**
 
 **Browsers:** chromium, webkit, firefox (config runs all three projects).
 
@@ -517,7 +517,7 @@ Report: `smart-report.html` (falls back to the built-in `html` reporter if `play
 - Locators are captured from the **live UI only** - if there's no build yet, locators are stubbed `// TODO: capture from live UI`, never guessed.
 - **Capture the baseline BEFORE writing the plan.** The baseline is the checklist the plan is written against - planning first means planning from memory, and the `Stop` gate will catch the gaps.
 - **Never edit a hook, `eslint.config.mjs`, `qa-rules.mjs`, a plan row, or a `Coverage:` line to make a gate pass.** Fix the code. If a rule is genuinely wrong for a case, raise it.
-- The lint config at the project root is a **copy** - the source of truth is `.claude/hooks/lint/`. Edit the root file and your change is lost on a fresh clone.
+- `eslint.config.mjs` + `qa-rules.mjs` are **committed at the project root** (ESLint won't read a config from a subdirectory). If either goes missing, the AST lint tier silently falls back to the regex guard - `SessionStart` tells you which tier is live.
 - If a `crawl-surface` fragment comes back `"failed": true`, that surface was **not** captured. Re-dispatch it; a blank is not the same as "nothing there".
 
 ---

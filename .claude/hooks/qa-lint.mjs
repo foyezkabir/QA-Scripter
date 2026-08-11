@@ -15,9 +15,8 @@
  * qa-guard.mjs owns the PreToolUse secret guard (which has no ESLint analogue)
  * plus a small bootstrap-window subset, and nothing more.
  *
- * The live config must sit at the PROJECT ROOT - ESLint resolves
- * eslint.config.mjs from cwd upward and never searches subdirectories - so
- * Phase 0 copies it there from .claude/hooks/lint/.
+ * The config sits at the PROJECT ROOT and is committed there - ESLint resolves
+ * eslint.config.mjs from cwd upward and never searches subdirectories.
  *
  * Exit codes: 0 = clean / out of scope, 2 = blocking (stderr returned to agent).
  * Any internal failure exits 0 - a broken linter must never wedge the agent.
