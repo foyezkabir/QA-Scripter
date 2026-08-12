@@ -31,6 +31,15 @@ merges it into `baselines/<module>.baseline.json`.
 1. **Reach the surface.** Navigate, or follow the click path you were given. If
    you cannot reach it, skip to *Reporting a failure* below.
 
+   **Reuse the session - never log in yourself.** The MCP browser keeps its
+   context between calls, so if a previous surface already authenticated, you are
+   already logged in: just navigate. If the caller gave you a `storageState` path
+   (`.auth/<role>.json`), the MCP browser was launched with it - again, just
+   navigate. **Logging in per surface is the single biggest waste in a crawl**: on
+   a 12-surface module it pays the login cost 12 times. If you land on a login
+   page when you expected content, say so in `notes` and return - do not
+   improvise a login.
+
 2. **Snapshot it.** Work from the **accessibility tree**, never from pixels.
 
    **Tool order - fall through, do not skip to Bash:**

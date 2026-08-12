@@ -12,7 +12,7 @@ whether a rule is worth keeping.
 
 | When | Hook | Event | Blocks |
 |---|---|---|---|
-| Before a write lands | `qa-guard.mjs` | `PreToolUse` | writes to `.env` / `.auth/**` |
+| Before a write lands | `qa-guard.mjs` | `PreToolUse` | a value in `.env.example`; hand-written `.auth/**`. `.env` itself is allowed |
 | After a write lands | `qa-lint.mjs` → ESLint or `qa-guard.mjs` | `PostToolUse` | every lint rule below |
 | Agent tries to finish | `qa-coverage.mjs` | `Stop` | missing / dishonest coverage |
 | Agent tries to finish | `qa-crawl.mjs` | `Stop` | untested states; baseline controls in no plan row; shallow crawl |
@@ -67,7 +67,7 @@ Rules marked **B** are also live during the bootstrap window (before
 | `page/no-assertions` · `fixture/no-assertions` · `setup/no-api-assertions` · `locators/no-logic` | assertions/logic in the wrong tier | |
 | `auth/no-direct-login` · `no-hardcoded-creds` · `no-testuse-in-test` | login in a spec; hard-coded secret; `test.use()` inside `test()` | |
 | `spec/test-name-format` · `tag-not-in-title` | name ≠ `TC-XX: Verify that ...`; `@tag` in the title instead of `{ tag: [...] }` | ✅ |
-| `secrets/no-write` (PreToolUse) | any write to `.env` or `.auth/**` | ✅ |
+| `secrets/no-value-in-example` · `no-write` (PreToolUse) | a **value** in the committed `.env.example` (keys only); any hand-written `.auth/**` session file. **`.env` is writable** - gitignored, and the correct home for a URL/credential | ✅ |
 | `evidence/verbatim-template` | `fixtures/evidence.ts` differing from `.claude/templates/evidence.ts` | n/a |
 | `quality/assertion-intent` · `needs-test-step` · `duplicate-selector` | assertion with no intent message; multi-phase test with no `test.step()`; a selector string repeated in one file | |
 | `runtime/networkidle` · `serial-mode` · `inflated-timeout` | `waitForLoadState('networkidle')`; `describe.serial`; a timeout over 60s | |

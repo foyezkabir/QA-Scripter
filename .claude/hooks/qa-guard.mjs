@@ -184,18 +184,50 @@ function main() {
 
   const rel = filePath.replace(/^.*?\/QA-Scripter\//, '');
 
-  /* --- PreToolUse: never write secrets or session files (no ESLint equivalent) --- */
+  /* --- PreToolUse: protect what is COMMITTED, allow what is gitignored --------
+   *
+   * .env is gitignored and is the correct home for a URL or credential the user
+   * hands over - writing it there is the intended flow, not a leak. What must
+   * never happen is a value reaching .env.example, which IS committed.
+   *
+   * .auth/*.json stays blocked: those are session files produced by global-setup
+   * at run time, and a hand-written one silently breaks the auth story.
+   */
   if (payload.hook_event_name === 'PreToolUse') {
-    if (/(^|\/)\.env$/.test(rel) || /(^|\/)\.auth\//.test(rel)) {
+    if (/(^|\/)\.auth\//.test(rel)) {
       process.stderr.write(
         `BLOCKED by qa-guard [secrets/no-write]\n\n` +
-        `  ${rel} must never be written by the agent.\n\n` +
-        `  .env holds real credentials; .auth/*.json are session files produced by\n` +
-        `  global-setup.ts at run time. Both are gitignored.\n` +
-        `  → To document a new key, add it to .env.example WITHOUT its value and ask\n` +
-        `    the user to fill in .env themselves.\n`
+        `  ${rel} must never be hand-written.\n\n` +
+        `  .auth/*.json are session files produced by global-setup.ts at run time\n` +
+        `  (it logs in with the creds in .env and saves storageState). Writing one by\n` +
+        `  hand produces a session that was never real.\n` +
+        `  → Fill the credentials in .env, then let global-setup.ts generate it.\n`
       );
       return 2;
+    }
+
+    // .env.example is a COMMITTED template: keys only, never values. Without this
+    // check, a blocked .env write leads straight to leaking the value into git -
+    // the guard's own message used to point here, so this closes that path.
+    if (/(^|\/)\.env\.example$/.test(rel)) {
+      const content = input.content ?? input.new_string ?? '';
+      const filled = String(content)
+        .split('\n')
+        .map((l, i) => [i + 1, l])
+        .filter(([, l]) => /^\s*[A-Z][A-Z0-9_]*\s*=\s*\S/.test(l) && !/^\s*#/.test(l));
+      if (filled.length) {
+        process.stderr.write(
+          `BLOCKED by qa-guard [secrets/no-value-in-example]\n\n` +
+          `  ${rel} is a COMMITTED template - it documents KEY NAMES only, never values.\n` +
+          `  These line(s) carry a value:\n` +
+          filled.map(([n, l]) => `    ${n}: ${l.trim().slice(0, 70)}\n`).join('') +
+          `\n  A URL or credential written here goes into git history.\n` +
+          `  → Put the VALUE in .env instead - it is gitignored and IS the intended home\n` +
+          `    for it, and you are allowed to write there. Keep the key here with an\n` +
+          `    empty value (\`BASE_URL=\`) so the template still documents it.\n`
+        );
+        return 2;
+      }
     }
     return 0;
   }

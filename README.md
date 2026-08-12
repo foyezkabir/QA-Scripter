@@ -125,7 +125,7 @@ Every "zero tolerance" rule in this README is enforced **mechanically** by hooks
 |---|---|---|
 | `Setup` | `qa-setup.mjs` | mechanical half of Phase 0: deps, `tsconfig.json`, `.env`, `fixtures/evidence.ts`, npm scripts, companion dirs; warns if the root lint config is missing. Idempotent; refuses to run outside this project |
 | `SessionStart` | `session-status.mjs` | prints which gates are armed, which lint tier is live, project readiness, empty `.env` keys. Reports only |
-| `PreToolUse` | `qa-guard.mjs` | **refuses any write to `.env` or `.auth/**`** |
+| `PreToolUse` | `qa-guard.mjs` | refuses a **value** in the committed `.env.example`, and any hand-written `.auth/**` session file. `.env` itself is writable - it is gitignored |
 | `PostToolUse` | `qa-lint.mjs` | **21 lint rules** - ESLint (AST) when installed, regex fallback before `npm install` |
 | `PostToolUse` | `evidence-drift.sh` | `fixtures/evidence.ts` must match its template exactly |
 | `Stop` | `qa-coverage.mjs` | **requirement coverage** - reconciles `plan/` ↔ `tests/` ↔ `traceability/` |
@@ -443,7 +443,7 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 
 The skill also declares `allowed-tools` in its frontmatter (browser tools + `Agent`, needed to spawn `crawl-surface`), which pre-approves them for the invoking turn.
 
-**Env / secrets** - the `Setup` hook copies `.env.example` (committed template, documents every key) to `.env` (gitignored) with **values left empty**. Fill in `BASE_URL` + credentials yourself: the agent is **blocked** from writing `.env` or `.auth/**` by the `PreToolUse` hook, and `SessionStart` reports any keys still empty.
+**Env / secrets** - the `Setup` hook copies `.env.example` (committed template, documents every key) to `.env` (gitignored) with **values left empty**. Give the agent a `BASE_URL` or credentials and it writes them into `.env` for you - that file is gitignored and is their correct home. The `PreToolUse` hook refuses two things instead: a **value** in `.env.example` (committed - keys only) and any hand-written `.auth/**` session file. `SessionStart` reports which `.env` keys are still empty.
 
 **Dev dependencies** (installed by the `Setup` hook at bootstrap): `@playwright/test`, `typescript`, `@types/node`, `@faker-js/faker`, `dotenv`, `playwright-smart-reporter`, `eslint`, `typescript-eslint`.
 

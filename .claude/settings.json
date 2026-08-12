@@ -41,7 +41,6 @@
       "Bash(rm -f tests/smart-report.html:*)"
     ],
     "deny": [
-      "Read(./.env)",
       "Read(./.auth/**)"
     ]
   },

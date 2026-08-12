@@ -312,6 +312,30 @@ Any failed test leaves a timestamped, durable evidence trail (settles "it worked
 
 ## Roles & environment (`test.use()`)
 
+**Auth specs run LOGGED OUT - declare it explicitly.** The config applies `storageState: '.auth/user.json'` to every test, so a login or sign-up spec would start already authenticated and test nothing. Any auth spec file must opt out at **file scope**:
+
+```typescript
+import { test, expect } from '../fixtures/base';
+
+// Auth flows must start with no session - a logged-in browser cannot exercise login.
+test.use({ storageState: { cookies: [], origins: [] } });
+
+test('TC-01: Verify that an invalid password shows an inline error', { tag: ['@critical'] }, async ({ loginPage }) => {
+  // ...
+});
+```
+
+Use `{ cookies: [], origins: [] }` rather than a path - it is an explicit empty session, needs no file on disk, and works before `.auth/` exists. This is the one legitimate case for a spec that does not consume `storageState`; it is not an exemption from **no direct login** - the *subject under test* is the login itself, so it runs through the UI (pattern B).
+
+**The suite's session comes from ONE stable `.env` account - never from an account a test created.** This is the standard here; do not improvise a different scheme.
+
+- `global-setup.ts` logs in with the `.env` credentials and writes `.auth/<role>.json`. That is the session every non-auth test uses.
+- **The register spec creates a THROWAWAY account** (unique email via faker), asserts registration worked, and cleans it up. It is a test *of registration* - not a supplier of credentials for other tests.
+- **Never make the suite depend on a registration test having run.** `global-setup` executes *before* any test, so an account created by a test cannot feed the session built before it existed. Forcing that order needs `describe.serial`, which forfeits parallelism (and trips `runtime/serial-mode`).
+- **Why it matters beyond ordering:** if login depends on register, a register bug fails both and you can no longer tell which is broken. A precondition must never be built through the UI - that is pattern **A** (API-seed), and an account is a precondition for every module except auth itself.
+- **Bootstrapping a brand-new app** (no account exists yet, nothing to put in `.env`): register **once, by hand or as a one-off run**, put that account in `.env`, and from then on treat it as stable. Do not wire that step into the suite.
+- **Genuinely-new-user states** (onboarding tour, first-login empty states, "verify your email") are the one exception: they need a fresh account per run. Get it from an **API-seeded `freshUser` fixture** with teardown - never by chaining onto the register test.
+
 Session files live in a **gitignored `.auth/` folder, named by role** - `.auth/<role>.json` (`.auth/admin.json`, `.auth/customer.json`, …). Auth defaults to one global `storageState`; extra roles are selected per spec file/describe with `test.use()` - no login code in any test.
 
 **Naming is decided at ONBOARDING, not at scaffold** (roles aren't known until a project arrives):
@@ -476,7 +500,7 @@ npx playwright install chromium webkit firefox
 
 **Standard files** - the Setup hook creates `tsconfig.json`, `.env`, `eslint.config.mjs`, `qa-rules.mjs` and the companion dirs. Verify they exist; recreate only if the hook reported a failure.
 - `tsconfig.json`: strict, `target` ES2020, `lib` ESNext + DOM (DOM for browser-context code in `addInitScript`/`evaluate`; ESNext because Playwright's own types use `Symbol.asyncDispose`), `module` commonjs, `esModuleInterop`, `resolveJsonModule`, `skipLibCheck: true` (do not type-check node_modules), `types: ["node"]`, `outDir ./dist`, `rootDir ./`, include `**/*.ts`, exclude `node_modules`/`dist`. All verified working 2026-07-15.
-- `.env` (all empty values; copy from the committed `.env.example` template, which documents every key):
+- `.env` (copy from the committed `.env.example` template, which documents every key). **When the user gives you a URL or credential, write it straight into `.env`** - it is gitignored and that is its home. **Never put a value in `.env.example`** (committed - keys only; the guard blocks it):
   - `BASE_URL`
   - default-role creds `EMAIL` + `PASSWORD` (add `MOBILE` only if the app uses phone/OTP login)
   - **multi-role:** one cred pair per role - `ADMIN_EMAIL`/`ADMIN_PASSWORD`, `CUSTOMER_EMAIL`/`CUSTOMER_PASSWORD`, … (added at onboarding when roles are known)
@@ -628,8 +652,18 @@ After bootstrap, **prove the harness actually runs before writing any feature te
 
 1. **Task / module** - invoked bare (no task) or with an unclear one → ask what to automate. Do not choose a target yourself.
 2. **Live/staging build available?** yes → Workflow 1 · no (Gherkin/text only) → Workflow 2 (stubbed locators).
-3. **If Workflow 1: `.env` filled?** `BASE_URL` + default-role creds must be present. Empty → STOP and ask the user to fill `.env` (values come only from the user; never guessed, never committed).
-4. **Sources on offer** - Jira ticket key? Figma (ask whether it exists)? API docs (optional, ask once)? Gherkin / pasted requirements? Combine all that exist (see Input Sources below).
+3. **If Workflow 1: what does `.env` actually need?** `BASE_URL` is **always** required - no URL, no crawl. Credentials depend on the module:
+   - **Auth module** (sign-up / login / forgot-password / reset / OTP) → **`BASE_URL` alone is enough.** Proceed with no credentials.
+   - **Any post-login module** → `BASE_URL` **and** default-role creds. Missing → STOP and ask.
+
+   If the user gives you a URL or credential in chat, **write it into `.env` yourself** (gitignored - that is its home). Never guess a URL or invent a credential.
+   > **AUTH IS THE EXCEPTION - crawl it with no credentials at all.** Sign-up, login, forgot-password, reset, OTP/verify are all **pre-login public surfaces**: they need no session, and sign-up is what *produces* the credentials. Crawl and script the auth module first, register through the UI, then put the resulting account in `.env`.
+   >
+   > **For every OTHER module, get credentials first.** An unauthenticated crawl of a post-login module reaches only the login wall, so every state comes back `reached: false` and the module needs a **second crawl** later - the same work twice. That is the single biggest time waster in a run.
+   >
+   > A mixed request ("automate auth + organisations") splits naturally: auth now, the rest once `.env` is filled.
+4. **Depth** - `smoke` · `standard` (default) · `deep`. Ask only if the module is on the @critical list (auth/payment/data/permissions) and the user has not said; otherwise take `standard`. State the choice in the plan. See the depth table under CRAWL.
+5. **Sources on offer** - Jira ticket key? Figma (ask whether it exists)? API docs (optional, ask once)? Gherkin / pasted requirements? Combine all that exist (see Input Sources below).
 
 ## Input Sources (combine any of these - they are layers, not alternatives)
 
@@ -693,7 +727,22 @@ From text you may derive the **TC list** (one `TC-XX` per scenario), **Page meth
 
 **Why this is mandatory, not preferred:** a full-module crawl run inline floods your context with accessibility snapshots. Exploration then degrades exactly when it should be most thorough - and *that* is the mechanism by which surfaces get missed, which is the failure this whole sequence exists to prevent. Delegating is what keeps the crawl exhaustive at surface #14 as it was at surface #1.
 
-**How to dispatch:** give each subagent (a) the module name, and (b) the route or the click path to reach its surface ("click the first row, then the Members tab"). Start from the MAP worklist; every newly-discovered surface a fragment reveals gets **its own** subagent, re-queued until the worklist is empty.
+**How to dispatch:** give each subagent (a) the module name, and (b) the route or the click path to reach its surface ("click the first row, then the Members tab"). Start from the MAP worklist; every newly-discovered surface a fragment reveals gets a subagent, re-queued until the worklist is empty.
+
+**Batch by route, and go wide - this is what keeps a crawl fast:**
+- **One subagent per ROUTE, not per control.** A route plus everything reachable without leaving it (its menus, dropdowns, tabs, modals, inline states) is ONE unit of work. Dispatching a separate subagent for a single ⋮ menu pays full startup cost for one observation.
+- **Dispatch the whole worklist in ONE message** (multiple Agent calls together) so they run concurrently. Sequential dispatch turns a 5-minute crawl into 25.
+- **Pass the auth session.** Tell each subagent it is already authenticated (or give it the `.auth/<role>.json` path). Never let a subagent log in per surface - on a 12-surface module that pays the login cost 12 times.
+- **A cheap surface does not need a subagent.** Verifying ONE locator, or re-checking a single control during self-heal, is a direct MCP call - the subagent exists to keep bulk snapshots out of your context, not to wrap every click.
+
+**Depth - pick it at intake, do not default to maximum.** State probing is the expensive half of exploration, so scale it to the task:
+| Depth | Reaches | Use when |
+|---|---|---|
+| `smoke` | happy path + one error state | proving a harness, or a first look at a module |
+| `standard` (default) | every state reachable **without** API seeding | most modules, most of the time |
+| `deep` | seeds data to force empty/error/terminal/role-gated | auth, payment, permissions - anything on the @critical list |
+
+State the depth in your plan so the `Stop` gate judges you against what was actually attempted. A state you did not probe is recorded `reached: false` with a reason - that is a documented limitation, not a gap.
 
 **Merging:** collect the returned JSON fragments into `baselines/<module>.baseline.json` - `"surface": "list"` fragments merge at the top level, `"surface": "view"` fragments append to `views[]`. A fragment marked `"failed": true` means that surface was **NOT** captured: re-dispatch it, or record the failure explicitly. **Never treat a failed fragment as an empty surface** - that is how a blank becomes a false "nothing there".
 
