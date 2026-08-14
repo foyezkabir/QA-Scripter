@@ -21,15 +21,16 @@ whether a rule is worth keeping.
 | Project init / maintenance | `qa-setup.mjs` | `Setup` | scaffolds only - never blocks |
 
 `qa-setup.mjs` owns the **mechanical half of Phase 0** so it cannot be half-done
-or skipped: `npm init` + 8 dev deps, `eslint.config.mjs` + `qa-rules.mjs` copied
-to the project root, `tsconfig.json`, `.env` seeded from `.env.example` (values
-left empty - credentials cannot be invented), the `lint`/`typecheck` npm scripts,
-and the `baselines/ plan/ traceability/ findings/` dirs.
+or skipped: `npm init` + the dev deps, `tsconfig.json`, `.env` seeded from
+`.env.example` (values left empty - credentials cannot be invented),
+`fixtures/evidence.ts` from its template, the `lint`/`typecheck` npm scripts, and
+the `baselines/ plan/ traceability/ findings/` dirs.
 
-The specific failure it closes: **if the lint config is not copied to the root,
-the AST tier never activates and enforcement silently degrades to the regex
-fallback with no warning.** That copy is two lines of shell; it should never
-depend on the agent remembering.
+`eslint.config.mjs` + `qa-rules.mjs` are **committed at the project root** and are
+NOT copied by the hook - ESLint resolves its config from the cwd upward and never
+searches a subdirectory, so the root is the only place they work. The hook only
+**warns** if either has gone missing, because their absence silently degrades
+enforcement to the narrower regex guard.
 
 Safety: `npm install` is not run speculatively. The hook refuses to act unless
 the directory contains BOTH `.claude/skills/qa-scripter/SKILL.md` and

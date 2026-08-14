@@ -396,10 +396,7 @@ Confidence: high | medium | low (needs-verification)
 
 **Tags - for selective runs.** Every test carries tags in the options object (title stays clean, tags are structured metadata):
 ```typescript
-test('TC-01: Verify that a <entity> is created',
-  { tag: ['@smoke', '@critical'] },
-  async ({ <module>Page, cleanup }) => { /* ... */ },
-);
+test('TC-01: Verify that a <entity> is created', { tag: ['@smoke', '@critical'] }, async ({ <module>Page, cleanup }) => { /* ... */ });
 ```
 Run subsets: `npx playwright test --grep @smoke` · `--grep "@smoke|@critical"` · `--grep-invert @regression`.
 
@@ -435,18 +432,14 @@ Wrap logical phases in `test.step('label', async () => { … })` for a readable 
 
 ```typescript
 // worth it - multi-phase journey
-test('TC-08: Verify that a <entity> is created and appears in the list',
-  { tag: ['@smoke', '@critical'] },
-  async ({ <module>Page, cleanup }) => {
+test('TC-08: Verify that a <entity> is created and appears in the list', { tag: ['@smoke', '@critical'] }, async ({ <module>Page, cleanup }) => {
     await test.step('Create the <entity>', async () => { /* ... */ });
     await test.step('Confirm success toast', async () => { /* ... */ });
     await test.step('Verify it appears in the list', async () => { /* ... */ });
   });
 
 // not worth it - one action, one assert → keep plain
-test('TC-12: Verify that a required field shows an error when empty',
-  { tag: ['@regression'] },
-  async ({ <module>Page }) => {
+test('TC-12: Verify that a required field shows an error when empty', { tag: ['@regression'] }, async ({ <module>Page }) => {
     await <module>Page.submitEmpty();
     await expect(<module>Page.requiredError).toHaveText('This field is required');
   });
@@ -487,7 +480,7 @@ Rules:
 
 Announce what you will install before running install commands, then proceed. Every step is idempotent - safe to re-run.
 
-> **The mechanical half is already done for you.** The `Setup` hook (`.claude/hooks/qa-setup.mjs`) runs before you do and has handled: `npm init` + the 8 dev deps, `eslint.config.mjs` + `qa-rules.mjs` copied to the project root (this arms the AST lint tier - **if it were missing, enforcement would silently fall back to the weaker regex guard**), `tsconfig.json`, `.env` seeded from `.env.example`, the `lint`/`typecheck` npm scripts, and the `baselines/ plan/ traceability/ findings/` dirs. It reports what it did and self-skips when already satisfied.
+> **The mechanical half is already done for you.** The `Setup` hook (`.claude/hooks/qa-setup.mjs`) runs before you do and has handled: `npm init` + the dev deps, `tsconfig.json`, `.env` seeded from `.env.example`, `fixtures/evidence.ts` from its template, the `lint`/`typecheck` npm scripts, and the `baselines/ plan/ traceability/ findings/` dirs. `eslint.config.mjs` + `qa-rules.mjs` are **committed at the project root** (ESLint only reads a config from the root) - the hook does not copy them, it only warns if either is missing, because their absence silently drops enforcement to the narrower regex guard. It reports what it did and self-skips when already satisfied.
 >
 > **So VERIFY these, do not redo them.** What remains genuinely yours: the browser binaries, `playwright.config.ts`, `fixtures/`, `global-setup.ts`, and proving the smoke test green.
 
@@ -775,6 +768,55 @@ State the depth in your plan so the `Stop` gate judges you against what was actu
 ---
 
 ## Mandatory Coding Rules
+
+### Formatting - collapse the wrapper, keep the facts
+
+**The rule:** if a multi-line block exists only to *wrap* something that fits on one line, collapse it. If each line carries a distinct value, keep one per line.
+
+**Options object goes INLINE on the `test(` line.** Never split it across three lines:
+```typescript
+// YES
+test('TC-21: Verify that each password field has its own toggle', { tag: ['@regression'] }, async ({ registerPage }) => {
+
+// NO - three lines to express `{ tag: ['@regression'] }`
+test('TC-21: Verify that each password field has its own toggle', {
+  tag: ['@regression'],
+}, async ({ registerPage }) => {
+```
+Same for two tags: `{ tag: ['@smoke', '@critical'] }` stays inline.
+
+**Collapse an assertion chain and its short option object onto one line:**
+```typescript
+// YES
+await expect.poll(() => registerPage.currentPath(), { message: 'a registered doctor must land on the login page' }).toContain('/auth/login');
+
+// NO - four lines, three of them punctuation
+await expect
+  .poll(() => registerPage.currentPath(), {
+    message: 'a registered doctor must land on the login page',
+  })
+  .toContain('/auth/login');
+```
+
+**A short trailing option object sits on the closing line**, not on its own:
+```typescript
+await expect(page).toHaveScreenshot('login.png', { maxDiffPixels: 100 });
+```
+
+**Keep one-per-line where each line is a separate fact** - data factories, locator maps, plan-driven arrays. Collapsing these hides which field changed in a diff:
+```typescript
+export const newDoctor = (overrides: Partial<NewDoctor> = {}): NewDoctor => ({
+  fullName: faker.person.fullName(),
+  bmdcRegNo: faker.string.numeric(6),
+  phone: `01${faker.string.numeric(9)}`,
+  email: faker.internet.email({ provider: 'hospital.bd' }).toLowerCase(),
+  password: 'ValidPass123!',
+  ...overrides,
+});
+```
+A `type` that fits on one line stays on one line: `export type NewDoctor = { fullName: string; bmdcRegNo: string; email: string };`
+
+`test.use(...)` stays on its own line - it is file-scoped and must sit outside every `test()`.
 
 ### Critical Test File Rules (Zero Tolerance)
 

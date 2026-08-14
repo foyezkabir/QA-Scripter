@@ -126,7 +126,7 @@ Every "zero tolerance" rule in this README is enforced **mechanically** by hooks
 | `Setup` | `qa-setup.mjs` | mechanical half of Phase 0: deps, `tsconfig.json`, `.env`, `fixtures/evidence.ts`, npm scripts, companion dirs; warns if the root lint config is missing. Idempotent; refuses to run outside this project |
 | `SessionStart` | `session-status.mjs` | prints which gates are armed, which lint tier is live, project readiness, empty `.env` keys. Reports only |
 | `PreToolUse` | `qa-guard.mjs` | refuses a **value** in the committed `.env.example`, and any hand-written `.auth/**` session file. `.env` itself is writable - it is gitignored |
-| `PostToolUse` | `qa-lint.mjs` | **21 lint rules** - ESLint (AST) when installed, regex fallback before `npm install` |
+| `PostToolUse` | `qa-lint.mjs` | **every lint rule** - ESLint (AST) when installed, regex fallback before `npm install`. Rule set = `no-restricted-syntax` selectors in `eslint.config.mjs` + the `qa/*` rules in `qa-rules.mjs`; the authoritative list is `.claude/hooks/RULES.md` |
 | `PostToolUse` | `evidence-drift.sh` | `fixtures/evidence.ts` must match its template exactly |
 | `Stop` | `qa-coverage.mjs` | **requirement coverage** - reconciles `plan/` ↔ `tests/` ↔ `traceability/` |
 | `Stop` | `qa-crawl.mjs` | **crawl completeness** - reconciles `baselines/` ↔ `plan/` (controls **and** states) |
@@ -432,7 +432,7 @@ test('TC-15: Verify that search filters results by name', async () => { /* ... *
 | `chrome-devtools` | `chrome-devtools-mcp@latest` | **Primary** UI inspection - `take_snapshot`, `take_screenshot`, navigation, clicks; the source of locators |
 | `playwright` | `@playwright/mcp@latest` | Secondary / fallback browser automation |
 
-**Permissions** (`.claude/settings.json`, committed) - 31 rules, pre-approved so there are no prompts:
+**Permissions** (`.claude/settings.json`, committed) - pre-approved so there are no prompts:
 - **MCP:** `mcp__chrome-devtools`, `mcp__playwright`, `mcp__plugin_playwright_playwright` (prefix rules - they cover every tool on those servers, snapshots and clicks included)
 - **Playwright:** `npx playwright test:*`, `install:*`, `show-report:*`
 - **Lint / types:** `npx eslint:*`, `npx tsc:*`, `npm run lint:*`, `npm run typecheck:*`
