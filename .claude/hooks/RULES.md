@@ -162,9 +162,24 @@ the surface later appears that is baseline drift like any other.
 - never trim the baseline to pass the gate; it records what EXISTS
 - a surface that truly does not exist → note it in `changelog[]`
 
-Matching is name-based and normalised (case/punctuation/whitespace-insensitive,
-parentheticals dropped), so a plan row mentioning a control by name covers it.
-Names shorter than 3 characters are skipped as too generic to match reliably.
+Matching is name-based and normalised: case, punctuation and whitespace all
+collapse, so `Row menu (⋮)` in the baseline matches "row menu" in a plan, and a
+prose plan works as well as a table.
+
+Two deliberate choices here, both learned the hard way:
+
+- **Parenthetical content is KEPT.** An earlier version dropped it (to tidy
+  `(⋮)`), which silently erased plan text written in parentheses -
+  `Scenario 1 (populated state)` normalised to `scenario 1`, so a state named
+  there looked untested. Dropping text before matching makes the gate lie about
+  what the plan says. The decorative cases normalise identically either way,
+  because punctuation already collapses.
+- **A name too short to match is REPORTED, not skipped.** An icon-only `⋮`, `OK`
+  or `X` cannot be audited by text. Skipping it would mean the gate quietly
+  pretends the control does not exist. Instead it is listed under
+  `UNMATCHABLE NAME` and asks for a real accessible name - which is also what
+  `getByRole(role, { name })` needs in order to target it, so fixing the baseline
+  fixes the locator too.
 
 **Silent when** there are no baselines, or no plan and no tests yet (the crawl may
 still be in progress). It walks whatever keys the JSON contains rather than a

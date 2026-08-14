@@ -41,11 +41,21 @@ const listFiles = (dir, re) => {
   } catch { return []; }
 };
 
-/** Normalise a label for matching: case/punctuation/whitespace insensitive. */
+/**
+ * Normalise a label for matching: case/punctuation/whitespace insensitive.
+ *
+ * Punctuation collapses to single spaces, which already handles the decorative
+ * cases - `Row menu (⋮)` and `disabled/invalid` normalise the same either way.
+ *
+ * It deliberately does NOT drop parenthetical CONTENT. An earlier version did
+ * (to tidy `(⋮)`), which silently erased plan text written in parentheses -
+ * `Scenario 1 (populated state)` became `scenario 1`, so a state named there
+ * looked untested. Dropping text before matching makes the gate lie about what
+ * the plan says, which is worse than a slightly noisier needle.
+ */
 const key = (s) =>
   String(s ?? '')
     .toLowerCase()
-    .replace(/\(.*?\)/g, ' ')       // drop parentheticals like "(⋮)"
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
@@ -275,9 +285,17 @@ function main() {
     // Dedupe by kind+name+where, and ignore trivially short names.
     const seen = new Set();
     const uncovered = [];
+    const unmatchable = [];
     for (const it of items) {
       const k = key(it.name);
-      if (k.length < 3) continue;
+      // A name too short to match reliably (an icon-only "⋮", "OK", "X") cannot be
+      // audited by text. Do NOT silently skip it - that is a control the gate
+      // pretends does not exist. Report it so it gets a real accessible name or an
+      // explicit out-of-scope note.
+      if (k.length < 3) {
+        unmatchable.push(it);
+        continue;
+      }
       const id = `${it.kind}|${k}|${it.where}`;
       if (seen.has(id)) continue;
       seen.add(id);
@@ -310,8 +328,8 @@ function main() {
     }
 
     const smells = shallowSmells(b);
-    if (uncovered.length || smells.length || uncoveredStates.length) {
-      reports.push({ module, uncovered, uncoveredStates, smells, total: seen.size });
+    if (uncovered.length || smells.length || uncoveredStates.length || unmatchable.length) {
+      reports.push({ module, uncovered, uncoveredStates, unmatchable, smells, total: seen.size });
     }
   }
 
@@ -365,6 +383,20 @@ function main() {
       out.push(`       actually reached needs its own test (empty state, error state, the`);
       out.push(`       role-gated view). If a state turned out to be unreachable, set`);
       out.push(`       "reached": false with a "why" - do not delete it.`);
+      out.push('');
+    }
+
+    if (r.unmatchable?.length) {
+      out.push(`    UNMATCHABLE NAME - too short to audit by text (${r.unmatchable.length}):`);
+      for (const u of r.unmatchable.slice(0, 10)) {
+        out.push(`      ${u.where}  [${u.kind}] ${JSON.stringify(u.name)}`);
+      }
+      if (r.unmatchable.length > 10) out.push(`      ... and ${r.unmatchable.length - 10} more`);
+      out.push('');
+      out.push(`    -> The gate cannot tell whether these are covered, so it will not`);
+      out.push(`       claim they are. Give each a real accessible name in the baseline`);
+      out.push(`       (what a screen reader would announce - "Row menu", "Close dialog"),`);
+      out.push(`       which is also what getByRole(role, { name }) needs to target it.`);
       out.push('');
     }
 
