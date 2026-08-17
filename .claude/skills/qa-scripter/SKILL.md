@@ -879,6 +879,8 @@ DataHelper.extractValues(data, key) · compareDatasets(actual, expected) · sani
 
 ## Test Naming Convention
 
+**Numbering restarts at `TC-01` for every module.** Ids are unique *within* a module, not across the suite - `tests/auth.spec.ts` and `tests/chambers.spec.ts` both begin at `TC-01`, exactly as a test-management tool numbers cases. Never offset a module's numbering because another module used those numbers; the `Stop` gate namespaces ids by module and only rejects a collision inside one module. **Splitting a module across several spec files is fine** - name them after the plan (`chambers-list.spec.ts`, `chambers-empty.spec.ts` → `plan/chambers.md`) and the gate resolves them to that module automatically; a spec whose name matches no plan is reported as unplanned. The format is exactly `TC-XX: Verify that ...` - no module prefix (`TC-C01` is rejected), the filename already carries the module.
+
 Each test must follow this format:
 
 ```typescript

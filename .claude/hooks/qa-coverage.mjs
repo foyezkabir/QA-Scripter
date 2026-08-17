@@ -61,6 +61,48 @@ function codeOnly(src) {
 const TC = /\bTC-(\d+)\b/;
 const norm = (n) => `TC-${String(parseInt(n, 10)).padStart(2, '0')}`;
 
+/**
+ * TC ids are unique **per module**, not across the suite - every module starts at
+ * TC-01, the way any test-management tool numbers cases. The module is the file
+ * stem (`tests/chambers.spec.ts` and `plan/chambers.md` are both `chambers`), so
+ * `chambers/TC-01` and `auth/TC-01` are different ids and both are legal.
+ *
+ * An earlier version keyed on the bare number, which forced later modules to
+ * start at arbitrary offsets ("chambers begins at TC-30 because auth took 1-24").
+ * That made a module's numbering depend on unrelated modules and broke whenever
+ * an earlier module grew.
+ */
+const stemOf = (file) =>
+  file.replace(/^.*\//, '').replace(/\.spec\.ts$/, '').replace(/\.md$/, '');
+
+/**
+ * Map a spec file to the module that owns it.
+ *
+ * A module's specs are often SPLIT across several files - `chambers-list.spec.ts`,
+ * `chambers-empty.spec.ts`, `chambers.crud.spec.ts` all belong to `plan/chambers.md`.
+ * Matching on the exact stem would scope each file to its own pseudo-module, so
+ * every test reads as "unplanned" AND every plan row as "missing" at the same time.
+ *
+ * So: pick the LONGEST plan name that the spec stem starts with, on a segment
+ * boundary (`-`, `.`, `_`). `chambers-list` -> `chambers`; `chambers` -> `chambers`.
+ * Longest-wins so `chambers-billing` prefers a `chambers-billing` plan over
+ * `chambers` when both exist. No alias table to maintain - the naming convention
+ * IS the mapping, and a spec that matches no plan keeps its own stem so it still
+ * shows up as unplanned rather than being silently absorbed.
+ */
+function moduleOf(file, planNames = []) {
+  const stem = stemOf(file);
+  let best = null;
+  for (const p of planNames) {
+    if (stem === p) return p;
+    if (stem.startsWith(p) && /[-._]/.test(stem.charAt(p.length))) {
+      if (!best || p.length > best.length) best = p;
+    }
+  }
+  return best ?? stem;
+}
+const qualify = (module, id) => `${module}/${id}`;
+
 /* ------------------------------------------------------------------ *
  * Parse the three artifacts
  * ------------------------------------------------------------------ */
@@ -86,7 +128,7 @@ function parsePlan(file) {
 }
 
 /** Every test authored in tests/, keyed by TC id. */
-function parseTests() {
+function parseTests(planNames = []) {
   const files = listFiles(join(ROOT, 'tests'), /\.spec\.ts$/);
   const byId = new Map();
   const problems = [];
@@ -122,7 +164,9 @@ function parseTests() {
         problems.push({ ...entry, kind: 'no-tc-id' });
         continue;
       }
-      const id = norm(idm[1]);
+      // Qualify by module so every module may start at TC-01. A duplicate is only
+      // a duplicate WITHIN one module's specs.
+      const id = qualify(moduleOf(rel, planNames), norm(idm[1]));
       if (byId.has(id)) {
         problems.push({ ...entry, kind: 'duplicate', id, other: byId.get(id) });
       } else {
@@ -171,7 +215,8 @@ function main() {
 
   // Nothing authored yet (bootstrap, or a non-authoring turn) - nothing to gate.
   if (!existsSync(testsDir)) return 0;
-  const { byId: tests, problems, fileCount } = parseTests();
+  const planNames = planFiles.map((f) => stemOf(f));
+  const { byId: tests, problems, fileCount } = parseTests(planNames);
   if (fileCount === 0) return 0;
   if (planFiles.length === 0 && tests.size === 0) return 0;
 
@@ -186,8 +231,9 @@ function main() {
 
     const missing = [];
     for (const [id, row] of planned) {
-      plannedAll.add(id);
-      if (!tests.has(id)) missing.push({ id, row });
+      const qid = qualify(module, id);
+      plannedAll.add(qid);
+      if (!tests.has(qid)) missing.push({ id, row });
     }
     if (missing.length) {
       sections.push({
@@ -227,7 +273,7 @@ function main() {
     const unplanned = [...tests.entries()].filter(([id]) => !plannedAll.has(id));
     if (unplanned.length) {
       sections.push({
-        title: `UNPLANNED - in tests/, absent from every plan/*.md (${unplanned.length})`,
+        title: `UNPLANNED - in tests/, absent from its module's plan (${unplanned.length})`,
         lines: unplanned.map(([id, t]) => `${id}  ${t.file}:${t.line}  "${t.title.slice(0, 62)}"`),
         fix: 'Add a plan row (view x state x action -> TC + tag) so the plan stays the source of truth, then regenerate traceability.',
       });
@@ -238,9 +284,9 @@ function main() {
   const dupes = problems.filter((p) => p.kind === 'duplicate');
   if (dupes.length) {
     sections.push({
-      title: `DUPLICATE TC NUMBER (${dupes.length})`,
+      title: `DUPLICATE TC NUMBER within one module (${dupes.length})`,
       lines: dupes.map((d) => `${d.id}  ${d.file}:${d.line}  collides with ${d.other.file}:${d.other.line}`),
-      fix: 'TC ids must be unique across the suite - traceability maps by id, so a collision silently hides one test.',
+      fix: 'TC ids must be unique WITHIN a module (they are namespaced by module, so auth/TC-01 and chambers/TC-01 are both fine - every module starts at TC-01). Two tests in the same module claiming the same number silently hides one from coverage.',
     });
   }
 

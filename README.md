@@ -133,7 +133,7 @@ Every "zero tolerance" rule in this README is enforced **mechanically** by hooks
 
 **What the lint gate catches:** spec control flow (`if`/`for`/`try`/ternary) · `waitForTimeout` · `expect.poll` around a locator · XPath/CSS/`.nth()`/`frameLocator` with no justifying comment · tier leaks (`new XPage()`, direct `pages/` import, `beforeEach`, inline faker) · assertions in pages/fixtures/setup · logic in locators · login in a spec · hard-coded credentials · `test.use()` inside `test()` · test-name format · tags in the title · missing assertion intent message · multi-phase test with no `test.step()` · duplicated selector · `networkidle` · `describe.serial` · timeouts over 60s.
 
-**The two `Stop` gates make the CRITIC step provable.** They refuse to let a turn end on: a planned TC with no test · a test in no plan · a `GAP` line · a **`Coverage:` line that disagrees with reality** · a duplicate TC id · a missing tier tag · a **control in the baseline nobody planned to test** · a **state observed live with no test** · a shallow crawl (`"views": []`, unexpanded `opens`, columnless tables, no `states[]`).
+**The two `Stop` gates make the CRITIC step provable.** They refuse to let a turn end on: a planned TC with no test · a test in no plan · a `GAP` line · a **`Coverage:` line that disagrees with reality** · a duplicate TC id **within one module** · a missing tier tag · a **control in the baseline nobody planned to test** · a **state observed live with no test** · a shallow crawl (`"views": []`, unexpanded `opens`, columnless tables, no `states[]`).
 
 This is **requirement coverage, not istanbul/c8 line coverage** - a Playwright suite exercises the app, not itself.
 
@@ -367,7 +367,7 @@ Coverage: 2/3 AC (67%) · 1 gap
 ## Test Naming & Steps
 
 **Naming** - every test: `TC-XX: Verify that <testable statement>`
-- `TC-XX` sequential per feature file. The lead-in is always **"Verify that"** (not Navigate/Validate/Check).
+- `TC-XX` **restarts at `TC-01` in every module** - ids are unique *within* a module, not across the suite, so `tests/auth.spec.ts` and `tests/chambers.spec.ts` both begin at `TC-01`. The filename carries the module, so never add a prefix (`TC-C01` is rejected) and never offset a module's numbering because another module used those numbers. The lead-in is always **"Verify that"** (not Navigate/Validate/Check).
 
 ```ts
 test('TC-15: Verify that search filters results by name', async () => { /* ... */ });

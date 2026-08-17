@@ -99,7 +99,27 @@ and blocks the turn on any of:
 - a **dishonest `Coverage: N/M` line** - the claimed number disagreeing with the
   GAP count. A wrong number is worse than a missing one: it reads as covered
   when it is not.
-- a **duplicate TC number**, a test with **no `TC-XX` id**, or **no tier tag**
+- a **duplicate TC number within one module**, a test with **no `TC-XX` id**, or **no tier tag**
+
+**TC ids are per-module, not suite-wide.** Every module starts at `TC-01`; ids are
+namespaced by the file stem, so `auth/TC-01` and `chambers/TC-01` are different
+ids and both are legal. Only two tests in the SAME module claiming the same number
+is a duplicate. Traceability is read per module (`traceability/<module>.txt`
+maps that module's ACs to that module's TCs), so nothing is ambiguous.
+
+An earlier version keyed on the bare number, which forced later modules to start
+at arbitrary offsets ("chambers begins at TC-30 because auth took 1-24") - a
+module's numbering must never depend on unrelated modules.
+
+**Split spec files are handled by convention, not a lookup table.** A module's
+tests often live in several files - `chambers-list.spec.ts`, `chambers-empty.spec.ts`,
+`chambers.crud.spec.ts` all belong to `plan/chambers.md`. The gate maps a spec to
+the **longest plan name its stem starts with**, on a `-` / `.` / `_` boundary. So
+`chambers-list` -> `chambers`, and if a `chambers-billing` plan also exists,
+`chambers-billing.spec.ts` prefers that over `chambers`. A spec matching no plan
+keeps its own stem, so it is still reported as unplanned rather than silently
+absorbed into a neighbouring module. Name the spec after its plan and it just
+works - there is nothing to register.
 
 No `plan/` and no ticket → nothing to reconcile, gate stays silent.
 
