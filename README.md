@@ -183,7 +183,7 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 - **Two kinds of method**, and the assertion lives here, not in the spec:
   - **action** - `open()`, `fillForm(doctor)`, `submit()`, `togglePasswordVisibility()`
   - **`expect*` guarantee** - `expectEditorIsOpen()`, `expectArticleTitle(title)`, `expectSaveIsDisabledWhileEmpty()`
-- A spec is then one line of named intent per step, with **no `expect()` and no message strings**:
+- A spec is then one line of named intent per step, with **no `expect()` and no message strings** - **enforced** by `spec/no-inline-expect`, which blocks any `expect()` in `tests/*.spec.ts` (`expect.poll` / `toPass` included):
   ```typescript
   await articlePage.expectEditorIsOpen();
   await articlePage.expectArticleTitle(article.title);
@@ -195,6 +195,12 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
   - element → element (reorder/kanban) → `source.dragTo(target)`
   - external file/clipboard drop onto a dropzone → `locator.drop({ files } | { data })` (Playwright ≥ 1.60)
   - standard `<input type="file">` → `locator.setInputFiles(...)`
+
+**Feedback locators - toasts and inline errors**
+- Every distinct message gets its **own named locator**, grouped by kind in the locator file - `firstNameRequiredError`, `firstNameMinLengthError`, `fileSizeError`, `savedToast`. Never a parameterised `requiredError(field)` helper: a named entry is greppable, lands in the baseline, and the crawl gate can demand a test for it.
+- Prefer **`getByRole('alert'|'status').filter({ hasText })`** over bare `getByText`. `getByText` matches any element containing the string, so it can hit a heading or tooltip and **pass while the real inline error never rendered**.
+- The expected copy lives in the locator's `hasText`, so `expectFirstNameRequiredError()` takes no argument and app strings stay out of the spec.
+- The crawl records them under `messages[]` in the baseline, so a captured message with no test **blocks the turn**.
 
 **Data**
 - Never inline `faker` in a spec - factories live in `datas/`. **Faker** = throwaway inputs; **Static** = anything you assert on, edge/boundary, domain-constrained, reference values.

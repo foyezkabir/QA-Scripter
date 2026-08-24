@@ -243,6 +243,13 @@ without evidence is rejected, since it would be a bare `[]` with extra steps. Th
 claim is auditable: it sits in a committed file, a reviewer can challenge it, and if
 the surface later appears that is baseline drift like any other.
 
+**Feedback messages are part of the inventory.** The crawl records toasts and
+inline errors under `messages[]` (role, text, what triggered it), and
+`inventory()` walks them like any other named node - so a captured message with no
+plan row or test **blocks the turn**. That closes the most commonly missed surface:
+a validation message only exists while it is showing, so it is easy to crawl a form
+and never see its errors at all.
+
 **Implications for the workflow:**
 - capture the baseline **before** writing the plan - it is the checklist
 - expand every menu during capture, or it reads as shallow
