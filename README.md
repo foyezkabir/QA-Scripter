@@ -158,7 +158,7 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 | Tier / artifact | Path | Holds |
 |---|---|---|
 | **Locators** | `locators/*Locators.ts` | selectors only, no logic |
-| **Pages** | `pages/*Page.ts` | interactions only, no assertions |
+| **Pages** | `pages/*Page.ts` | interactions + `expect*` guarantee methods - the assertion lives here, not in the spec |
 | **Data** | `datas/<module>/<Module>Data.ts` | static values + faker factories (shared → `datas/common/`) |
 | **Spec** | `tests/*.spec.ts` | deterministic test logic |
 | Fixtures (support) | `fixtures/*.ts` | DI - page objects + seeded state + teardown; specs import `base.ts` only |
@@ -180,7 +180,16 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 - Name by intent (`create<Entity>Button`, not `button3`).
 
 **Pages**
-- Action-named methods that act and return values. **Assertions belong in specs** - expose state getters (`getRowCount()`).
+- **Two kinds of method**, and the assertion lives here, not in the spec:
+  - **action** - `open()`, `fillForm(doctor)`, `submit()`, `togglePasswordVisibility()`
+  - **`expect*` guarantee** - `expectEditorIsOpen()`, `expectArticleTitle(title)`, `expectSaveIsDisabledWhileEmpty()`
+- A spec is then one line of named intent per step, with **no `expect()` and no message strings**:
+  ```typescript
+  await articlePage.expectEditorIsOpen();
+  await articlePage.expectArticleTitle(article.title);
+  ```
+- **Name the method for the guarantee it checks.** With no `expect(x, 'why')` in the spec, the method name IS the intent - `expectSaveIsDisabledWhileEmpty()`, never `checkSave()`.
+- Assertions remain **forbidden** in `fixtures/` and `setup/` - those build state and tear it down; a failing fixture is not a test result.
 - Data comes in as params (nothing hard-coded). Auto-wait only, never `waitForTimeout()`. One object per page/component (a modal is its own).
 - **Drag & drop / file drop** (wrap in a page method):
   - element → element (reorder/kanban) → `source.dragTo(target)`
@@ -192,7 +201,8 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 - One sub-folder per module (`datas/<module>/<Module>Data.ts` + fixtures); shared/cross-module → `datas/common/`.
 
 **Assertions**
-- Attach a short intent message to every non-obvious assertion (2nd arg to `expect`, shown in the report on pass/fail): `expect(locator, 'why this matters').toBeVisible()`.
+- They live in `pages/` inside `expect*` methods, so the **method name carries the intent** and the spec stays free of `expect()` and message strings.
+- Where an `expect()` is written directly (inside a page method, or a helper), attach the short intent message as the 2nd arg - shown in the report on pass/fail: `expect(locator, 'why this matters').toBeVisible()`.
 - **Hard** `expect` for critical paths; **soft** `expect.soft(...)` for validations (optionally `expect.configure({ soft: true })`).
 
 **Parallel-safe by design**

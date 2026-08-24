@@ -140,7 +140,12 @@ function parseTests(planNames = []) {
     const rel = file.replace(ROOT + '/', '');
 
     // test('...', { tag: [...] }, async (...) => {})   |   test('...', async () => {})
-    const re = /(^|[^.\w])test\s*(?:\.\s*(?:only|skip|fixme)\s*)?\(\s*(['"`])/g;
+    // `only|skip|fixme|fail` are Playwright's four DECLARATION modifiers - each
+    // takes (title, body) and creates a test. `test.fail` in particular RUNS and
+    // is reported as passed when it fails, so it is more of a real test than
+    // `test.skip`. `slow` is deliberately absent: test.slow(title, ...) does not
+    // compile - it is only a modifier called inside a test body.
+    const re = /(^|[^.\w])test\s*(?:\.\s*(?:only|skip|fixme|fail)\s*)?\(\s*(['"`])/g;
     let m;
     while ((m = re.exec(clean)) !== null) {
       const quote = m[2];

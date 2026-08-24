@@ -64,14 +64,80 @@ Rules marked **B** are also live during the bootstrap window (before
 | `spec/no-branching` · `no-loops` · `no-try-catch` · `no-ternary` | control flow in `tests/*.spec.ts` | ✅ |
 | `wait/no-sleep` · `no-poll-wrapping-locator` | `waitForTimeout`; `expect.poll` around a locator | ✅ |
 | `locator/xpath-needs-comment` · `css-needs-comment` · `positional-needs-comment` · `prefer-contentFrame` | XPath/CSS/`.nth()`/`frameLocator` with no justifying comment | |
+| `spec/no-inline-expect` | **any `expect()` in a spec** - assertions belong in `expect*` page methods | |
 | `spec/no-direct-instantiation` · `import-base-only` · `no-hooks-block` · `no-inline-faker` | tier leaks in specs (`new XPage()`, direct `pages/` import, `beforeEach`, inline faker) | |
-| `page/no-assertions` · `fixture/no-assertions` · `setup/no-api-assertions` · `locators/no-logic` | assertions/logic in the wrong tier | |
+| `fixture/no-assertions` · `setup/no-api-assertions` · `locators/no-logic` | assertions in `fixtures/` or `setup/`; logic in `locators/`. **`pages/` deliberately ALLOWS `expect()`** - see below | |
 | `auth/no-direct-login` · `no-hardcoded-creds` · `no-testuse-in-test` | login in a spec; hard-coded secret; `test.use()` inside `test()` | |
 | `spec/test-name-format` · `tag-not-in-title` | name ≠ `TC-XX: Verify that ...`; `@tag` in the title instead of `{ tag: [...] }` | ✅ |
 | `secrets/no-value-in-example` · `no-write` (PreToolUse) | a **value** in the committed `.env.example` (keys only); any hand-written `.auth/**` session file. **`.env` is writable** - gitignored, and the correct home for a URL/credential | ✅ |
 | `evidence/verbatim-template` | `fixtures/evidence.ts` differing from `.claude/templates/evidence.ts` | n/a |
 | `quality/assertion-intent` · `needs-test-step` · `duplicate-selector` | assertion with no intent message; multi-phase test with no `test.step()`; a selector string repeated in one file | |
 | `runtime/networkidle` · `serial-mode` · `inflated-timeout` | `waitForLoadState('networkidle')`; `describe.serial`; a timeout over 60s | |
+
+### Assertions live in `pages/`, not in specs
+
+**Enforced both ways:** `pages/**` ALLOWS `expect()`, and `tests/**` FORBIDS it
+(`spec/no-inline-expect`). A spec body is one line of named intent per step:
+
+```typescript
+await clientPage.expectNoClientsFoundMessage();
+await clientPage.expectAddClientButton();
+```
+
+The ban covers `expect.poll` and `toPass` too - an off-page wait gets wrapped in a
+page or helper method the spec calls by name. A one-off check means writing the
+page method first; that is the point, not a cost.
+
+`pages/**` deliberately **allows** `expect()`. The spec style is one line of named
+intent per step, with no `expect()` and no message strings in the test file:
+
+```typescript
+await articlePage.expectEditorIsOpen();
+await articlePage.expectArticleTitle(article.title);
+```
+
+That requires the assertion to sit in the page object. "No assertions in pages"
+and "no assertions in specs" are mutually exclusive - you cannot enforce both.
+
+**This is a convention choice, not a bug fix.** The stricter original rule
+(assertions only in specs, pages expose state getters) was internally consistent;
+it was relaxed on request because the desired spec style conflicts with it. If the
+stricter convention ever matters more, revert the `pages/**` block in
+`eslint.config.mjs` and write specs with inline `expect()` instead.
+
+Two consequences that follow from it:
+- **`quality/assertion-intent` now mostly sees page methods, not specs.** The
+  intent that `expect(x, 'why')` used to carry moves into the METHOD NAME - so
+  name them for the guarantee (`expectSaveIsDisabledWhileEmpty`), never
+  `checkThing`.
+- **`multi-phase-needs-steps` threshold is 14, not 6.** A linear test became a
+  list of one-line intents (11 is normal), and the rule was demanding
+  `test.step()` around the most readable form the test can take. It still catches
+  a genuinely sprawling multi-screen journey. A reviewer could reasonably argue
+  the rule should count differently rather than count further.
+
+`fixtures/` and `setup/` still forbid assertions entirely, and `NO_SLEEP` is still
+enforced in `pages/`.
+
+### What counts as a test
+
+Both hooks and the AST rules recognise Playwright's four **declaration** modifiers:
+`test()`, `test.only()`, `test.skip()`, `test.fixme()`, `test.fail()`.
+
+`test.fail` matters more than it looks: such a test **runs** and is reported as
+*passed* when it fails, so it is more of a real test than `test.skip`. It was
+originally missing from the enumeration, which caused two distinct failures - the
+coverage gate reported `test.fail` tests as "planned, never written" and blocked
+the turn, while three AST rules skipped them silently (no name check, no step
+check, and a `test.use()` inside one went uncaught).
+
+`test.slow` is deliberately **excluded**: `test.slow(title, body)` does not
+compile - it is only a modifier called inside a test body. Verified against
+`@playwright/test` types.
+
+The list lives in one place per file - `TEST_MODIFIERS` in `qa-rules.mjs`, and the
+regex in each hook. **Keep all three in step**; disagreeing about what counts as a
+test is how a real test gets reported as missing.
 
 ### Justifying comments
 

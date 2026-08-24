@@ -144,7 +144,11 @@ const RULES = [
 /** Test titles must read `TC-XX: Verify that ...`. */
 function checkTestNames(rawSrc, clean) {
   const problems = [];
-  const re = /(^|[^.\w])test\s*(\.\s*(only|skip|fixme)\s*)?\(\s*(['"`])/g;
+  // Keep this modifier list in step with qa-coverage.mjs - both hooks enumerate
+  // it independently, and disagreeing about what counts as a test is how a real
+  // test gets reported as missing. `fail` declares a test that RUNS; `slow` is
+  // not a declaration form and is correctly absent.
+  const re = /(^|[^.\w])test\s*(\.\s*(only|skip|fixme|fail)\s*)?\(\s*(['"`])/g;
   let m;
   while ((m = re.exec(clean)) !== null) {
     const quote = m[4];

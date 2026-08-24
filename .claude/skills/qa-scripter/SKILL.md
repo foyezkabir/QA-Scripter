@@ -52,7 +52,35 @@ page.frameLocator('iframe[data-testid="pay"]').getByRole('button', { name: 'Pay'
 Frame content auto-waits like any locator (`expect(...).toBeVisible()`), so no sleeps. During exploration/baseline, walk INTO every iframe and record its controls - an unexpanded frame is a coverage gap.
 
 ### Pages - philosophy
-Interactions only; import locators, never define selectors. Methods act and return values - **they never assert** (assertions live in specs; expose state getters like `getRowCount()`). Data comes in as params (none hard-coded). Auto-wait only, never `waitForTimeout()`. One object per page/component (a modal is its own).
+Import locators, never define selectors. Data comes in as params (none hard-coded). Auto-wait only, never `waitForTimeout()`. One object per page/component (a modal is its own).
+
+**Two kinds of method, and the assertion lives HERE - not in the spec:**
+- **Action** - `open()`, `fillForm(doctor)`, `submit()`, `togglePasswordVisibility()`. Acts, returns nothing or a value.
+- **`expect*` guarantee** - `expectEditorIsOpen()`, `expectArticleTitle(title)`, `expectSaveIsDisabledWhileEmpty()`. Holds the `expect()` call and reads as one line of intent in the spec.
+
+```typescript
+// pages/ArticlePage.ts
+async expectArticleTitle(title: string): Promise<void> {
+  await expect(ArticleLocators.title(this.page)).toHaveText(title);
+}
+
+// tests/articles.spec.ts - no expect(), no message strings, one line per intent
+await articlePage.expectEditorIsOpen();
+await articlePage.expectArticleTitle(article.title);
+```
+
+**A spec contains NO `expect()` at all - this is enforced, not suggested** (`spec/no-inline-expect`). Every assertion is an `expect*` method on a page object, so a test body is one line of named intent per step:
+```typescript
+test('TC-02: Verify that the no-clients message and Add Client button are visible', { tag: ['@smoke'] }, async ({ clientPage }) => {
+  await clientPage.expectNoClientsFoundMessage();
+  await clientPage.expectAddClientButton();
+});
+```
+Need a one-off check? Add the page method first - do not reach for an inline `expect()`. That includes `expect.poll` / `toPass`: if you are waiting on an off-page value, wrap it in a page or helper method that the spec calls by name.
+
+**Name the method for the guarantee it checks.** With no `expect(x, 'why')` message in the spec, the method name IS the intent - `expectSaveIsDisabledWhileEmpty()`, never `checkSave()` or `verifyThing()`. A reader of the spec must understand what is guaranteed without opening the page object.
+
+Still forbidden: assertions in **`fixtures/`** and **`setup/`** (those build state and tear it down; a failing fixture is not a test result), and any logic in `locators/`.
 
 **Drag & drop / file drop - pick the right API (wrap it in a Page Object method):**
 - **Element → element** (reorder, kanban, sortable) → `await source.dragTo(target)`.
@@ -62,6 +90,66 @@ Interactions only; import locators, never define selectors. Methods act and retu
   await dropzone.drop({ data: { 'text/plain': 'hello', 'text/uri-list': 'https://example.com' } });
   ```
 - **Standard file input** (`<input type="file">`) → `await locator.setInputFiles('report.pdf')` - not `drop()`.
+
+**Feedback surfaces are LOCATORS like any other field.** A toast, an inline field error, a banner, an empty-state message - each gets a named entry in `locators/`, an `expect*` method in `pages/`, and a one-line call in the spec. Never assert a message string in the spec, and never build the locator inline at the point of use.
+
+```typescript
+// locators/ContactLocators.ts - one named entry per distinct message, grouped by kind
+import type { Page } from '@playwright/test';
+
+export const ContactLocators = {
+  // --- fields ---
+  firstNameInput: (p: Page) => p.getByRole('textbox', { name: 'First name' }),
+  lastNameInput:  (p: Page) => p.getByRole('textbox', { name: 'Last name' }),
+  saveButton:     (p: Page) => p.getByRole('button', { name: 'Save' }),
+
+  // --- required-field errors ---
+  firstNameRequiredError: (p: Page) => p.getByRole('alert').filter({ hasText: 'First name is required' }),
+  lastNameRequiredError:  (p: Page) => p.getByRole('alert').filter({ hasText: 'Last name is required' }),
+  companyRequiredError:   (p: Page) => p.getByRole('alert').filter({ hasText: 'Company is required.' }),
+  emailRequiredError:     (p: Page) => p.getByRole('alert').filter({ hasText: 'At least one email address is required' }),
+
+  // --- format / length errors ---
+  firstNameMinLengthError:   (p: Page) => p.getByRole('alert').filter({ hasText: 'First name must be at least 3 characters' }),
+  firstNameSpecialCharError: (p: Page) => p.getByRole('alert').filter({ hasText: "First name can't accept special characters" }),
+  invalidEmailError:         (p: Page) => p.getByRole('alert').filter({ hasText: 'Invalid email address' }),
+  publicEmailNotAllowedError:(p: Page) => p.getByRole('alert').filter({ hasText: 'Public email addresses are' }),
+
+  // --- file-upload errors ---
+  fileSizeError:   (p: Page) => p.getByRole('alert').filter({ hasText: "File can't be larger than 5 MB" }),
+  fileFormatError: (p: Page) => p.getByRole('alert').filter({ hasText: 'Only accept jpg, png, jpeg, gif' }),
+
+  // --- toasts ---
+  savedToast:   (p: Page) => p.getByRole('status').filter({ hasText: 'Contact saved' }),
+  deletedToast: (p: Page) => p.getByRole('status').filter({ hasText: 'Contact deleted' }),
+};
+
+// pages/ContactPage.ts - one expect* method per message; the assertion lives here
+async expectFirstNameRequiredError(): Promise<void> {
+  await expect(ContactLocators.firstNameRequiredError(this.page)).toBeVisible();
+}
+async expectFirstNameMinLengthError(): Promise<void> {
+  await expect(ContactLocators.firstNameMinLengthError(this.page)).toBeVisible();
+}
+async expectSavedToast(): Promise<void> {
+  await expect(ContactLocators.savedToast(this.page)).toBeVisible();
+}
+
+// tests/contacts.spec.ts - intent only, no expect(), no message strings
+await contactPage.expectFirstNameRequiredError();
+await contactPage.expectFirstNameMinLengthError();
+await contactPage.expectSavedToast();
+```
+
+Rules for these:
+- **One named locator per distinct message - never a parameterised helper.** `firstNameRequiredError` and `lastNameRequiredError` are two entries, not `requiredError(field)`. A named entry is greppable, appears in the baseline, and the crawl gate can demand a test for it; a parameterised helper hides how many messages exist and how many are untested.
+- **Group them with comment headers** in the locator file - required-field · format/length · special-character · file-upload · toasts. A validation-heavy form has 15+ messages; unsorted they are unreadable.
+- **Prefer `getByRole('alert'|'status').filter({ hasText })` over bare `getByText`.** `getByText` matches ANY element containing the string, so it can hit a heading, a tooltip, or a summary panel repeating the same copy - and it silently passes when the real inline error never rendered. Chain the role so the locator asserts *both* that the message exists and that it is announced as an error. Only fall back to `getByText` when the app genuinely gives the message no role (+ a comment saying so).
+- **Assert on the message locator, not on its text.** The expected copy lives inside the locator's `hasText`, so `expectFirstNameRequiredError()` needs no argument and the spec reads as intent. Passing the string in from the spec puts app copy in the test file.
+- **Capture the real role live.** A "toast" is usually `role="status"` (polite) and an inline error `role="alert"` (assertive) - but check, do not assume. Two of the findings on the PharmaZ247 auth module came from exactly this: the errors were inline `role="alert"`, not toasts, so a toast locator would have shipped two broken tests.
+- **Record them in the baseline** during CRAWL, alongside the fields that trigger them - a validation message you never saw is a state you never reached.
+- **One method per distinct message**, named for the guarantee (`expectTitleRequiredError`), not for the mechanism (`checkToast`). The spec must read as intent without opening the page object.
+- **A toast that vanishes fast** is a `role="status"` timing problem, not a reason to sleep: assert on it with a web-first assertion, and let `fixtures/evidence.ts` catch it via its MutationObserver if it disappears before a screenshot.
 
 ### Data - philosophy
 Never inline `faker` in a spec - always a factory in `datas/`. **Faker** = throwaway inputs (names, emails). **Static** = anything you assert on, edge/boundary cases, domain-constrained values, and reference data. Inline random = non-reproducible flakiness; factories are seedable.
@@ -146,6 +234,10 @@ A companion to the 4 code tiers - **captured reference data, not runnable code**
       "fields": [{ "label": "<Field label>", "type": "text-readonly" }],
       "actions": [{ "role": "button", "name": "<Detail action>", "region": "top-right", "state": "enabled" }]
     }
+  ],
+  "messages": [
+    { "role": "status", "name": "<toast text>", "kind": "toast", "triggeredBy": "<what showed it>" },
+    { "role": "alert", "name": "<inline error text>", "kind": "inline-error", "triggeredBy": "<field + action>" }
   ],
   "verifiedAbsent": [
     { "surface": "modals", "how": "<what you did that PROVED nothing is there>" }
@@ -289,7 +381,7 @@ import { new<Entity> } from '../datas/<module>/<Module>Data';
 test('TC-01: Verify that a <entity> is created', async ({ <module>Page, cleanup }) => {
   const id = await <module>Page.create<Entity>(new<Entity>());  // created via UI (the subject)
   cleanup(id);                                                  // register → API tears it down after
-  await expect(<module>Page.successToast).toHaveText('<Entity> created');
+  await <module>Page.expectCreatedToast();                       // the assertion lives in the page object
 });
 ```
 Only a test that lists `seeded<Entity>` / `cleanup` in its args triggers that setup - fixtures stay lazy.

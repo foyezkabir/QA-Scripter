@@ -82,7 +82,26 @@ merges it into `baselines/<module>.baseline.json`.
    empty-state text, anything else: capture it. If it fits no key below, put it in
    `other[]`. When unsure whether something counts, **include it**.
 
-6. **Record which STATES you reached.** This matters more than the control list:
+6. **Capture FEEDBACK surfaces - toasts, inline errors, banners, empty-state text.**
+   These are locators like any other field and they are the most commonly missed:
+   they only exist while a message is showing.
+   - Trigger them: submit an empty form, submit an invalid value, complete a
+     successful action - then snapshot while the message is on screen.
+   - Record the **real role** the snapshot reports, do not assume: a toast is
+     usually `role="status"` (polite), an inline field error `role="alert"`
+     (assertive). Getting this wrong ships a broken locator.
+   - Put each under `messages[]` with the role, the text you saw, and what
+     triggered it:
+   ```json
+   "messages": [
+     { "role": "status", "name": "Article saved", "kind": "toast", "triggeredBy": "Save" },
+     { "role": "alert",  "name": "Title is required", "kind": "inline-error", "triggeredBy": "Save with empty Title" }
+   ]
+   ```
+   - A message you could not trigger read-only (needs seeding, or a server error)
+     is not silently omitted - note it in `notes`.
+
+7. **Record which STATES you reached.** This matters more than the control list:
    gaps come from missed states, not missed buttons. For each of
    `empty · loading · populated · error · disabled/invalid · role-gated:<role> · terminal`,
    record whether you reached it and **how**:
@@ -104,7 +123,7 @@ merges it into `baselines/<module>.baseline.json`.
    caller's gate requires a test for every reached state, so a false claim
    converts into a demand for a test of something that was never observed.
 
-7. **Self-verify before returning.** Re-snapshot and compare every interactive
+8. **Self-verify before returning.** Re-snapshot and compare every interactive
    node in the live snapshot against your JSON. Anything present live but missing
    from your JSON = add it and repeat. Only return at **zero missing**.
 
@@ -145,6 +164,9 @@ For a top-level/list view:
     { "trigger": "<what opens it>", "title": "<Modal title>",
       "buttons": ["<Confirm>", "<Cancel>"], "fields": ["<Field>"] }
   ],
+  "messages": [
+    { "role": "status", "name": "<message text>", "kind": "toast", "triggeredBy": "<what showed it>" }
+  ],
   "other": [],
   "notes": []
 }
@@ -168,7 +190,7 @@ For a sub-view / detail page / tab, return it as a `views[]` entry:
     ],
     "fields": [{ "label": "<Field label>", "type": "textbox" }],
     "actions": [{ "role": "button", "name": "<Detail action>", "region": "top-right", "state": "enabled" }],
-    "icons": [], "other": [], "notes": []
+    "icons": [], "messages": [], "other": [], "notes": []
   }
 }
 ```

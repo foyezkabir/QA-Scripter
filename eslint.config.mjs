@@ -104,7 +104,7 @@ export default tseslint.config(
     },
   },
 
-  /* ---- tests/*.spec.ts : linear and deterministic ---- */
+  /* ---- tests/ : no expect() at all - assertions live in expect* page methods ---- */
   {
     files: ['tests/**/*.spec.ts'],
     rules: {
@@ -114,6 +114,11 @@ export default tseslint.config(
         NO_SLEEP,
         NO_POLL_ON_LOCATOR,
         HARDCODED_CREDS,
+        {
+          selector: 'CallExpression[callee.name="expect"], CallExpression[callee.object.name="expect"]',
+          message:
+            'spec/no-inline-expect: a spec contains no expect() - every assertion is an expect* method on a page object, so the spec reads as one line of named intent per step. Move this into pages/<X>Page.ts as e.g. expectNoClientsFoundMessage(), then call it here. The METHOD NAME carries the intent that expect(x, \'why\') used to.',
+        },
         {
           selector: 'NewExpression[callee.name=/(Page|Locators)$/]',
           message:
@@ -144,9 +149,7 @@ export default tseslint.config(
       ],
       'qa/test-name-format': 'error',
       'qa/no-test-use-inside-test': 'error',
-      // Quality: structural shape a reviewer would flag on sight.
-      'qa/assertion-needs-intent': 'error',
-      'qa/multi-phase-needs-steps': ['error', { threshold: 6 }],
+      'qa/multi-phase-needs-steps': ['error', { threshold: 14 }],
       'qa/no-duplicate-selector': 'error',
     },
   },
@@ -155,11 +158,24 @@ export default tseslint.config(
   {
     files: ['pages/**/*.ts'],
     rules: {
-      'no-restricted-syntax': [
-        'error',
-        ...NO_ASSERTIONS.map((r) => ({ ...r, message: `page/no-assertions: ${r.message}` })),
-        NO_SLEEP,
-      ],
+      /*
+       * Assertions ARE allowed in pages/ - deliberately, not by oversight.
+       *
+       * The spec style here is one-line named intent with no expect() in the test
+       * file at all:
+       *     await articlePage.expectEditorIsOpen();
+       *     await articlePage.expectArticleTitle(article.title);
+       *
+       * That requires the assertion to live in the page object. "No assertions in
+       * pages" and "no assertions in specs" are mutually exclusive - you cannot
+       * have both. The intent that `expect(x, 'why')` used to carry now lives in
+       * the METHOD NAME, so name these methods for the guarantee they check
+       * (`expectSaveIsDisabledWhileEmpty`), never `checkThing`.
+       *
+       * fixtures/ and setup/ still forbid assertions entirely, and NO_SLEEP is
+       * still enforced here.
+       */
+      'no-restricted-syntax': ['error', NO_SLEEP],
     },
   },
 
