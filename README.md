@@ -157,7 +157,7 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 
 | Tier / artifact | Path | Holds |
 |---|---|---|
-| **Locators** | `locators/*Locators.ts` | selectors only, no logic |
+| **Locators** | `locators/*Locators.ts` | selectors only, no logic - a **class**, one field per locator |
 | **Pages** | `pages/*Page.ts` | interactions + `expect*` guarantee methods - the assertion lives here, not in the spec |
 | **Data** | `datas/<module>/<Module>Data.ts` | static values + faker factories (shared → `datas/common/`) |
 | **Spec** | `tests/*.spec.ts` | deterministic test logic |
@@ -176,10 +176,29 @@ A fragment marked `"failed": true` means that surface was **not** captured: re-d
 ## Tier Rules
 
 **Locators**
+- A **class**, one field per locator - `nameInput = this.page.getByRole('textbox', { name: 'Name' })`. A locator that needs an argument stays a method returning `Locator`: `cardFor(clientName)`.
+- Class fields evaluate at construction, which is safe: a Playwright `Locator` is lazy and resolves when used, not when created.
 - Pure selectors, arrow-function properties. No logic, actions, or assertions.
 - Name by intent (`create<Entity>Button`, not `button3`).
 
 **Pages**
+- The page object constructs the locators class once and reads `this.locators.<name>`:
+  ```typescript
+  export class ClientPage {
+    private readonly locators: ClientLocators;
+    constructor(private readonly page: Page) { this.locators = new ClientLocators(page); }
+
+    async clickAddClientButton() {
+      await this.locators.addClientButton.click();
+    }
+
+    async expectDetailViewBreadcrumb(clientName: string) {
+      await expect(this.locators.breadcrumb(clientName)).toBeVisible();
+    }
+  }
+  ```
+- `async method() { }` with the body on its own lines. **No `: Promise<void>`** - TypeScript infers it; annotate only a real return (`async orderCount(): Promise<number>`).
+- Parameter types are **required** (`strict` rejects them otherwise) and named descriptively - `clientName`, `count`, `query`, never `n` or `v`. No default value on an index.
 - **Two kinds of method**, and the assertion lives here, not in the spec:
   - **action** - `open()`, `fillForm(doctor)`, `submit()`, `togglePasswordVisibility()`
   - **`expect*` guarantee** - `expectEditorIsOpen()`, `expectArticleTitle(title)`, `expectSaveIsDisabledWhileEmpty()`
@@ -383,7 +402,7 @@ Coverage: 2/3 AC (67%) · 1 gap
 ## Test Naming & Steps
 
 **Naming** - every test: `TC-XX: Verify that <testable statement>`
-- `TC-XX` **restarts at `TC-01` in every module** - ids are unique *within* a module, not across the suite, so `tests/auth.spec.ts` and `tests/chambers.spec.ts` both begin at `TC-01`. The filename carries the module, so never add a prefix (`TC-C01` is rejected) and never offset a module's numbering because another module used those numbers. The lead-in is always **"Verify that"** (not Navigate/Validate/Check).
+- `TC-XX` **restarts at `TC-01` in every module** - ids are unique *within* a module, not across the suite, so `tests/auth.spec.ts` and `tests/orders.spec.ts` both begin at `TC-01`. The filename carries the module, so never add a prefix (`TC-C01` is rejected) and never offset a module's numbering because another module used those numbers. The lead-in is always **"Verify that"** (not Navigate/Validate/Check).
 
 ```ts
 test('TC-15: Verify that search filters results by name', async () => { /* ... */ });

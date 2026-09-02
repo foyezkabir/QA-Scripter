@@ -64,11 +64,11 @@ const norm = (n) => `TC-${String(parseInt(n, 10)).padStart(2, '0')}`;
 /**
  * TC ids are unique **per module**, not across the suite - every module starts at
  * TC-01, the way any test-management tool numbers cases. The module is the file
- * stem (`tests/chambers.spec.ts` and `plan/chambers.md` are both `chambers`), so
- * `chambers/TC-01` and `auth/TC-01` are different ids and both are legal.
+ * stem (`tests/orders.spec.ts` and `plan/orders.md` are both `orders`), so
+ * `orders/TC-01` and `auth/TC-01` are different ids and both are legal.
  *
  * An earlier version keyed on the bare number, which forced later modules to
- * start at arbitrary offsets ("chambers begins at TC-30 because auth took 1-24").
+ * start at arbitrary offsets ("orders begins at TC-30 because auth took 1-24").
  * That made a module's numbering depend on unrelated modules and broke whenever
  * an earlier module grew.
  */
@@ -78,15 +78,15 @@ const stemOf = (file) =>
 /**
  * Map a spec file to the module that owns it.
  *
- * A module's specs are often SPLIT across several files - `chambers-list.spec.ts`,
- * `chambers-empty.spec.ts`, `chambers.crud.spec.ts` all belong to `plan/chambers.md`.
+ * A module's specs are often SPLIT across several files - `orders-list.spec.ts`,
+ * `orders-empty.spec.ts`, `orders.crud.spec.ts` all belong to `plan/orders.md`.
  * Matching on the exact stem would scope each file to its own pseudo-module, so
  * every test reads as "unplanned" AND every plan row as "missing" at the same time.
  *
  * So: pick the LONGEST plan name that the spec stem starts with, on a segment
- * boundary (`-`, `.`, `_`). `chambers-list` -> `chambers`; `chambers` -> `chambers`.
- * Longest-wins so `chambers-billing` prefers a `chambers-billing` plan over
- * `chambers` when both exist. No alias table to maintain - the naming convention
+ * boundary (`-`, `.`, `_`). `orders-list` -> `orders`; `orders` -> `orders`.
+ * Longest-wins so `orders-billing` prefers a `orders-billing` plan over
+ * `orders` when both exist. No alias table to maintain - the naming convention
  * IS the mapping, and a spec that matches no plan keeps its own stem so it still
  * shows up as unplanned rather than being silently absorbed.
  */
@@ -291,7 +291,7 @@ function main() {
     sections.push({
       title: `DUPLICATE TC NUMBER within one module (${dupes.length})`,
       lines: dupes.map((d) => `${d.id}  ${d.file}:${d.line}  collides with ${d.other.file}:${d.other.line}`),
-      fix: 'TC ids must be unique WITHIN a module (they are namespaced by module, so auth/TC-01 and chambers/TC-01 are both fine - every module starts at TC-01). Two tests in the same module claiming the same number silently hides one from coverage.',
+      fix: 'TC ids must be unique WITHIN a module (they are namespaced by module, so auth/TC-01 and orders/TC-01 are both fine - every module starts at TC-01). Two tests in the same module claiming the same number silently hides one from coverage.',
     });
   }
 

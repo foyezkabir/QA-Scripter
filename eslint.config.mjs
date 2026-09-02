@@ -176,7 +176,21 @@ export default tseslint.config(
        * still enforced here.
        */
       'no-restricted-syntax': ['error', NO_SLEEP],
+
+      /*
+       * Code shape. Prose in CLAUDE.md/SKILL.md said `async method() { }` with no
+       * `: Promise<void>` for a long time and nothing checked it, so the tier drifted
+       * into three shapes at once. Now it blocks, and the Promise<void> half
+       * auto-fixes (`eslint . --fix`).
+       */
+      'qa/page-method-shape': 'error',
     },
+  },
+
+  /* ---- datas/ : unique values must survive parallel workers ---- */
+  {
+    files: ['datas/**/*.ts'],
+    rules: { 'qa/no-timestamp-only-id': 'error' },
   },
 
   /* ---- locators/ : selectors only, no logic ---- */
@@ -192,6 +206,10 @@ export default tseslint.config(
           message: 'locators/no-logic: locator files hold selectors only - no branching, no loops.',
         },
       ],
+
+      // A CLASS with one field per locator, so a page reads `this.locators.x`
+      // rather than threading the page through at every call site.
+      'qa/locators-must-be-class': 'error',
     },
   },
 

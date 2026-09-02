@@ -72,6 +72,7 @@ Rules marked **B** are also live during the bootstrap window (before
 | `secrets/no-value-in-example` · `no-write` (PreToolUse) | a **value** in the committed `.env.example` (keys only); any hand-written `.auth/**` session file. **`.env` is writable** - gitignored, and the correct home for a URL/credential | ✅ |
 | `evidence/verbatim-template` | `fixtures/evidence.ts` differing from `.claude/templates/evidence.ts` | n/a |
 | `quality/assertion-intent` · `needs-test-step` · `duplicate-selector` | assertion with no intent message; multi-phase test with no `test.step()`; a selector string repeated in one file | |
+| `data/timestamp-not-unique` (`datas/**`) | a raw `new Date()` / `Date.now()` used as an id - collides across parallel workers. Use `DataHelper.unique()` | |
 | `runtime/networkidle` · `serial-mode` · `inflated-timeout` | `waitForLoadState('networkidle')`; `describe.serial`; a timeout over 60s | |
 
 ### Assertions live in `pages/`, not in specs
@@ -118,6 +119,32 @@ Two consequences that follow from it:
 
 `fixtures/` and `setup/` still forbid assertions entirely, and `NO_SLEEP` is still
 enforced in `pages/`.
+
+### Unique test data is a framework primitive, not a per-module choice
+
+`helpers/DataHelper.ts` is **scaffolded by the Setup hook in every project** from
+`.claude/templates/DataHelper.ts`, and provides `uid()`, `unique(label, prefix?)`,
+`uniqueSlug()`, `uniqueEmail()`. Module factories call it; no module implements its
+own uniqueness.
+
+Why it is a primitive rather than advice: a timestamp **looks** unique and is not.
+`new Date().toISOString()` has millisecond precision, and `fullyParallel: true`
+means workers seed in the same millisecond. Measured on a real suite - 20 000 calls
+to a timestamp-only factory gave **15 distinct names**, and 4 parallel workers in
+one tick gave **1 distinct value of 4**. The app then rejects the duplicate, and the
+test looks broken when the data was.
+
+`DataHelper.uid()` is time + random: verified **100 000/100 000 distinct** and
+**16/16 across parallel workers**.
+
+`data/timestamp-not-unique` enforces it in `datas/**`. It deliberately does NOT
+fire on a shared date (`today`, `tomorrow`, `isoDate` - those are constants, not
+identities) or on a timestamp that already carries a random component.
+
+Prefix convention: **`QA-AUTO`** = created through the UI by a test,
+**`QA-SEED`** = seeded through the API as a precondition. Two prefixes so a human
+looking at the database can tell which layer made a row - and so leaked rows are
+greppable and bulk-deletable.
 
 ### What counts as a test
 
@@ -168,21 +195,21 @@ and blocks the turn on any of:
 - a **duplicate TC number within one module**, a test with **no `TC-XX` id**, or **no tier tag**
 
 **TC ids are per-module, not suite-wide.** Every module starts at `TC-01`; ids are
-namespaced by the file stem, so `auth/TC-01` and `chambers/TC-01` are different
+namespaced by the file stem, so `auth/TC-01` and `billing/TC-01` are different
 ids and both are legal. Only two tests in the SAME module claiming the same number
 is a duplicate. Traceability is read per module (`traceability/<module>.txt`
 maps that module's ACs to that module's TCs), so nothing is ambiguous.
 
 An earlier version keyed on the bare number, which forced later modules to start
-at arbitrary offsets ("chambers begins at TC-30 because auth took 1-24") - a
+at arbitrary offsets ("the second module begins at TC-30 because the first took 1-24") - a
 module's numbering must never depend on unrelated modules.
 
 **Split spec files are handled by convention, not a lookup table.** A module's
-tests often live in several files - `chambers-list.spec.ts`, `chambers-empty.spec.ts`,
-`chambers.crud.spec.ts` all belong to `plan/chambers.md`. The gate maps a spec to
+tests often live in several files - `orders-list.spec.ts`, `orders-empty.spec.ts`,
+`orders.crud.spec.ts` all belong to `plan/orders.md`. The gate maps a spec to
 the **longest plan name its stem starts with**, on a `-` / `.` / `_` boundary. So
-`chambers-list` -> `chambers`, and if a `chambers-billing` plan also exists,
-`chambers-billing.spec.ts` prefers that over `chambers`. A spec matching no plan
+`orders-list` -> `orders`, and if an `orders-billing` plan also exists,
+`orders-billing.spec.ts` prefers that over `orders`. A spec matching no plan
 keeps its own stem, so it is still reported as unplanned rather than silently
 absorbed into a neighbouring module. Name the spec after its plan and it just
 works - there is nothing to register.
@@ -279,6 +306,55 @@ Two deliberate choices here, both learned the hard way:
 still be in progress). It walks whatever keys the JSON contains rather than a
 fixed list, so a control recorded under a module-specific key or `other[]` still
 counts.
+
+## Enforced vs convention - know which you are looking at
+
+Not every rule in `CLAUDE.md` / `SKILL.md` is a lint rule. Mixing the two up leads
+to hunting for a gate that does not exist, or assuming a convention is optional.
+
+**Lint-enforced** (13 custom rules in `qa-rules.mjs` + the `no-restricted-syntax`
+selectors in `eslint.config.mjs`) - a violation BLOCKS the write:
+
+`xpath-needs-comment` · `css-needs-comment` · `positional-needs-comment` ·
+`prefer-content-frame` · `test-name-format` · `no-test-use-inside-test` ·
+`assertion-needs-intent` · `multi-phase-needs-steps` · `no-duplicate-selector` ·
+`no-slow-patterns` · `no-timestamp-only-id` · `locators-must-be-class` ·
+`page-method-shape` · plus spec control flow, tier separation,
+`no-inline-expect`, secrets, and the `Stop` coverage/crawl gates.
+
+**Code shape is lint-enforced as of 2026-09-02.** It was convention-only for a
+long time and the tier drifted into three shapes at once, so the house style is
+now blocked at the write:
+
+| Rule | Blocks | Fix |
+|---|---|---|
+| `qa/locators-must-be-class` (`locators/**`) | `export const XLocators = { ... }`; any locator taking `page` as a parameter | `export class XLocators { constructor(private readonly page: Page) {} saveButton = this.page.getByRole(...) }` - a parameterised locator stays a method returning `Locator` |
+| `qa/page-method-shape` (`pages/**`) | `: Promise<void>`; an arrow property (`open = async () => {}`); an untyped parameter | `async open() { }`; annotate only a real return (`Promise<number>`); type and name every param (`clientName`, not `n`) |
+
+The `: Promise<void>` half is **auto-fixable** - `npx eslint . --fix` clears it.
+An untyped parameter is not: ESLint cannot invent the type, so name and type it
+by hand. A legacy project written in the old object shape will light up (641
+errors on one real suite); use the legacy-file override documented in
+`eslint.config.mjs` rather than weakening the rule.
+
+**Convention only** - documented in `SKILL.md`, followed by the agent, NOT blocked
+by any hook:
+
+| Convention | Where it is stated |
+|---|---|
+| No header comments, no section dividers - blank lines group | SKILL.md *Comments* |
+| API-provenance comments in specs | SKILL.md *Comments* + pattern A/B |
+| `{ tag: [...] }` inline on the `test(` line | SKILL.md *Formatting* |
+| One named locator per message, grouped by kind | SKILL.md *Feedback surfaces* |
+| `getByRole('alert'\|'status').filter()` over bare `getByText` | same |
+| Teardown-ladder rung choice + stating which rung was used | SKILL.md *API Setup Layer* |
+| Realistic generators (`personName`, `fromPool`) over bare faker | SKILL.md *Data - philosophy* |
+
+Why these are not hooks: they are **style and judgement**, and a gate that blocks a
+write over formatting costs more in friction than it returns. Two of them could
+become rules if they drift in practice - a `getByText` on a `*Error`/`*Toast`
+locator, and a header comment in a `locators/` file - but neither has misfired
+often enough to justify the noise yet.
 
 ## Limits - what no hook can check
 

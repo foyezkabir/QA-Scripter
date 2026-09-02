@@ -26,7 +26,7 @@ You are a **senior test automation engineer** specializing in Playwright and Typ
 ## The 4-Tier Model
 
 For every feature, generate or update four distinct files:
-1. **Locators** (`locators/*Locators.ts`): pure selectors only, arrow-function properties, no logic. Priority order → **Locator Selection Priority (Rule #5)**.
+1. **Locators** (`locators/*Locators.ts`): pure selectors only, no logic. A **class** with one field per locator (`nameInput = this.page.getByRole(...)`); a locator needing an argument stays a method returning `Locator` (`cardFor(name)`). The page object constructs it once and reads `this.locators.<name>`. Priority order → **Locator Selection Priority (Rule #5)**.
 2. **Page Objects** (`pages/*Page.ts`): Interaction methods ONLY. Import locators and perform actions.
 3. **Test Data** (`datas/<module>/<Module>Data.ts`): Static values, types, factories, and any fixtures - **one sub-folder per module** (`datas/<module>/`), shared/cross-module data in `datas/common/`.
 4. **Test Spec** (`tests/*.spec.ts`): Pure test logic. **DETERMINISTIC ONLY** - no conditionals, no loops, no error catching. Always use Playwright fixtures from `fixtures/base.ts`.
@@ -55,28 +55,82 @@ Frame content auto-waits like any locator (`expect(...).toBeVisible()`), so no s
 Import locators, never define selectors. Data comes in as params (none hard-coded). Auto-wait only, never `waitForTimeout()`. One object per page/component (a modal is its own).
 
 **Two kinds of method, and the assertion lives HERE - not in the spec:**
-- **Action** - `open()`, `fillForm(doctor)`, `submit()`, `togglePasswordVisibility()`. Acts, returns nothing or a value.
+- **Action** - `open()`, `fillForm(order)`, `submit()`, `togglePasswordVisibility()`. Acts, returns nothing or a value.
 - **`expect*` guarantee** - `expectEditorIsOpen()`, `expectArticleTitle(title)`, `expectSaveIsDisabledWhileEmpty()`. Holds the `expect()` call and reads as one line of intent in the spec.
 
+**Write every method as `async method() { }`, and do NOT annotate the return type.** The page object holds ONE `ClientLocators` instance, so every locator is reached as `this.locators.<name>` - no `(this.page)` repeated on every line.
+
 ```typescript
-// pages/ArticlePage.ts
-async expectArticleTitle(title: string): Promise<void> {
-  await expect(ArticleLocators.title(this.page)).toHaveText(title);
+// locators/<Entity>Locators.ts - a CLASS, one field per locator
+import type { Page, Locator } from '@playwright/test';
+
+export class <Entity>Locators {
+  constructor(private readonly page: Page) {}
+
+  heading = this.page.getByRole('heading', { name: '<Heading>' });
+
+  nameInput = this.page.getByRole('textbox', { name: '<Name>' });
+  saveButton = this.page.getByRole('button', { name: 'Save' });
+
+  savedToast = this.page.getByRole('status').filter({ hasText: '<Entity> saved' });
+  nameRequiredError = this.page.getByRole('alert').filter({ hasText: '<Name> is required' });
+
+  // a locator that takes an argument stays a METHOD, and returns Locator
+  cardFor = (name: string): Locator => this.page.getByRole('article').filter({ hasText: name });
 }
-
-// tests/articles.spec.ts - no expect(), no message strings, one line per intent
-await articlePage.expectEditorIsOpen();
-await articlePage.expectArticleTitle(article.title);
 ```
 
-**A spec contains NO `expect()` at all - this is enforced, not suggested** (`spec/no-inline-expect`). Every assertion is an `expect*` method on a page object, so a test body is one line of named intent per step:
 ```typescript
-test('TC-02: Verify that the no-clients message and Add Client button are visible', { tag: ['@smoke'] }, async ({ clientPage }) => {
-  await clientPage.expectNoClientsFoundMessage();
-  await clientPage.expectAddClientButton();
-});
+// pages/<Entity>Page.ts
+import { expect, type Page } from '@playwright/test';
+import { <Entity>Locators } from '../locators/<Entity>Locators';
+import type { New<Entity> } from '../datas/<module>/<Module>Data';
+
+export class <Entity>Page {
+  private readonly locators: <Entity>Locators;
+
+  constructor(private readonly page: Page) {
+    this.locators = new <Entity>Locators(page);
+  }
+
+  async open() {
+    await this.page.goto('/<route>');
+  }
+
+  async fillForm(record: New<Entity>) {
+    await this.locators.nameInput.fill(record.name);
+  }
+
+  async submit() {
+    await this.locators.saveButton.click();
+  }
+
+  async expectPageIsOpen() {
+    await expect(this.locators.heading).toBeVisible();
+  }
+
+  async expect<Entity>IsListed(name: string) {
+    await expect(this.locators.cardFor(name)).toBeVisible();
+  }
+
+  async expectSavedToast() {
+    await expect(this.locators.savedToast).toBeVisible();
+  }
+
+  async expectNameRequiredError() {
+    await expect(this.locators.nameRequiredError).toBeVisible();
+  }
+}
 ```
-Need a one-off check? Add the page method first - do not reach for an inline `expect()`. That includes `expect.poll` / `toPass`: if you are waiting on an off-page value, wrap it in a page or helper method that the spec calls by name.
+
+Why this shape:
+- **`async method() { }`**, one blank line between methods, body on its own lines. Not an arrow property, not a one-liner.
+- **A locators CLASS, not an exported object.** The page object constructs it once, so a locator reads `this.locators.saveButton` instead of `<Entity>Locators.saveButton(this.page)`. Class fields evaluate at construction, which is safe: a Playwright `Locator` is lazy and resolves when used, not when created.
+- **A locator that needs an argument stays a method** and annotates `: Locator` - `cardFor(name)`. Mixing fields and methods in one locators class is normal.
+- **NO `: Promise<void>`** - TypeScript infers it (verified: the emitted `.d.ts` shows `open(): Promise<void>` either way). Annotate a return type only when the method really returns something: `async orderCount(): Promise<number>`.
+- **Parameter types ARE required** - `strict` rejects an untyped parameter (`TS7006`), and the type catches a real call-site bug: without it, `expectRowCount('3')` compiles and `'3' + 1` becomes `'31'`, so the test silently asserts 31 rows.
+- **Name parameters descriptively** - `clientName`, `count`, `query`. Not `n`, `v`, `x`: the name is what shows in an editor hint at the call site.
+- **No default parameter values on an index/position.** `clickViewDetailsButtonByIndex(index: number)` - never `index = 0`, which reads as "click a row" while silently meaning "the first". If you want the first, a separate named method says so.
 
 **Name the method for the guarantee it checks.** With no `expect(x, 'why')` message in the spec, the method name IS the intent - `expectSaveIsDisabledWhileEmpty()`, never `checkSave()` or `verifyThing()`. A reader of the spec must understand what is guaranteed without opening the page object.
 
@@ -94,45 +148,42 @@ Still forbidden: assertions in **`fixtures/`** and **`setup/`** (those build sta
 **Feedback surfaces are LOCATORS like any other field.** A toast, an inline field error, a banner, an empty-state message - each gets a named entry in `locators/`, an `expect*` method in `pages/`, and a one-line call in the spec. Never assert a message string in the spec, and never build the locator inline at the point of use.
 
 ```typescript
-// locators/ContactLocators.ts - one named entry per distinct message, grouped by kind
 import type { Page } from '@playwright/test';
 
-export const ContactLocators = {
-  // --- fields ---
-  firstNameInput: (p: Page) => p.getByRole('textbox', { name: 'First name' }),
-  lastNameInput:  (p: Page) => p.getByRole('textbox', { name: 'Last name' }),
-  saveButton:     (p: Page) => p.getByRole('button', { name: 'Save' }),
+export class ContactLocators {
+  constructor(private readonly page: Page) {}
 
-  // --- required-field errors ---
-  firstNameRequiredError: (p: Page) => p.getByRole('alert').filter({ hasText: 'First name is required' }),
-  lastNameRequiredError:  (p: Page) => p.getByRole('alert').filter({ hasText: 'Last name is required' }),
-  companyRequiredError:   (p: Page) => p.getByRole('alert').filter({ hasText: 'Company is required.' }),
-  emailRequiredError:     (p: Page) => p.getByRole('alert').filter({ hasText: 'At least one email address is required' }),
+  firstNameInput = this.page.getByRole('textbox', { name: 'First name' });
+  lastNameInput = this.page.getByRole('textbox', { name: 'Last name' });
+  saveButton = this.page.getByRole('button', { name: 'Save' });
 
-  // --- format / length errors ---
-  firstNameMinLengthError:   (p: Page) => p.getByRole('alert').filter({ hasText: 'First name must be at least 3 characters' }),
-  firstNameSpecialCharError: (p: Page) => p.getByRole('alert').filter({ hasText: "First name can't accept special characters" }),
-  invalidEmailError:         (p: Page) => p.getByRole('alert').filter({ hasText: 'Invalid email address' }),
-  publicEmailNotAllowedError:(p: Page) => p.getByRole('alert').filter({ hasText: 'Public email addresses are' }),
+  firstNameRequiredError = this.page.getByRole('alert').filter({ hasText: 'First name is required' });
+  lastNameRequiredError = this.page.getByRole('alert').filter({ hasText: 'Last name is required' });
+  companyRequiredError = this.page.getByRole('alert').filter({ hasText: 'Company is required.' });
+  emailRequiredError = this.page.getByRole('alert').filter({ hasText: 'At least one email address is required' });
 
-  // --- file-upload errors ---
-  fileSizeError:   (p: Page) => p.getByRole('alert').filter({ hasText: "File can't be larger than 5 MB" }),
-  fileFormatError: (p: Page) => p.getByRole('alert').filter({ hasText: 'Only accept jpg, png, jpeg, gif' }),
+  firstNameMinLengthError = this.page.getByRole('alert').filter({ hasText: 'First name must be at least 3 characters' });
+  firstNameSpecialCharError = this.page.getByRole('alert').filter({ hasText: "First name can't accept special characters" });
+  invalidEmailError = this.page.getByRole('alert').filter({ hasText: 'Invalid email address' });
 
-  // --- toasts ---
-  savedToast:   (p: Page) => p.getByRole('status').filter({ hasText: 'Contact saved' }),
-  deletedToast: (p: Page) => p.getByRole('status').filter({ hasText: 'Contact deleted' }),
-};
+  fileSizeError = this.page.getByRole('alert').filter({ hasText: "File can't be larger than 5 MB" });
+  fileFormatError = this.page.getByRole('alert').filter({ hasText: 'Only accept jpg, png, jpeg, gif' });
+
+  savedToast = this.page.getByRole('status').filter({ hasText: 'Contact saved' });
+  deletedToast = this.page.getByRole('status').filter({ hasText: 'Contact deleted' });
+}
 
 // pages/ContactPage.ts - one expect* method per message; the assertion lives here
-async expectFirstNameRequiredError(): Promise<void> {
-  await expect(ContactLocators.firstNameRequiredError(this.page)).toBeVisible();
+async expectFirstNameRequiredError() {
+  await expect(this.locators.firstNameRequiredError).toBeVisible();
 }
-async expectFirstNameMinLengthError(): Promise<void> {
-  await expect(ContactLocators.firstNameMinLengthError(this.page)).toBeVisible();
+
+async expectFirstNameMinLengthError() {
+  await expect(this.locators.firstNameMinLengthError).toBeVisible();
 }
-async expectSavedToast(): Promise<void> {
-  await expect(ContactLocators.savedToast(this.page)).toBeVisible();
+
+async expectSavedToast() {
+  await expect(this.locators.savedToast).toBeVisible();
 }
 
 // tests/contacts.spec.ts - intent only, no expect(), no message strings
@@ -146,7 +197,7 @@ Rules for these:
 - **Group them with comment headers** in the locator file - required-field · format/length · special-character · file-upload · toasts. A validation-heavy form has 15+ messages; unsorted they are unreadable.
 - **Prefer `getByRole('alert'|'status').filter({ hasText })` over bare `getByText`.** `getByText` matches ANY element containing the string, so it can hit a heading, a tooltip, or a summary panel repeating the same copy - and it silently passes when the real inline error never rendered. Chain the role so the locator asserts *both* that the message exists and that it is announced as an error. Only fall back to `getByText` when the app genuinely gives the message no role (+ a comment saying so).
 - **Assert on the message locator, not on its text.** The expected copy lives inside the locator's `hasText`, so `expectFirstNameRequiredError()` needs no argument and the spec reads as intent. Passing the string in from the spec puts app copy in the test file.
-- **Capture the real role live.** A "toast" is usually `role="status"` (polite) and an inline error `role="alert"` (assertive) - but check, do not assume. Two of the findings on the PharmaZ247 auth module came from exactly this: the errors were inline `role="alert"`, not toasts, so a toast locator would have shipped two broken tests.
+- **Capture the real role live.** A "toast" is usually `role="status"` (polite) and an inline error `role="alert"` (assertive) - but check, do not assume. This is a real and repeated failure mode: on one project the inline errors turned out to be `role="alert"` rather than toasts, and a toast locator would have shipped two broken tests.
 - **Record them in the baseline** during CRAWL, alongside the fields that trigger them - a validation message you never saw is a state you never reached.
 - **One method per distinct message**, named for the guarantee (`expectTitleRequiredError`), not for the mechanism (`checkToast`). The spec must read as intent without opening the page object.
 - **A toast that vanishes fast** is a `role="status"` timing problem, not a reason to sleep: assert on it with a web-first assertion, and let `fixtures/evidence.ts` catch it via its MutationObserver if it disappears before a screenshot.
@@ -154,7 +205,55 @@ Rules for these:
 ### Data - philosophy
 Never inline `faker` in a spec - always a factory in `datas/`. **Faker** = throwaway inputs (names, emails). **Static** = anything you assert on, edge/boundary cases, domain-constrained values, and reference data. Inline random = non-reproducible flakiness; factories are seedable.
 
-**Layout: one sub-folder per module** - `datas/<module>/<Module>Data.ts` holds that module's static values **and** faker factories together; put fixtures (JSON, upload files, reference CSVs) in the same folder. Cross-module/shared data → `datas/common/`.
+**Data must be REALISTIC and UNIQUE - both, always.**
+
+*Realistic* because `'Test1234'` hides the bugs you are hunting: truncation, i18n, apostrophes, column widths, sort order. A real-looking name exercises the same code path a real user does.
+
+*Unique* because `fullyParallel: true` means workers seed at the same instant. A bare timestamp has millisecond precision - **4 workers in one tick produce 1 distinct value**. Verified against a live API that dedupes: 4 concurrent seeds with timestamp-only naming returned `201, 201, 409, 409` - **two duplicate rejections**, and the tests looked broken when the *data* was.
+
+Raw faker is not unique enough either. Measured over 5 000 calls: `person.firstName` **50%** distinct · `commerce.productName` 79% · `company.name` 89% · `person.fullName` 99.9%.
+
+**So the primitive lives in `helpers/DataHelper.ts`** - ONE implementation per project, scaffolded by the `Setup` hook from `.claude/templates/DataHelper.ts`. Never re-invent it inside a `datas/<module>` file; a per-module copy is how one module ends up collision-proof and the next does not. It pairs a real-looking value with a short unique suffix, and every generator is verified **20 000/20 000 distinct**:
+
+| need | call | example |
+|---|---|---|
+| person | `DataHelper.personName()` | `Clifford Renner 16cvyiqv` |
+| company / clinic / org | `DataHelper.companyName()` | `Leannon and Sanford 16eviJmN` |
+| place / city / branch | `DataHelper.placeName()` | `Brionnaboro 16g64bsz` |
+| product / item | `DataHelper.productName()` | `Oriental Ceramic Salad 16hkuqKx` |
+| **domain vocab faker lacks** (medicine, diagnosis, specialty) | `DataHelper.fromPool(POOL)` | `Seclo 20 16i6T7jj` |
+| email | `DataHelper.email('hospital.test')` | `qa.jeffry.wilkinson87.16jv4VOG@hospital.test` |
+| local mobile | `DataHelper.phone()` | `01890803288` |
+| reference / national id | `DataHelper.numericId(10)` | `4949092267` |
+| address (not unique by design) | `DataHelper.address()` | `937 14th Street Apt. 890` |
+| a row meant to be FINDABLE, not realistic | `DataHelper.unique('<Entity>')` | `QA-AUTO <Entity> mkq3x1-a7f2be` |
+
+**Which to pick:** a **realistic** generator when the value is what the test is about - a patient's name on a form, a product in a catalogue, a medicine on a prescription. **`unique('<Entity>')`** when the value's job is to be greppable and deletable - a seeded precondition row someone may have to clean up by hand. `QA-AUTO` = made via the UI, `QA-SEED` = seeded via the API.
+
+**Domain vocabulary faker does not ship** goes in `datas/<module>/` as a `readonly` pool, then through `fromPool()`:
+
+```typescript
+// datas/<module>/<Module>Data.ts
+import { DataHelper } from '../../helpers/DataHelper';
+
+export const MEDICINES = ['Napa Extra', 'Seclo 20', 'Monas 10', 'Losectil'] as const;
+
+export const new<Entity> = (overrides: Partial<New<Entity>> = {}): New<Entity> => ({
+  patientName: DataHelper.personName(),
+  medicine: DataHelper.fromPool(MEDICINES),
+  phone: DataHelper.phone(),
+  email: DataHelper.email('example.test'),
+  ...overrides,
+});
+```
+
+**Never invent domain values from imagination** - take them from the live app during the crawl, or from the ticket. A made-up medicine name may not exist in the app's own list and the form will reject it.
+
+Rules:
+- **Anything the app treats as unique** comes from `DataHelper`. Not a raw timestamp, not a bare `faker` call, never a fixed literal (`'Test Record'` passes the first run and fails every rerun).
+- A **shared date is NOT an identity** - `today = new Date().toISOString().slice(0,10)` is meant to be the same for every test. Leave it alone; `data/timestamp-not-unique` exempts it.
+
+**Layout: one sub-folder per module****Layout: one sub-folder per module****Layout: one sub-folder per module** - `datas/<module>/<Module>Data.ts` holds that module's static values **and** faker factories together; put fixtures (JSON, upload files, reference CSVs) in the same folder. Cross-module/shared data → `datas/common/`.
 ```typescript
 // datas/<module>/<Module>Data.ts
 import { faker } from '@faker-js/faker';
@@ -295,7 +394,93 @@ Support companion (like Helpers/Baselines), **not a 5th tier.** Purpose: put a t
 2. Cross-check API docs / Postman / OpenAPI **only if the user gave them.**
 3. **Never invent an endpoint.** Can't verify → say so, stop.
 
-**Teardown ladder - walk down until one works:** `DELETE` → soft-delete/deactivate (`PATCH status`) → UI delete → unique-data namespacing (`faker`+worker+stamp so leftovers never collide) → backend reset / seeded DB → last resort: leave it, **log the leak** (never silent).
+**Teardown ladder - walk DOWN until one works.** A missing `DELETE` endpoint is the normal case, not an exception: plenty of apps only soft-delete, or gate deletion behind an admin role, or reject the browser session on the API. Never conclude "cannot clean up" - go to the next rung.
+
+| # | Rung | Use when | Cost |
+|---|---|---|---|
+| 1 | `DELETE /<entity>/{id}` | a real delete endpoint exists and accepts your auth | instant, exact |
+| 2 | **soft delete** - `PATCH {status:'ARCHIVED'}` | the app has no hard delete, or delete is admin-only | row stays but is out of the way |
+| 3 | **UI delete** - drive the row menu → confirm | the API rejects your session (401), or there is no endpoint at all | slow; needs its own timeout budget |
+| 4 | **unique-data namespacing only** | nothing can remove it - an immutable audit row, a posted invoice | leaks by design, but never collides |
+| 5 | **backend reset / seeded DB** | the environment is yours to reset between runs | heavy; usually CI-only |
+| 6 | **leave it and LOG the leak** | every rung above failed | must be visible, never silent |
+
+Two rules that apply to whichever rung you land on:
+
+**Teardown must never fail a green test.** It runs after the assertions have already passed, so a cleanup error would turn a correct result red and hide the real outcome. Wrap it and warn:
+
+```typescript
+cleanup<Entity>: async ({ page }, use, testInfo) => {
+  const registered: string[] = [];
+  await use((name: string) => { registered.push(name); });
+
+  // Teardown gets its OWN budget: a UI delete costs a list load, a search and a
+  // confirm dialog, and that would otherwise eat what is left of the test's timeout.
+  testInfo.setTimeout(testInfo.timeout + 60_000 * registered.length);
+
+  await LoopHelper.mapOver(registered, async (name) => {
+    await delete<Entity>ByName(page, name).catch(() => {
+      // Rung 6. The row is named QA-AUTO/QA-SEED..., so the leak stays identifiable
+      // and greppable - that is what makes rung 4 an acceptable floor.
+      console.warn(`cleanup<Entity>: could not delete "${name}" - delete it manually`);
+    });
+  });
+},
+```
+
+**Rung 4 - nothing can delete it at all.** Some entities genuinely cannot be removed: a posted invoice, a submitted claim, an audit entry, a dispatched order. There is no `DELETE`, no archive, no UI option, and asking for one is a product decision, not a test problem. Handle it explicitly rather than pretending teardown exists:
+
+```typescript
+/**
+ * <Entity> is CREATE-ONLY - rung 4 of the teardown ladder.
+ *
+ * Verified against the live app during the crawl: no DELETE endpoint, no archive/
+ * deactivate status, and no delete or remove action anywhere in the row menu or
+ * the detail view. A created <entity> is permanent by design.
+ *
+ * So there is no teardown. What keeps the suite runnable instead:
+ *   - every name comes from DataHelper.unique('<Entity>', 'QA-AUTO'), so runs can
+ *     never collide with each other or with real data;
+ *   - the row is greppable, so a human can bulk-remove them from the backend if
+ *     the environment ever needs it;
+ *   - the leak is RECORDED (below), not discovered later by someone else.
+ */
+createdRecords: async ({}, use, testInfo) => {
+  const created: string[] = [];
+  await use((name: string) => { created.push(name); });
+
+  // No delete exists - so report precisely what was left behind, attached to the
+  // run rather than buried in a console line nobody reads.
+  if (created.length) {
+    await testInfo.attach('undeletable-rows.txt', {
+      body: `<Entity> is create-only (no delete in API or UI).\nLeft behind by ${testInfo.title}:\n${created.join('\n')}\n`,
+      contentType: 'text/plain',
+    });
+  }
+},
+```
+
+Three things this must ALSO do, or the leak becomes someone else's surprise:
+
+1. **Write it to `findings/<module>.txt`** if the missing delete looks like a product gap rather than a deliberate rule - "a user cannot remove a <entity> they created by mistake" is a real defect worth a human's judgement. If it *is* deliberate (an audit trail), it is not a defect - say so in the plan instead.
+2. **Record it in the baseline** as a verified absence, so the crawl gate does not keep asking for a delete test that cannot exist:
+   `"verifiedAbsent": [{ "surface": "delete-action", "how": "no DELETE endpoint; no delete/archive item in the row menu or detail view - checked live" }]`
+3. **Tell the user, once, in the run summary** - not buried in a warning. "The <entity> module has no delete; N rows per full run are permanent. Bulk-remove `QA-AUTO <Entity> %` from the backend when the environment needs it."
+
+**Never fake a teardown you do not have.** A `cleanup()` that silently does nothing is worse than no cleanup: the next reader assumes the suite is self-cleaning, and the environment fills up until something unrelated breaks.
+
+**Rung 4 is why `DataHelper` matters.** If nothing can delete the row, the only thing that keeps the suite runnable is that tomorrow's run cannot collide with today's leftovers. A `QA-SEED <Entity> mkq3x1-a7f2be` row is inert; a `Test Record` row breaks the next run.
+
+**Say which rung you used, and why, in a comment on the teardown** - the next reader must not have to re-derive that the API 401s:
+
+```typescript
+/**
+ * Deletes one <entity> through the list's row menu.
+ *
+ * Rung 3 (UI delete): the API rejects the browser's session cookies with 401, so
+ * a DELETE call is not available to this suite. Verified against the live app.
+ */
+```
 
 **Wiring** - built-in `APIRequestContext`, **no new dep:**
 ```
@@ -364,27 +549,54 @@ export { expect } from '@playwright/test';
 
 **Decide by the entity's ROLE in the test (precondition vs subject), not by action name** - the actions named below are EXAMPLES, never a closed checklist. Ask: does THIS test verify the entity's *creation* (→ Pattern B), or must the entity *already exist* for the test to run (→ Pattern A)? Almost any action on existing data (edit, delete, settings, view, search, export, approve, …) is Pattern A because there the entity is a precondition - not because it's on a list.
 
+**Say WHERE the state came from, in the spec.** A reader of a spec cannot tell from `seeded<Entity>` alone whether that row was created through the API or clicked into existence. That distinction decides how the test is debugged, so mark it with an **inline comment on the line that consumes the fixture**, and one on the teardown. It is the only comment a spec needs.
+
 **Pattern A - precondition seeded via API** (entity already exists; the test verifies some action *on* it):
 ```typescript
-import { test, expect } from '../fixtures/base';
-test('TC-05: Verify that a <entity> can be edited', async ({ <module>Page, seeded<Entity> }) => {
-  await <module>Page.open(seeded<Entity>);      // <entity> already exists (API-seeded)
-  await <module>Page.rename('Updated Name');
-  await expect(<module>Page.header).toHaveText('Updated Name');
+import { test } from '../fixtures/base';
+
+test('TC-05: Verify that a <entity> can be renamed', { tag: ['@critical'] }, async ({ <module>Page, seeded<Entity> }) => {
+  await <module>Page.openEdit(seeded<Entity>.id);        // seeded via API - this <entity> already existed
+  await <module>Page.rename(new<Entity>().name);         // the UI does only the behaviour under test
+  await <module>Page.expectSavedToast();
+});                                                       // API deletes it in fixture teardown
+
+test('TC-06: Verify that a seeded <entity> can be deleted', { tag: ['@critical'] }, async ({ <module>Page, seeded<Entity> }) => {
+  await <module>Page.open();
+  await <module>Page.expect<Entity>IsListed(seeded<Entity>.name);   // seeded via API before the test ran
+  await <module>Page.openRowMenu(seeded<Entity>.name);
+  await <module>Page.chooseDelete();
+  await <module>Page.expectConfirmDialogIsOpen();
+  await <module>Page.confirmDelete();
+  await <module>Page.expectDeletedToast();
+  await <module>Page.expect<Entity>IsNotListed(seeded<Entity>.name);
 });
 ```
 
 **Pattern B - entity created via UI** (the test verifies *creating* the entity - Create / register flow):
 ```typescript
-import { test, expect } from '../fixtures/base';
+import { test } from '../fixtures/base';
 import { new<Entity> } from '../datas/<module>/<Module>Data';
-test('TC-01: Verify that a <entity> is created', async ({ <module>Page, cleanup }) => {
-  const id = await <module>Page.create<Entity>(new<Entity>());  // created via UI (the subject)
-  cleanup(id);                                                  // register → API tears it down after
-  await <module>Page.expectCreatedToast();                       // the assertion lives in the page object
+
+test('TC-01: Verify that a <entity> is created', { tag: ['@smoke', '@critical'] }, async ({ <module>Page, cleanup }) => {
+  const record = new<Entity>();
+  await <module>Page.open();
+  await <module>Page.fillForm(record);
+  await <module>Page.submit();                  // created through the UI - the subject under test
+  await <module>Page.expectCreatedToast();
+  cleanup(record.name);                          // registered for API teardown
 });
 ```
+
 Only a test that lists `seeded<Entity>` / `cleanup` in its args triggers that setup - fixtures stay lazy.
+
+**What the comments must say** (short, factual, on the consuming line):
+- `// seeded via API - this <entity> already existed` on the line that first uses a `seeded*` fixture.
+- `// created through the UI - the subject under test` on the action that creates it in Pattern B.
+- `// registered for API teardown` on the `cleanup(...)` call.
+- `// API deletes it in fixture teardown` on the closing brace, when teardown is invisible in the body.
+
+Nothing else earns a comment in a spec: every other line is an `expect*` or action method whose name already says what it does.
 
 ## Failure evidence (companion - automatic proof on every failed test)
 
@@ -861,6 +1073,53 @@ State the depth in your plan so the `Stop` gate judges you against what was actu
 
 ## Mandatory Coding Rules
 
+### Comments - almost none, and only where they carry information
+
+**Do NOT write a header comment naming the file or the module.** No `// Profile module locators`, no `// Profile module page object`, no `// Profile module specs`. The path already says it, and the filename is right there in the editor tab.
+
+**Do NOT write section dividers** - no `/* ---------------- mode switches ---------------- */`, no `// ===== CLIENT LIST ELEMENTS =====`. Group with a **blank line** instead: it reads the same and cannot go stale when an entry moves.
+
+**Do NOT explain what a method or locator does.** `expectFullNameRequiredError` and `savedToast` already say it. A comment restating a name is noise that rots.
+
+**A comment is written in exactly four situations, all of which carry information the code cannot:**
+
+1. **API provenance, in a spec** - a reader cannot tell from `seededProfile` alone whether that row came from the API or was clicked into existence, and that decides how the test is debugged:
+   - `// seeded via API - this <entity> already existed`
+   - `// created through the UI - the subject under test`
+   - `// registered for API teardown`
+   - `// API deletes it in fixture teardown`
+2. **A non-semantic locator's justification** - required by `locator/xpath-needs-comment`, `css-needs-comment`, `positional-needs-comment`, `prefer-content-frame`. The gate BLOCKS the write without it, and it must be a real reason in at least a few words: `// third-party widget renders a bare div with no role or label`.
+3. **A rung / workaround that a reader would otherwise undo** - which teardown rung was used and why the one above it was unavailable (`// rung 3: the API rejects the browser session with 401`), or a deliberate deviation the next person would "fix" back.
+4. **A fixture or helper's contract** - a short JSDoc where the behaviour is genuinely non-obvious: what the fixture seeds, what it tears down, what scope it runs at. Not on every fixture; on the ones with a real precondition or a surprising lifecycle.
+
+Everything else: delete it. If a line needs a comment to be understood, the usual fix is a better name, not a comment.
+
+```typescript
+// locators - blank lines group, nothing else
+export class ProfileLocators {
+  constructor(private readonly page: Page) {}
+
+  heading = this.page.getByRole('heading', { name: 'My Profile' });
+
+  editButton = this.page.getByRole('button', { name: 'Edit', exact: true });
+  saveButton = this.page.getByRole('button', { name: 'Save Changes' });
+
+  savedToast = this.page.getByRole('status').filter({ hasText: 'Profile updated' });
+  fullNameRequiredError = this.page.getByRole('alert').filter({ hasText: 'Full name is required' });
+}
+```
+
+```typescript
+// specs - the ONLY comments are API provenance
+test('TC-02: Verify that a seeded <entity> can be edited', { tag: ['@critical'] }, async ({ seeded<Entity>, <module>Page }) => {
+  await <module>Page.open();                                   // seeded via API - this <entity> already existed
+  await <module>Page.clickEdit();
+  await <module>Page.fillName(new<Entity>().name);
+  await <module>Page.submit();
+  await <module>Page.expectSavedToast();
+});                                                            // API deletes it in fixture teardown
+```
+
 ### Formatting - collapse the wrapper, keep the facts
 
 **The rule:** if a multi-line block exists only to *wrap* something that fits on one line, collapse it. If each line carries a distinct value, keep one per line.
@@ -897,16 +1156,16 @@ await expect(page).toHaveScreenshot('login.png', { maxDiffPixels: 100 });
 
 **Keep one-per-line where each line is a separate fact** - data factories, locator maps, plan-driven arrays. Collapsing these hides which field changed in a diff:
 ```typescript
-export const newDoctor = (overrides: Partial<NewDoctor> = {}): NewDoctor => ({
-  fullName: faker.person.fullName(),
-  bmdcRegNo: faker.string.numeric(6),
+export const new<Entity> = (overrides: Partial<New<Entity>> = {}): New<Entity> => ({
+  name: DataHelper.unique('<Entity>'),
+  code: faker.string.numeric(6),
   phone: `01${faker.string.numeric(9)}`,
-  email: faker.internet.email({ provider: 'hospital.bd' }).toLowerCase(),
+  email: DataHelper.uniqueEmail('example.test'),
   password: 'ValidPass123!',
   ...overrides,
 });
 ```
-A `type` that fits on one line stays on one line: `export type NewDoctor = { fullName: string; bmdcRegNo: string; email: string };`
+A `type` that fits on one line stays on one line: `export type New<Entity> = { name: string; code: string; email: string };`
 
 `test.use(...)` stays on its own line - it is file-scoped and must sit outside every `test()`.
 
@@ -936,7 +1195,7 @@ Specs are linear & deterministic. **Prohibited in `tests/*.spec.ts`** - push eac
    - **Checkpoints (Soft)**: `await expect.soft(locator, 'status should be Success').toHaveText('Success')` for validations.
    - Optional: `const softExpect = expect.configure({ soft: true })` to avoid repeating `.soft` in validation-heavy specs.
 
-7. **Parallel-safe by design**: every test must pass alone, in parallel, and in any order. Get isolation from per-test fixtures + uniquely-named data (see Fixtures + API Setup Layer) - never shared mutable state or hardcoded IDs, and never write cross-test state to disk.
+7. **Parallel-safe by design**: every test must pass alone, in parallel, and in any order. Get isolation from per-test fixtures + data named via **`DataHelper.unique()`** (a raw timestamp is NOT unique - see Data philosophy) (see Fixtures + API Setup Layer) - never shared mutable state or hardcoded IDs, and never write cross-test state to disk.
 8. **No Side Effects**: Never use `new PageObject()` in specs; always use fixtures.
 9. **No manual waits**: auto-wait via web-first assertions; for eventual non-locator state use `expect.poll()` / `expect(...).toPass()` - never `.waitForTimeout()` or a `while` (see **Waiting & retries**).
 10. **No direct login**: Use `storageState` from `.auth/<role>.json` (never log in inside a test).
@@ -953,6 +1212,7 @@ Specs are linear & deterministic. **Prohibited in `tests/*.spec.ts`** - push eac
 | **If/else conditionals** | `helpers/ConditionalHelper.ts` | `ConditionalHelper.executeIfElse(condition, trueAction, falseAction)` |
 | **Try/catch error handling** | `helpers/ErrorHelper.ts` | `ErrorHelper.tryCatch(action, description, softFail)` |
 | **Data transformation** | `helpers/DataHelper.ts` | `DataHelper.extractValues(data, key)` |
+| **Unique test data** (names/codes/emails - anything the app dedupes) | `helpers/DataHelper.ts` | `DataHelper.unique('<Entity>')` · `.uid()` · `.uniqueSlug()` · `.uniqueEmail()` |
 | **Generic stateless util** (date/tz, env access, file parse, custom matcher) | `helpers/<Name>Helper.ts` | `DateHelper.toBDT(ts)` - **no separate `utils/`** |
 | **UI interaction** | Page Object | `clickButton()`, `fillInput()` |
 
@@ -964,14 +1224,14 @@ Specs are linear & deterministic. **Prohibited in `tests/*.spec.ts`** - push eac
 LoopHelper.repeatAction(action, n) · repeatUntilCondition(action, cond, max, delay) · retryAction(action, max, delay)
 ConditionalHelper.executeIfElse(cond, ifTrue, ifFalse) · executeIfExists(exists, action) · switchCase(value, cases, default)
 ErrorHelper.tryCatch(action, desc, softFail) · tryOrElse(primary, fallback) · expectError(action, pattern)
-DataHelper.extractValues(data, key) · compareDatasets(actual, expected) · sanitize(text) · normalizeWhitespace(text)
+DataHelper.uid() · unique(label, prefix?) · uniqueSlug(label) · uniqueEmail(domain?) · extractValues(data, key) · compareDatasets(actual, expected) · sanitize(text) · normalizeWhitespace(text)
 ```
 
 ---
 
 ## Test Naming Convention
 
-**Numbering restarts at `TC-01` for every module.** Ids are unique *within* a module, not across the suite - `tests/auth.spec.ts` and `tests/chambers.spec.ts` both begin at `TC-01`, exactly as a test-management tool numbers cases. Never offset a module's numbering because another module used those numbers; the `Stop` gate namespaces ids by module and only rejects a collision inside one module. **Splitting a module across several spec files is fine** - name them after the plan (`chambers-list.spec.ts`, `chambers-empty.spec.ts` → `plan/chambers.md`) and the gate resolves them to that module automatically; a spec whose name matches no plan is reported as unplanned. The format is exactly `TC-XX: Verify that ...` - no module prefix (`TC-C01` is rejected), the filename already carries the module.
+**Numbering restarts at `TC-01` for every module.** Ids are unique *within* a module, not across the suite - `tests/auth.spec.ts` and `tests/orders.spec.ts` both begin at `TC-01`, exactly as a test-management tool numbers cases. Never offset a module's numbering because another module used those numbers; the `Stop` gate namespaces ids by module and only rejects a collision inside one module. **Splitting a module across several spec files is fine** - name them after the plan (`orders-list.spec.ts`, `orders-empty.spec.ts` → `plan/orders.md`) and the gate resolves them to that module automatically; a spec whose name matches no plan is reported as unplanned. The format is exactly `TC-XX: Verify that ...` - no module prefix (`TC-C01` is rejected), the filename already carries the module.
 
 Each test must follow this format:
 

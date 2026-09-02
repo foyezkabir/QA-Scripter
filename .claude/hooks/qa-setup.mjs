@@ -108,6 +108,18 @@ function main() {
     note('copied fixtures/evidence.ts from .claude/templates/evidence.ts');
   }
 
+  /* --- 1c. helpers/DataHelper.ts - the GLOBAL uniqueness primitive --------- */
+  // Every project needs collision-proof test data, and the failure mode of getting
+  // it wrong is silent: a timestamp LOOKS unique but 4 parallel workers in one
+  // millisecond produce one value, so seeds collide and the test looks broken when
+  // the data was. Shipping this as a template means no project re-invents it, and
+  // no module ends up collision-proof while the next one is not.
+  if (existsSync(p('.claude', 'templates', 'DataHelper.ts')) && !has('helpers', 'DataHelper.ts')) {
+    if (!existsSync(p('helpers'))) mkdirSync(p('helpers'), { recursive: true });
+    copyFileSync(p('.claude', 'templates', 'DataHelper.ts'), p('helpers', 'DataHelper.ts'));
+    note('copied helpers/DataHelper.ts from .claude/templates/DataHelper.ts (DataHelper.unique / uid)');
+  }
+
   /* --- 2. tsconfig.json ---------------------------------------------------- */
   if (!has('tsconfig.json')) {
     writeFileSync(p('tsconfig.json'), JSON.stringify(TSCONFIG, null, 2) + '\n');
