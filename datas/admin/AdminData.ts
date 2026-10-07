@@ -46,3 +46,42 @@ export const AGENT_DETAIL_LABELS = [
 export const noSuchAgent = (): string => DataHelper.unique('NoSuchAgent');
 
 export const QUOTA_OVERRIDE_GB = '0.6';
+
+export const DASHBOARD_SECTIONS = [
+  'Agents working',
+  'People with access',
+  'Money left',
+  'Happy replies',
+  'Where people reach your agents',
+  'Your agents right now',
+  'Money and usage',
+  'Things to look at',
+  'What happened recently',
+  'Suggestions',
+] as const;
+
+export const NAV_LINKS = [
+  'Dashboard',
+  'Agents',
+  'Users',
+  'Usage',
+  'AI Platform',
+  'Audit Log',
+  'Feedback',
+] as const;
+
+export const NAV_TARGETS = {
+  agents: { name: 'Agents', path: /\/admin\/agents$/ },
+  users: { name: 'Users', path: /\/admin\/users$/ },
+  usage: { name: 'Usage', path: /\/admin\/usage$/ },
+  aiPlatform: { name: 'AI Platform', path: /\/admin\/ai-platform$/ },
+  auditLog: { name: 'Audit Log', path: /\/admin\/audit-log$/ },
+  feedback: { name: 'Feedback', path: /\/admin\/feedback$/ },
+} as const;
+
+export const OVERVIEW_CARDS = {
+  agents: { name: 'Agents working', path: /\/admin\/agents$/ },
+  people: { name: 'People with access', path: /\/admin\/users$/ },
+  money: { name: 'Money left', path: /\/admin\/ai-platform$/ },
+  replies: { name: 'Happy replies', path: /\/admin\/feedback$/ },
+} as const;
