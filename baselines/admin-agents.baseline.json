@@ -46,8 +46,19 @@
     },
     {
       "name": "terminal",
-      "reached": false,
-      "why": "Delete, Reprovision and Deploy are terminal and state-changing; only the dialogs and menu are opened"
+      "reached": true,
+      "why": "Delete, Reprovision and Deploy are terminal and state-changing; only the dialogs and menu are opened",
+      "how": "Stop on asta flips the row to Stopped after the next poll (~15s, no dialog, no toast) and its menu then offers Start instead of Stop; Start returns it to Running in a few seconds. Deploy, Reprovision and Delete stay unclicked (Delete is forbidden)."
+    },
+    {
+      "name": "stopped",
+      "reached": true,
+      "how": "asta stopped through the row menu: status Stopped, Stopped filter lists it, menu offers Start"
+    },
+    {
+      "name": "overridden",
+      "reached": true,
+      "how": "quota saved on asta: reopening shows the saved value, the Currently overridden note and an enabled Reset to default"
     }
   ],
   "tables": [
@@ -154,13 +165,13 @@
       "role": "button",
       "name": "Save quota",
       "region": "Storage quota dialog",
-      "state": "NOT clicked on the shared data; only on asta"
+      "state": "PATCH /api/admin/agents/<id>/quota; dialog closes with no toast; exercised on asta only, always followed by Reset to default"
     },
     {
       "role": "button",
       "name": "Reset to default",
       "region": "Storage quota dialog",
-      "state": "disabled while default"
+      "state": "disabled while the quota is the inherited default; enabled while overridden; sends quotaBytes null"
     },
     {
       "role": "button",
@@ -290,6 +301,12 @@
       "text": "No container found for this agent.",
       "role": "none (plain text)",
       "note": "seen on an agent without a container"
+    },
+    {
+      "kind": "info",
+      "text": "Currently overridden - agent owner sees this cap, not the platform default.",
+      "role": "none (plain text)",
+      "note": "shown in the Storage quota dialog only while a custom quota is saved"
     }
   ],
   "modals": [
@@ -372,6 +389,10 @@
     {
       "date": "2026-10-07",
       "note": "Initial capture from the live Dev admin. Start appears in the row menu only for stopped or draft agents; Stop only for running ones."
+    },
+    {
+      "date": "2026-10-07",
+      "note": "Stop/Start on any Dev agent and quota save/reset on asta were exercised with the user's approval; Delete is never to be used."
     }
   ]
 }

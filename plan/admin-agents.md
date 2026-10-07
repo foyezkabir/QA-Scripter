@@ -2,9 +2,9 @@
 
 Depth: **standard read-only slice**. Source: live UI only, no Jira/Figma/Gherkin. Baseline: `baselines/admin-agents.baseline.json`.
 
-Spec file: `admin-agents.spec.ts`. Every test requests the `adminSession` fixture (cookie + sessionStorage restored from `.auth/admin.json`).
+Spec files: `admin-agents.spec.ts` (read-only) · `admin-agents-state.spec.ts` (changes asta; runs in the `chromium-state` project after the read-only run). Every test requests the `adminSession` fixture (cookie + sessionStorage restored from `.auth/admin.json`).
 
-Read-only. Row menus and dialogs are only OPENED and closed - never Deploy, Stop, Start, Reprovision, Delete, Download bundle or Save quota. Row-specific tests target the user's own agent **Asta** (owner Naiemul Hasan Naiem), found by search. Live numbers (agent counts, activity, polling data) are never asserted; only their labels. Plain-text messages have no ARIA role - located with `getByText`.
+Read-only except the asta state slice below. Elsewhere row menus and dialogs are only OPENED and closed - never Deploy, Reprovision, Delete or Download bundle. **Delete is never used on any agent.** Row-specific tests target the user's own agent **Asta** (owner Naiemul Hasan Naiem), found by search. Live numbers (agent counts, activity, polling data) are never asserted; only their labels. Plain-text messages have no ARIA role - located with `getByText`.
 
 ## Agents list - /admin/agents
 
@@ -35,10 +35,21 @@ Read-only. Row menus and dialogs are only OPENED and closed - never Deploy, Stop
 | Storage quota dialog | disabled | Storage quota shows Quota (GB) with the inherited default, Reset to default disabled, and the Cancel, Save quota and Close buttons | TC-18 | @regression |
 | Storage quota dialog | terminal | Cancel closes the Storage quota dialog without saving | TC-19 | @regression |
 
+## State changes - Asta only
+
+Approved on Dev: Stop and Start (any agent, asta used) and Storage quota save then Reset to default on asta. A `ownAgent` guard fixture restores asta (Start if stopped, Reset to default if overridden) after every test, even a failed one, through the UI (teardown ladder: UI, because the admin API is not exposed). The precondition (a stopped or overridden asta) is built through the UI for the same reason: there is no API seeding path. The tests run serially because they share one agent.
+
+| View | State | Action / rule | TC | Tag |
+|---|---|---|---|---|
+| Agents | stopped | Stop on Asta flips its row to Stopped and its menu then offers Start instead of Stop | TC-20 | @regression |
+| Agents | stopped | a stopped Asta is listed under the Stopped filter and Start brings it back to Running | TC-21 | @regression |
+| Storage quota dialog | overridden | Save quota with a custom value closes the dialog; reopening shows the value, the note "Currently overridden - agent owner sees this cap, not the platform default." and an enabled Reset to default | TC-22 | @regression |
+| Storage quota dialog | terminal | Reset to default returns Asta to the inherited default: the override note disappears and Reset to default is disabled again | TC-23 | @regression |
+
 ## Out of scope (recorded, not tested)
 
-- **Start** appears in the row menu only for a stopped or draft agent; Asta is running, so it shows Stop. The stopped-agent menu is not reachable without stopping an agent.
+- Draft agents (Start from a never-deployed state) are not reachable on shared Dev without creating an agent, and there is no create-agent entry.
 - "No container found for this agent." appears only for an agent with no container; Asta has one.
-- Deploy, Stop, Reprovision, Delete, Download bundle and Save quota change or export shared state; they are a separate, explicitly approved slice on Asta only.
+- Deploy, Reprovision and Download bundle change or export shared state and are not approved. Delete is forbidden on every agent.
 - The list error state needs a backend failure and is not forced on shared Dev.
 - The Findings recorded in the baseline (no create-agent entry, one-click destructive actions) go to `findings/admin.txt`, not assertions.
