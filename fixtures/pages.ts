@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+import { AdminAgentsPage } from '../pages/AdminAgentsPage';
 import { AdminLoginPage } from '../pages/AdminLoginPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 import { LegalPage } from '../pages/LegalPage';
@@ -17,7 +18,11 @@ export const test = base.extend<{
   sessionPage: SessionPage;
   resetPasswordPage: ResetPasswordPage;
   adminLoginPage: AdminLoginPage;
+  adminAgentsPage: AdminAgentsPage;
 }>({
+  adminAgentsPage: async ({ page }, use) => {
+    await use(new AdminAgentsPage(page));
+  },
   adminLoginPage: async ({ page }, use) => {
     await use(new AdminLoginPage(page));
   },

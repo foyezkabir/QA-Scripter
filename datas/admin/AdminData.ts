@@ -19,3 +19,28 @@ export const unknownAdmin = (): AdminCredentials => ({
 });
 
 export const DEEP_LINK = '/admin/users?q=anything';
+
+export const OWN_AGENT = {
+  name: 'Asta',
+  role: 'QA Assistant',
+  owner: 'Naiemul Hasan Naiem',
+};
+
+export const AGENT_COLUMNS = ['Agent', 'Owner', 'Status', 'Activity', 'Integrations', 'Created', 'Actions'] as const;
+
+export const AGENT_DETAIL_LABELS = [
+  'Agent ID',
+  'Owner',
+  'Agent email',
+  'Public URL',
+  'Container',
+  'Image',
+  'Channels',
+  'Skills',
+  'Tasks',
+  'Sub-agents',
+  'Created',
+  'Updated',
+] as const;
+
+export const noSuchAgent = (): string => DataHelper.unique('NoSuchAgent');
