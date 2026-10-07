@@ -73,7 +73,7 @@ const norm = (n) => `TC-${String(parseInt(n, 10)).padStart(2, '0')}`;
  * an earlier module grew.
  */
 const stemOf = (file) =>
-  file.replace(/^.*\//, '').replace(/\.spec\.ts$/, '').replace(/\.md$/, '');
+  file.replace(/^.*[\\/]/, '').replace(/\.spec\.ts$/, '').replace(/\.md$/, '');
 
 /**
  * Map a spec file to the module that owns it.
@@ -230,7 +230,7 @@ function main() {
   /* --- per-module: plan vs tests --- */
   const plannedAll = new Set();
   for (const pf of planFiles) {
-    const module = pf.replace(/^.*\//, '').replace(/\.md$/, '');
+    const module = pf.replace(/^.*[\\/]/, '').replace(/\.md$/, '');
     const planned = parsePlan(pf);
     if (!planned || planned.size === 0) continue;
 
