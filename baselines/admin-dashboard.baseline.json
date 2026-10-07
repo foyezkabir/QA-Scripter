@@ -1,0 +1,85 @@
+{
+  "module": "Admin Dashboard",
+  "route": "/admin",
+  "createdAt": "2026-10-07",
+  "updatedAt": "2026-10-07",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Welcome back",
+    "Agents working",
+    "People with access",
+    "Money left",
+    "Happy replies",
+    "Where people reach your agents",
+    "Your agents right now",
+    "Money and usage",
+    "Things to look at",
+    "What happened recently",
+    "Suggestions"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "all eleven sections render live data (agent, people and money counts, channel chart, activity feed)" },
+    { "name": "empty", "reached": true, "how": "Happy replies shows '-' with 'Nobody has rated a reply yet' and Suggestions lists 'No replies have been rated so far.' when nothing is rated" },
+    { "name": "loading", "reached": false, "why": "cards render before the probe can observe a skeleton; no stable loading state to hold on shared Dev" },
+    { "name": "error", "reached": false, "why": "dashboard error state needs a backend failure; not forced on shared Dev" },
+    { "name": "disabled", "reached": true, "how": "the signed-in email row in the account menu is disabled" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "dashboard opens only with the admin session and shows the signed-in role (Super Admin) on the Admin account button" },
+    { "name": "collapsed", "reached": true, "how": "Collapse sidebar turns the button into Expand sidebar, hides the group labels and turns Admin account into a link" },
+    { "name": "theme", "reached": true, "how": "Appearance toggles the html class between light and dark and stores it in localStorage theme" },
+    { "name": "terminal", "reached": false, "why": "dashboard is a read-only overview; its only exits are navigation links" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search agents, people or events", "type": "searchbox", "state": "accepts text; no results list, Enter does nothing (recorded in findings)" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar header", "state": "becomes Expand sidebar" },
+    { "role": "button", "name": "Expand sidebar", "region": "sidebar header, collapsed" },
+    { "role": "button", "name": "Admin account", "region": "sidebar footer", "state": "opens the account menu; a link to /admin while collapsed" },
+    { "role": "button (card menu)", "name": "Agents working options", "region": "Agents working card", "opens": { "items": ["View details"] }, "state": "View details opens /admin/agents" },
+    { "role": "button (card menu)", "name": "People with access options", "region": "People with access card", "opens": { "items": ["View details"] }, "state": "View details opens /admin/users" },
+    { "role": "button (card menu)", "name": "Money left options", "region": "Money left card", "opens": { "items": ["View details"] }, "state": "View details opens /admin/ai-platform" },
+    { "role": "button (card menu)", "name": "Happy replies options", "region": "Happy replies card", "opens": { "items": ["View details"] }, "state": "View details opens /admin/feedback" },
+    { "role": "button (menu)", "name": "All channels", "region": "Where people reach your agents", "opens": { "items": ["All channels", "Connected only"] }, "state": "menuitemradio items" },
+    { "role": "link", "name": "Turn back on", "region": "Things to look at, only while agents are switched off", "href": "/admin/agents" },
+    { "role": "link", "name": "Review", "region": "Things to look at, only while people are unconfirmed or blocked", "href": "/admin/users" },
+    { "role": "link", "name": "Open agents", "region": "Things to look at, only while an agent was never finished", "href": "/admin/agents" },
+    { "role": "link", "name": "See all", "region": "What happened recently", "href": "/admin/audit-log" },
+    { "role": "link", "name": "Open the learning centre", "region": "page foot", "href": "/help" },
+    { "role": "link", "name": "Dashboard", "region": "sidebar nav", "href": "/admin" },
+    { "role": "link", "name": "Agents", "region": "sidebar nav, Management", "href": "/admin/agents" },
+    { "role": "link", "name": "Users", "region": "sidebar nav, Management", "href": "/admin/users" },
+    { "role": "link", "name": "Usage", "region": "sidebar nav, Management", "href": "/admin/usage" },
+    { "role": "link", "name": "AI Platform", "region": "sidebar nav, System", "href": "/admin/ai-platform" },
+    { "role": "link", "name": "Audit Log", "region": "sidebar nav, System", "href": "/admin/audit-log" },
+    { "role": "link", "name": "Feedback", "region": "sidebar nav, System", "href": "/admin/feedback" },
+    { "role": "link", "name": "Admin dashboard", "region": "sidebar logo", "href": "/admin" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "A few things need a look. Here is how your workspace is doing today.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Nobody has rated a reply yet", "role": "none (plain text)" },
+    { "kind": "info", "text": "Low OpenRouter credit banner with Top up and Dismiss", "role": "none", "note": "only shown while credit is under the reminder line; not present when the crawl ran" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    {
+      "trigger": "Admin account",
+      "opens": { "items": ["signed-in email (disabled)", "Appearance (Light Mode)", "Sign out"] }
+    }
+  ],
+  "findings": [
+    "The search box 'Search agents, people or events' accepts text but shows no results and Enter does nothing",
+    "People with access > View details was slow to navigate (/admin first, /admin/users after ~2s)"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog on the dashboard; card menus navigate and the account menu is a dropdown" },
+    { "surface": "views", "how": "single overview page; every link leaves it for another admin module" },
+    { "surface": "tabs", "how": "no tablist on the page" }
+  ],
+  "changelog": [
+    { "date": "2026-10-07", "note": "Initial capture. Live numbers (agents, people, credit, spend, messages) change constantly and are never asserted." }
+  ]
+}

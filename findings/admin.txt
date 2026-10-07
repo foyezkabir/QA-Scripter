@@ -41,3 +41,14 @@ Steps to reproduce:
 Actual result: infinite skeleton, Refresh disabled, no role=alert text.
 Expected result: a timeout or error message with a retry action.
 Confidence: medium (backend was slow at the time; not reproduced on demand)
+
+Title: /admin: the dashboard search box does nothing when text is typed or Enter is pressed
+Type: functional
+Module: admin
+Description: The searchbox "Search agents, people or events" on the dashboard accepts text, but no results list appears and pressing Enter leaves the page on /admin.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin.
+  2. Type "asta" in the search box and wait, then press Enter.
+Actual result: no results, no navigation, no message.
+Expected result: matching agents, people or events are listed, or the box is not offered.
+Confidence: medium
