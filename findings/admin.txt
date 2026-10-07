@@ -1,0 +1,43 @@
+Title: /admin/users: Promote to admin, Demote to user and Reinstate fire on a single click with no confirmation and no feedback
+Type: functional
+Module: admin
+Description: The row-menu items change a user's role or lift a suspension immediately; there is no confirmation dialog and no toast or alert afterwards.
+Steps to reproduce:
+  1. Sign in to https://admin.dev.app.velaops.ai as an admin and open /admin/users.
+  2. Open a row's "Actions for <name>" menu and click "Promote to admin" (or "Demote to user", or "Reinstate" on a suspended user).
+Actual result: the change is applied at once; no confirmation, no toast, no role=status/alert content.
+Expected result: a confirmation step for role changes and reinstatement (Suspend and Top up credit do show dialogs), and visible success feedback.
+Confidence: high (observed; it changed real data during the crawl)
+
+Title: /admin/ai-platform: "Open Dashboard" (LiteLLM) link points to http://localhost:4001/
+Type: UI
+Module: admin
+Description: The LiteLLM Dashboard section links to a localhost URL on the Dev site, so it cannot work for anyone but a local developer.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin/ai-platform.
+  2. Inspect the "Open Dashboard" link in the LiteLLM Dashboard section.
+Actual result: href is http://localhost:4001/ (not clicked).
+Expected result: a reachable environment URL or no link.
+Confidence: medium
+
+Title: /admin/ai-platform: each Virtual API Keys row shows an extra 32-character string next to the masked key
+Type: data
+Module: admin
+Description: Besides the masked key and the user, every row shows a 32-character string that could be a key id or an unmasked secret.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin/ai-platform.
+  2. Look at the Virtual API Keys table rows.
+Actual result: a 32-character string is visible per row (not copied or recorded by the crawl).
+Expected result: only non-secret identifiers are shown; confirm what this value is.
+Confidence: low (needs-verification)
+
+Title: /admin/audit-log: loading skeleton never ends and no error is shown when the data request hangs
+Type: error-message
+Module: admin
+Description: When the audit data request did not complete, the table stayed on skeleton placeholders for more than 2 minutes with no error text and no retry; related /api/admin/openrouter/credit calls ended with status 0 after about 15s.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin/audit-log (observed after filter changes and reloads while the backend was slow).
+  2. Wait while the request hangs.
+Actual result: infinite skeleton, Refresh disabled, no role=alert text.
+Expected result: a timeout or error message with a retry action.
+Confidence: medium (backend was slow at the time; not reproduced on demand)

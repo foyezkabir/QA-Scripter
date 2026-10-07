@@ -1,0 +1,101 @@
+Title: /auth/signin, /auth/signup, /auth/forgot-password: signed-in user is not redirected away from guest-only pages
+Type: functional
+Module: auth
+Description: An authenticated user who opens an auth page stays on it; there is no guest-only guard.
+Steps to reproduce:
+  1. Sign in on https://dev.app.velaops.ai/auth/signin as a valid user (lands on /dashboard).
+  2. In the same session open /auth/signin (also try /auth/signup and /auth/forgot-password).
+  3. Wait 2-3 seconds.
+Actual result: URL stays on the auth page and /auth/signin still renders "Welcome back" with the Sign in, Google and Microsoft buttons.
+Expected result: a signed-in user is redirected to /dashboard (typical guest-only behaviour). No AC was available to confirm this is intended.
+Confidence: low (needs-verification)
+
+Title: /auth/signup: password complexity is not enforced or hinted, only length >= 10
+Type: validation
+Module: auth
+Description: The only client-side rule is "Password must be at least 10 characters." (static hint "min. 10 characters"); no live strength meter or complexity rule.
+Steps to reproduce:
+  1. Open /auth/signup.
+  2. Enter a name, a well-formed email and a 10-character all-lowercase password such as "abcdefghij" (stop before a valid submit in the crawl; submit is a real account creation).
+  3. Observe no client-side error for missing upper-case, digit or symbol.
+Actual result: only length is validated client-side; server-side acceptance of "abcdefghij" was not tested.
+Expected result: unknown without a spec; confirm the intended password policy.
+Confidence: low (needs-verification)
+
+Title: /auth/forgot-password: Send reset link enables for any non-empty text, including a malformed email
+Type: validation
+Module: auth
+Description: The button gates on non-empty input only; a malformed email is stopped only by the browser's native bubble with no app-rendered error.
+Steps to reproduce:
+  1. Open /auth/forgot-password.
+  2. Type "notanemail" in the email field.
+  3. Click Send reset link.
+Actual result: the button is enabled; the click shows the native browser message "Please include an '@' in the email address." and sends no request. Nothing is rendered in the DOM.
+Expected result: probably an app-rendered inline error like the signup form's role=alert errors; confirm against design.
+Confidence: low (needs-verification)
+
+Title: /auth/signin and /auth/forgot-password: error banners have no ARIA role and no toast is shown
+Type: UI
+Module: auth
+Description: "Invalid email or password" (sign-in) and the server-error banners on forgot-password and signup are plain divs with no role=alert or role=status, so screen readers do not announce them. Only the signup client-side errors use role=alert.
+Steps to reproduce:
+  1. Submit /auth/signin with wrong credentials.
+  2. Inspect the "Invalid email or password" banner in the accessibility tree.
+Actual result: plain StaticText/div, no live-region role; the only role=alert on the page is an empty Next.js route announcer.
+Expected result: error banners announced via role=alert (consistent with the signup inline errors).
+Confidence: medium
+
+Title: Verification email: footer shows the literal text "${BRAND_NAME}" and apostrophes render as backticks
+Type: UI
+Module: auth
+Description: The email template variable is not rendered and apostrophes are replaced with backticks in the sign-up verification email.
+Steps to reproduce:
+  1. Sign up on https://dev.app.velaops.ai/auth/signup with a disposable inbox address.
+  2. Open the "Verify your VelaCrew email" message.
+Actual result: footer reads "...used to sign up for ${BRAND_NAME}" and "You`re getting this because..." / "didn`t sign up".
+Expected result: the brand name rendered and normal apostrophes.
+Confidence: high
+
+Title: /auth/reset-password: earlier unused reset links stay valid after a later link was used
+Type: functional
+Module: auth
+Description: Multiple reset requests issue multiple simultaneously valid tokens; using one does not invalidate the others.
+Steps to reproduce:
+  1. Request a password reset twice for the same account (two emails, link #1 and link #2).
+  2. Use link #1 to set a new password.
+  3. Open link #2 and set another password.
+Actual result: link #2 still works after link #1 changed the password.
+Expected result: all outstanding reset tokens for the account are invalidated once one is used.
+Confidence: medium (needs-verification)
+
+Title: Sign-up accepts a 10-character all-lowercase password on the server
+Type: validation
+Module: auth
+Description: The only enforced password rule is length >= 10; no upper-case, digit or symbol requirement.
+Steps to reproduce:
+  1. Sign up with a valid email and password "abcdefghij".
+Actual result: the account is created (200), verified and can sign in.
+Expected result: unknown without a spec; confirm the intended password policy.
+Confidence: low (needs-verification)
+
+Title: Used or invalid verification and reset links give no message
+Type: error-message
+Module: auth
+Description: A used or fake verification link silently redirects to sign-in; a used or fake reset link opens a blank reset form and only errors after submit.
+Steps to reproduce:
+  1. Open a verification link a second time (or /api/auth/verify-email?token=fake.token.value&callbackURL=%2F).
+  2. Open a used reset link (lands on /auth/reset-password?error=INVALID_TOKEN).
+Actual result: no explanatory message; the reset page ignores ?error=INVALID_TOKEN and the form is shown empty.
+Expected result: a clear "link expired or already used" message with a way to request a new one.
+Confidence: medium
+
+Title: Unverified account sign-in is a dead end: no resend verification link
+Type: functional
+Module: auth
+Description: Signing in with an unverified account shows "Email not verified" with no way to request another verification email, and no email is re-sent.
+Steps to reproduce:
+  1. Sign up, do not open the verification link.
+  2. Sign in with that account.
+Actual result: inline "Email not verified"; no resend control on sign-in or on the verify-email screen.
+Expected result: a resend-verification action.
+Confidence: low (needs-verification)

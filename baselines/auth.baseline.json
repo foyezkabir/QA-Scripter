@@ -1,0 +1,1050 @@
+{
+  "module": "Auth",
+  "route": "/auth/signin",
+  "createdAt": "2026-10-07",
+  "updatedAt": "2026-10-07",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Welcome back"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "empty",
+      "reached": true,
+      "how": "fresh load: both fields empty, Sign in disabled, blur on empty fields shows no inline error"
+    },
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "both fields typed: Sign in enabled"
+    },
+    {
+      "name": "disabled/invalid",
+      "reached": true,
+      "how": "Sign in disabled while a field is empty; malformed email submit is blocked by native browser validation (field invalid=true)"
+    },
+    {
+      "name": "loading",
+      "reached": true,
+      "how": "after submit Sign in is disabled with empty text and a spinner for 1-3s; Google and Microsoft also disabled during the request"
+    },
+    {
+      "name": "error",
+      "reached": true,
+      "how": "one wrong-credential attempt with a fake account shows banner 'Invalid email or password'"
+    },
+    {
+      "name": "terminal",
+      "reached": true,
+      "how": "valid sign-in with DEV user 1 redirects to /dashboard (callbackUrl honoured)"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "signed in: auth pages stay reachable with no guest-only redirect"
+    }
+  ],
+  "tables": [],
+  "fields": [
+    {
+      "label": "Work email",
+      "type": "textbox",
+      "inputType": "email",
+      "id": "email",
+      "placeholder": "you@company.com",
+      "autocomplete": "email",
+      "required": true
+    },
+    {
+      "label": "Password",
+      "type": "textbox",
+      "inputType": "password",
+      "id": "password",
+      "placeholder": "Enter your password",
+      "autocomplete": "current-password",
+      "required": true
+    },
+    {
+      "label": "Remember me",
+      "type": "checkbox",
+      "state": "checked by default"
+    }
+  ],
+  "actions": [
+    {
+      "role": "button",
+      "name": "Sign in",
+      "region": "form",
+      "state": "disabled until email and password are non-empty; type=submit; Enter in password field also submits"
+    },
+    {
+      "role": "button",
+      "name": "Google",
+      "region": "below 'or sign in with' divider, left",
+      "state": "enabled; NOT clicked (outward-facing OAuth, destination unverified)"
+    },
+    {
+      "role": "button",
+      "name": "Microsoft",
+      "region": "below 'or sign in with' divider, right",
+      "state": "enabled; NOT clicked (outward-facing OAuth, destination unverified)"
+    },
+    {
+      "role": "link",
+      "name": "Forgot password?",
+      "region": "form, right of Password label",
+      "href": "/auth/forgot-password"
+    },
+    {
+      "role": "link",
+      "name": "Create an account",
+      "region": "below Sign in",
+      "href": "/auth/signup"
+    },
+    {
+      "role": "link",
+      "name": "VelaCrew home",
+      "region": "top, logo",
+      "href": "/"
+    },
+    {
+      "role": "link",
+      "name": "Terms of Service",
+      "region": "footer",
+      "href": "/terms"
+    },
+    {
+      "role": "link",
+      "name": "Privacy Policy",
+      "region": "footer",
+      "href": "/privacy"
+    }
+  ],
+  "icons": [
+    {
+      "name": "Show password",
+      "type": "icon-button",
+      "region": "inside Password field, right",
+      "toggledName": "Hide password"
+    },
+    {
+      "name": "VelaCrew",
+      "type": "image",
+      "region": "top-left, logo inside the VelaCrew home link"
+    }
+  ],
+  "modals": [],
+  "views": [
+    {
+      "name": "Sign up",
+      "route": "/auth/signup",
+      "openedBy": "link 'Create an account' on /auth/signin",
+      "headings": [
+        "Create your account"
+      ],
+      "states": [
+        {
+          "name": "empty",
+          "reached": true,
+          "how": "fresh load: 3 fields empty, Create account disabled, no errors, Remember me checked"
+        },
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "all 3 fields non-empty enables Create account (even a 1-char password)"
+        },
+        {
+          "name": "disabled/invalid",
+          "reached": true,
+          "how": "Create account disabled until all fields non-empty; no blur or live validation, validation runs only on submit click; form is noValidate"
+        },
+        {
+          "name": "error",
+          "reached": true,
+          "how": "submit with invalid email / short password / blank name shows inline role=alert errors client-side, no request sent; server errors reached by network mock"
+        },
+        {
+          "name": "loading",
+          "reached": true,
+          "how": "network-mocked 200 delayed 2s: Create account becomes icon-only spinner and disabled, Google and Microsoft disabled"
+        },
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "network-mocked 200: client-side navigation to /auth/verify-email?email=<email>; no real account created"
+        },
+        {
+          "name": "role-gated",
+          "reached": false,
+          "why": "public route, no role gating observed"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [
+        {
+          "label": "Full name",
+          "type": "textbox",
+          "inputType": "text",
+          "id": "name",
+          "placeholder": "Ada Lovelace",
+          "autocomplete": "name"
+        },
+        {
+          "label": "Work email",
+          "type": "textbox",
+          "inputType": "email",
+          "id": "email",
+          "placeholder": "you@company.com",
+          "autocomplete": "email"
+        },
+        {
+          "label": "Password",
+          "type": "textbox",
+          "inputType": "password",
+          "id": "password",
+          "placeholder": "Enter a strong password",
+          "autocomplete": "new-password",
+          "helperText": "min. 10 characters"
+        },
+        {
+          "label": "Remember me",
+          "type": "checkbox",
+          "state": "checked by default; not sent in the request body"
+        }
+      ],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Create account",
+          "region": "form-bottom",
+          "state": "disabled until all 3 fields non-empty; type=submit"
+        },
+        {
+          "role": "button",
+          "name": "Show password",
+          "region": "inside password field, right",
+          "state": "enabled",
+          "toggledName": "Hide password"
+        },
+        {
+          "role": "button",
+          "name": "Google",
+          "region": "below form, 'or sign up with'",
+          "state": "enabled; NOT clicked"
+        },
+        {
+          "role": "button",
+          "name": "Microsoft",
+          "region": "below form, 'or sign up with'",
+          "state": "enabled; NOT clicked"
+        },
+        {
+          "role": "link",
+          "name": "VelaCrew home",
+          "region": "top, logo",
+          "href": "/"
+        },
+        {
+          "role": "link",
+          "name": "Sign in",
+          "region": "below form, 'Already have an account?'",
+          "href": "/auth/signin"
+        },
+        {
+          "role": "link",
+          "name": "Terms of Service",
+          "region": "footer",
+          "href": "/terms"
+        },
+        {
+          "role": "link",
+          "name": "Privacy Policy",
+          "region": "footer",
+          "href": "/privacy"
+        }
+      ],
+      "icons": [
+        {
+          "name": "Show password / Hide password",
+          "type": "icon-button",
+          "region": "password field, right"
+        },
+        {
+          "name": "VelaCrew",
+          "type": "image",
+          "region": "top, logo"
+        }
+      ],
+      "messages": [
+        {
+          "role": "alert",
+          "name": "Please enter your full name.",
+          "kind": "inline-error",
+          "triggeredBy": "Create account with blank or whitespace-only Full name"
+        },
+        {
+          "role": "alert",
+          "name": "Please enter a valid work email address.",
+          "kind": "inline-error",
+          "triggeredBy": "Create account with email 'notanemail' or 'a@b'"
+        },
+        {
+          "role": "alert",
+          "name": "Password must be at least 10 characters.",
+          "kind": "inline-error",
+          "triggeredBy": "Create account with password shorter than 10 characters"
+        },
+        {
+          "role": "none",
+          "name": "Internal server error",
+          "kind": "inline-banner",
+          "triggeredBy": "network-mocked 500; server message rendered verbatim"
+        },
+        {
+          "role": "none",
+          "name": "Failed to fetch",
+          "kind": "inline-banner",
+          "triggeredBy": "network failure; rendered when the request cannot complete"
+        }
+      ],
+      "other": [
+        {
+          "type": "paragraph",
+          "text": "Start your AI journey and see what's possible - verification link will be sent to your email."
+        },
+        {
+          "type": "text",
+          "text": "or sign up with (divider)"
+        },
+        {
+          "type": "text",
+          "text": "Already have an account?"
+        },
+        {
+          "type": "request",
+          "text": "POST /api/auth/sign-up/email JSON body keys name, email, password"
+        },
+        {
+          "type": "region",
+          "name": "Notifications alt+T",
+          "live": "polite",
+          "note": "empty toast container, no toast ever shown on these pages"
+        },
+        {
+          "type": "alert",
+          "live": "assertive",
+          "note": "empty Next.js route announcer, never the error locator"
+        },
+        {
+          "type": "note",
+          "text": "a duplicate email is NOT rejected: the real backend answers 200 and the UI opens the verify email page exactly as for a new account; the existing user is emailed 'You already have a VelaCrew account'"
+        }
+      ]
+    },
+    {
+      "name": "Forgot password",
+      "route": "/auth/forgot-password",
+      "openedBy": "link 'Forgot password?' on /auth/signin",
+      "headings": [
+        "Forgot your password? Enter your email and we'll send you a reset link."
+      ],
+      "states": [
+        {
+          "name": "empty",
+          "reached": true,
+          "how": "fresh load: email empty, Send reset link disabled"
+        },
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "any non-empty text enables Send reset link, even a malformed email"
+        },
+        {
+          "name": "disabled/invalid",
+          "reached": true,
+          "how": "malformed email ('notanemail', 'a@') is blocked on submit by native validation, no request sent, no app error"
+        },
+        {
+          "name": "loading",
+          "reached": true,
+          "how": "network-mocked 200 delayed 2s: button becomes icon-only spinner and disabled"
+        },
+        {
+          "name": "error",
+          "reached": true,
+          "how": "network-mocked 429 and 500 show the server message in an inline banner; email kept, button re-enabled"
+        },
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "network-mocked 200: form swaps inline to heading 'Check your email'; no redirect, no toast"
+        },
+        {
+          "name": "role-gated:unauthenticated",
+          "reached": true,
+          "how": "loaded with no session, renders the form"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [
+        {
+          "label": "Enter email",
+          "type": "textbox",
+          "inputType": "email",
+          "id": "email",
+          "placeholder": "you@company.com",
+          "autocomplete": "email",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Send reset link",
+          "region": "form, below the email field",
+          "state": "disabled when empty; type=submit"
+        },
+        {
+          "role": "link",
+          "name": "Back to sign-in",
+          "region": "below the form",
+          "href": "/auth/signin"
+        },
+        {
+          "role": "link",
+          "name": "VelaCrew home",
+          "region": "top, logo",
+          "href": "/"
+        },
+        {
+          "role": "link",
+          "name": "Terms of Service",
+          "region": "footer",
+          "href": "/terms"
+        },
+        {
+          "role": "link",
+          "name": "Privacy Policy",
+          "region": "footer",
+          "href": "/privacy"
+        }
+      ],
+      "icons": [
+        {
+          "name": "VelaCrew",
+          "type": "image",
+          "region": "top-left, logo"
+        }
+      ],
+      "messages": [
+        {
+          "role": "none",
+          "name": "Check your email",
+          "kind": "inline-success-heading",
+          "triggeredBy": "network-mocked 200; heading level 1"
+        },
+        {
+          "role": "none",
+          "name": "If an account exists for <email>, we've sent password reset instructions.",
+          "kind": "inline-success-text",
+          "triggeredBy": "network-mocked 200; plain paragraph, email interpolated"
+        },
+        {
+          "role": "none",
+          "name": "Too many requests. Please try again later.",
+          "kind": "inline-banner",
+          "triggeredBy": "network-mocked 429; server message verbatim"
+        },
+        {
+          "role": "none",
+          "name": "Internal server error",
+          "kind": "inline-banner",
+          "triggeredBy": "network-mocked 500; server message verbatim"
+        },
+        {
+          "role": "none",
+          "name": "Failed to fetch",
+          "kind": "inline-banner",
+          "triggeredBy": "network failure"
+        },
+        {
+          "role": "none",
+          "name": "Please include an '@' in the email address. 'notanemail' is missing an '@'.",
+          "kind": "native-validation",
+          "triggeredBy": "submit with 'notanemail'; read via validationMessage, not DOM"
+        },
+        {
+          "role": "none",
+          "name": "Please enter a part following '@'. 'a@' is incomplete.",
+          "kind": "native-validation",
+          "triggeredBy": "submit with 'a@'; read via validationMessage, not DOM"
+        }
+      ],
+      "other": [
+        {
+          "type": "request",
+          "text": "POST /api/auth/request-password-reset JSON body keys email, redirectTo"
+        },
+        {
+          "type": "document",
+          "text": "page title is 'VelaCrew', not route-specific"
+        },
+        {
+          "type": "region",
+          "name": "Notifications alt+T",
+          "live": "polite",
+          "note": "empty toast container"
+        },
+        {
+          "type": "alert",
+          "live": "assertive",
+          "note": "empty Next.js route announcer"
+        }
+      ]
+    },
+    {
+      "name": "Verify email",
+      "route": "/auth/verify-email?email=<email>",
+      "openedBy": "successful signup (network-mocked 200); a direct GET also renders it",
+      "headings": [
+        "Check your email"
+      ],
+      "states": [
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "reached via mocked signup 200 and by direct GET"
+        },
+        {
+          "name": "empty",
+          "reached": false,
+          "why": "static confirmation screen, no data-driven empty state"
+        },
+        {
+          "name": "error",
+          "reached": false,
+          "why": "no error condition on this screen, it has no fields or submit buttons"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [
+        {
+          "role": "link",
+          "name": "try again",
+          "region": "body paragraph",
+          "href": "/auth/signup"
+        },
+        {
+          "role": "link",
+          "name": "Sign in instead",
+          "region": "body paragraph",
+          "href": "/auth/signin"
+        },
+        {
+          "role": "link",
+          "name": "VelaCrew home",
+          "region": "top, logo",
+          "href": "/"
+        },
+        {
+          "role": "link",
+          "name": "Terms of Service",
+          "region": "footer",
+          "href": "/terms"
+        },
+        {
+          "role": "link",
+          "name": "Privacy Policy",
+          "region": "footer",
+          "href": "/privacy"
+        }
+      ],
+      "icons": [],
+      "messages": [],
+      "other": [
+        {
+          "type": "paragraph",
+          "text": "We sent a verification link to <email>. Open it to activate your account."
+        },
+        {
+          "type": "paragraph",
+          "text": "Didn't get it? Check your spam folder, or try again."
+        },
+        {
+          "type": "paragraph",
+          "text": "Already have an account? Sign in instead."
+        }
+      ]
+    },
+    {
+      "name": "Terms of Service",
+      "route": "/terms",
+      "openedBy": "footer link 'Terms of Service' on every auth page",
+      "headings": [
+        "Terms of Service"
+      ],
+      "states": [
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "static placeholder with 'IN REVIEW' notice, no legal text"
+        },
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "static terminal placeholder page"
+        },
+        {
+          "name": "empty",
+          "reached": false,
+          "why": "static placeholder, no data-driven empty state"
+        },
+        {
+          "name": "error",
+          "reached": false,
+          "why": "no error condition observed"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Go back",
+          "region": "main-content",
+          "state": "enabled; type=submit; not clicked"
+        },
+        {
+          "role": "link",
+          "name": "Go to dashboard",
+          "region": "main-content",
+          "href": "/dashboard",
+          "state": "enabled; not followed"
+        }
+      ],
+      "icons": [],
+      "messages": [],
+      "other": [
+        {
+          "type": "status-badge",
+          "text": "IN REVIEW"
+        },
+        {
+          "type": "body-copy",
+          "text": "Our terms are being finalized with legal. They'll be published here before general availability."
+        },
+        {
+          "type": "document",
+          "text": "only landmark is main, no header/nav/footer/TOC"
+        }
+      ]
+    },
+    {
+      "name": "Privacy Policy",
+      "route": "/privacy",
+      "openedBy": "footer link 'Privacy Policy' on every auth page",
+      "headings": [
+        "Privacy Policy"
+      ],
+      "states": [
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "static placeholder with 'IN REVIEW' notice, no policy text"
+        },
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "static terminal placeholder page"
+        },
+        {
+          "name": "empty",
+          "reached": false,
+          "why": "static placeholder, no data-driven empty state"
+        },
+        {
+          "name": "error",
+          "reached": false,
+          "why": "no error condition observed"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Go back",
+          "region": "main-content",
+          "state": "enabled; not clicked"
+        },
+        {
+          "role": "link",
+          "name": "Go to dashboard",
+          "region": "main-content",
+          "href": "/dashboard",
+          "state": "enabled; not followed"
+        }
+      ],
+      "icons": [],
+      "messages": [],
+      "other": [
+        {
+          "type": "status-badge",
+          "text": "IN REVIEW"
+        },
+        {
+          "type": "body-copy",
+          "text": "We're documenting exactly what we store, where it lives, and how long we keep it. The full policy will be published here."
+        },
+        {
+          "type": "document",
+          "text": "first snapshot after navigation can be stale, wait for the h1"
+        }
+      ]
+    },
+    {
+      "name": "Signed-in session",
+      "route": "/dashboard",
+      "openedBy": "successful sign-in with DEV user 1",
+      "headings": [
+        "Welcome back, Naiemul"
+      ],
+      "states": [
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "landing page after valid sign-in; page title 'VelaCrew'"
+        },
+        {
+          "name": "role-gated:authenticated-user",
+          "reached": true,
+          "how": "signed in as DEV user 1: nav and top bar visible"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Account",
+          "region": "dashboard top bar",
+          "state": "enabled",
+          "opens": {
+            "type": "menu",
+            "items": [
+              {
+                "role": "menuitem",
+                "name": "Profile"
+              },
+              {
+                "role": "menuitem",
+                "name": "Help"
+              },
+              {
+                "role": "menuitem",
+                "name": "Share Feedback"
+              },
+              {
+                "role": "menuitem",
+                "name": "Privacy Policy"
+              },
+              {
+                "role": "menuitem",
+                "name": "Terms of Service"
+              },
+              {
+                "role": "menuitem",
+                "name": "Sign Out"
+              }
+            ]
+          }
+        },
+        {
+          "role": "menuitem",
+          "name": "Sign Out",
+          "region": "Account menu",
+          "state": "enabled; clears better-auth cookies and redirects to /auth/signin; /dashboard then redirects to /auth/signin?callbackUrl=%2Fdashboard"
+        }
+      ],
+      "icons": [],
+      "messages": [],
+      "other": [
+        {
+          "type": "cookies",
+          "text": "Remember me checked: __Secure-better-auth.session_token persistent 7 days. Unchecked: session_token, session_data.0 and .1 are session cookies and __Secure-better-auth.dont_remember is added. All httpOnly, secure, SameSite=Lax; localStorage empty"
+        },
+        {
+          "type": "guard",
+          "text": "no guest-only guard: /auth/signin, /auth/signup, /auth/forgot-password do not redirect an authenticated user"
+        },
+        {
+          "type": "out-of-module",
+          "text": "dashboard contents (Home, My work, Enable 2FA banner, top-bar Search/Notifications/Settings/Create) belong to the Dashboard module crawl, not auth"
+        }
+      ]
+    },
+    {
+      "name": "Reset password",
+      "route": "/auth/reset-password?token=<token>",
+      "openedBy": "emailed link /api/auth/reset-password/<token>?callbackURL=%2Fauth%2Freset-password (302 to the page); the page also renders with no token or ?error=INVALID_TOKEN",
+      "headings": [
+        "Choose a new password for your VelaCrew account."
+      ],
+      "states": [
+        {
+          "name": "empty",
+          "reached": true,
+          "how": "both fields empty, Reset password disabled"
+        },
+        {
+          "name": "disabled/invalid",
+          "reached": true,
+          "how": "Reset password disabled while either field is under 10 characters (native minlength)"
+        },
+        {
+          "name": "populated",
+          "reached": true,
+          "how": "both fields at least 10 characters enables the button even when the values differ"
+        },
+        {
+          "name": "error",
+          "reached": true,
+          "how": "mismatch shows Passwords don't match (client side); fake or used token shows Invalid token (400); no token or ?error=INVALID_TOKEN shows Missing reset token on submit"
+        },
+        {
+          "name": "loading",
+          "reached": true,
+          "how": "on submit the button has no accessible name and is disabled (about 1.5s)"
+        },
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "valid submit (200) redirects to /auth/signin?reset=1 after 3-5s"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [
+        {
+          "label": "New password (min. 10 characters)",
+          "type": "textbox",
+          "inputType": "password",
+          "id": "password",
+          "autocomplete": "new-password",
+          "required": true
+        },
+        {
+          "label": "Confirm password",
+          "type": "textbox",
+          "inputType": "password",
+          "id": "confirm",
+          "autocomplete": "new-password",
+          "required": true
+        }
+      ],
+      "actions": [
+        {
+          "role": "button",
+          "name": "Reset password",
+          "region": "form",
+          "state": "disabled until both fields are at least 10 characters"
+        },
+        {
+          "role": "button",
+          "name": "Show password",
+          "region": "inside the New password field",
+          "state": "enabled; toggles BOTH fields, then named Hide password"
+        },
+        {
+          "role": "link",
+          "name": "Back to sign-in",
+          "region": "below the form",
+          "href": "/auth/signin"
+        },
+        {
+          "role": "link",
+          "name": "VelaCrew home",
+          "region": "top, logo",
+          "href": "/"
+        },
+        {
+          "role": "link",
+          "name": "Terms of Service",
+          "region": "footer",
+          "href": "/terms"
+        },
+        {
+          "role": "link",
+          "name": "Privacy Policy",
+          "region": "footer",
+          "href": "/privacy"
+        }
+      ],
+      "icons": [
+        {
+          "name": "Show password / Hide password",
+          "type": "icon-button",
+          "region": "New password field"
+        }
+      ],
+      "messages": [
+        {
+          "role": "none",
+          "name": "Passwords don't match",
+          "kind": "inline-error",
+          "triggeredBy": "submit with differing values (no request sent)"
+        },
+        {
+          "role": "none",
+          "name": "Invalid token",
+          "kind": "inline-error",
+          "triggeredBy": "submit with a fake or used token (POST /api/auth/reset-password 400 INVALID_TOKEN)"
+        },
+        {
+          "role": "none",
+          "name": "Missing reset token - open the email link again.",
+          "kind": "inline-error",
+          "triggeredBy": "submit with no token or with ?error=INVALID_TOKEN (no request sent)"
+        }
+      ],
+      "other": [
+        {
+          "type": "note",
+          "text": "the page ignores ?error=INVALID_TOKEN and shows no up-front message; request POST /api/auth/reset-password body keys newPassword, token"
+        }
+      ]
+    },
+    {
+      "name": "Email verification link",
+      "route": "/api/auth/verify-email?token=<token>&callbackURL=%2F",
+      "openedBy": "emailed verification link (302 / then 307 /dashboard)",
+      "headings": [
+        "Welcome back, QA"
+      ],
+      "states": [
+        {
+          "name": "terminal",
+          "reached": true,
+          "how": "a valid link verifies the account, signs the user in and lands on /dashboard with no 'email verified' screen"
+        },
+        {
+          "name": "error",
+          "reached": true,
+          "how": "a used or fake token silently redirects to /auth/signin?callbackUrl=%2Fdashboard with no message; a missing token returns a raw API 400"
+        }
+      ],
+      "tabs": [],
+      "tables": [],
+      "fields": [],
+      "actions": [],
+      "icons": [],
+      "messages": [],
+      "other": [
+        {
+          "type": "note",
+          "text": "verification link expires after 1 hour; sets __Secure-better-auth.session_token and session_data cookies"
+        }
+      ]
+    }
+  ],
+  "messages": [
+    {
+      "role": "none",
+      "name": "Invalid email or password",
+      "kind": "inline-banner",
+      "triggeredBy": "Sign in with wrong credentials; plain div between subtitle and form, locate with getByText"
+    },
+    {
+      "role": "none",
+      "name": "Please include an '@' in the email address. 'not-an-email' is missing an '@'.",
+      "kind": "native-validation",
+      "triggeredBy": "Sign in with malformed email; Chrome validationMessage, not DOM"
+    },
+    {
+      "role": "none",
+      "name": "Email not verified",
+      "kind": "inline-error",
+      "triggeredBy": "Sign in with a registered but unverified account (403 EMAIL_NOT_VERIFIED); no resend control"
+    },
+    {
+      "role": "none",
+      "name": "Too many requests. Please try again later.",
+      "kind": "inline-error",
+      "triggeredBy": "Sign in rate limit (429)"
+    }
+  ],
+  "other": [
+    {
+      "type": "paragraph",
+      "text": "Sign in to continue your AI journey and see what's possible."
+    },
+    {
+      "type": "text",
+      "text": "New to VelaCrew?"
+    },
+    {
+      "type": "text",
+      "text": "or sign in with (divider)"
+    },
+    {
+      "type": "region",
+      "name": "Notifications alt+T",
+      "live": "polite",
+      "note": "empty toast container, no toast appears on any auth probe"
+    },
+    {
+      "type": "alert",
+      "live": "assertive",
+      "note": "empty Next.js route announcer, never the error locator"
+    },
+    {
+      "type": "marketing-panel",
+      "text": "decorative right panel, aria-hidden: Chat with agents, Automate workflows, Connect tools, Analyze data, Manage projects, Create anything; 'Join today and see how our AI is helping over 100k+ users explore, create, and chat.'"
+    }
+  ],
+  "verifiedAbsent": [
+    {
+      "surface": "modals",
+      "how": "no dialog or role=dialog on /auth/signin, /auth/signup, /auth/forgot-password, /auth/verify-email, /terms or /privacy across the a11y snapshots and isolated DOM probes of each route"
+    },
+    {
+      "surface": "tables",
+      "how": "no table or grid role in any a11y snapshot of the six auth routes"
+    },
+    {
+      "surface": "tabs",
+      "how": "no tablist in any a11y snapshot of the six auth routes"
+    },
+    {
+      "surface": "dropdowns",
+      "how": "no combobox, select or menu on any auth route; the only menu is the dashboard Account menu, recorded under Signed-in session"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-07",
+      "buildRef": "DEV https://dev.app.velaops.ai",
+      "changes": [
+        "Added real email flows: Reset password page, Email verification link, Email not verified and Too many requests messages",
+        "Removed the mocked duplicate-email banner 'User already exists. Use another email.': the real backend renders the verify email page and emails the owner instead"
+      ]
+    },
+    {
+      "date": "2026-10-07",
+      "buildRef": "DEV https://dev.app.velaops.ai",
+      "changes": [
+        "Initial baseline captured",
+        "Server-side states of signup and forgot-password reached by network mock (POST /api/auth/sign-up/email, POST /api/auth/request-password-reset); duplicate-email wording unconfirmed against the real backend",
+        "Google and Microsoft OAuth buttons recorded but not clicked (outward-facing)"
+      ]
+    }
+  ]
+}
