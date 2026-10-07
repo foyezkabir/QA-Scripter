@@ -1,0 +1,124 @@
+{
+  "module": "Admin Login",
+  "route": "/admin/login",
+  "createdAt": "2026-10-07",
+  "updatedAt": "2026-10-07",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Admin sign-in"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "empty",
+      "reached": true,
+      "how": "fresh load: both fields empty, Sign in disabled"
+    },
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "both fields typed: Sign in enabled, even for a malformed email"
+    },
+    {
+      "name": "disabled/invalid",
+      "reached": true,
+      "how": "Sign in disabled while either field is empty"
+    },
+    {
+      "name": "loading",
+      "reached": true,
+      "how": "after submit both textboxes disabled and button reads 'Signing in…' disabled"
+    },
+    {
+      "name": "error",
+      "reached": true,
+      "how": "wrong token (401) shows plain-text 'Invalid admin token.' with no ARIA role"
+    },
+    {
+      "name": "terminal",
+      "reached": true,
+      "how": "valid allowlisted email + token lands on /admin"
+    },
+    {
+      "name": "role-gated:unauthenticated",
+      "reached": true,
+      "how": "logged-out deep links /admin/users, /admin/agents, /dashboard redirect to /admin/login, query not preserved"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "signed in: Admin account menu lists the signed-in email (disabled), Appearance, Sign out; Sign out returns to /admin/login"
+    }
+  ],
+  "tables": [],
+  "fields": [
+    {
+      "label": "Admin email",
+      "type": "textbox",
+      "inputType": "email",
+      "id": "admin-email",
+      "placeholder": "Admin Email",
+      "required": true
+    },
+    {
+      "label": "Admin token",
+      "type": "textbox",
+      "inputType": "password",
+      "id": "admin-token",
+      "placeholder": "Admin Token",
+      "autocomplete": "off",
+      "required": true
+    }
+  ],
+  "actions": [
+    {
+      "role": "button",
+      "name": "Sign in",
+      "region": "form",
+      "state": "disabled until both fields are non-empty"
+    },
+    {
+      "role": "button",
+      "name": "Admin account",
+      "region": "sidebar footer, signed in",
+      "state": "opens the account menu"
+    }
+  ],
+  "icons": [],
+  "messages": [
+    {
+      "kind": "error",
+      "text": "Invalid admin token.",
+      "role": "none (plain text)"
+    }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    {
+      "trigger": "Admin account",
+      "opens": {
+        "items": [
+          "signed-in email (disabled)",
+          "Appearance (Light Mode)",
+          "Sign out"
+        ]
+      }
+    }
+  ],
+  "findings": [
+    "Admin token is kept in sessionStorage and the verify call is cross-origin to the user-app host",
+    "Signed-in visit to /admin/login is not redirected",
+    "Sign in enables with a malformed email; error text has no ARIA role"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "single-step form; submit, error and sign-out all happen inline with no dialog (crawled signed out and signed in)" },
+    { "surface": "views", "how": "standalone sign-in form; the only other surface is the Admin account menu, captured under menus" }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-07",
+      "note": "Initial capture. No forgot-password, remember-me, social login or footer links exist on this page (verified absent)."
+    }
+  ]
+}
