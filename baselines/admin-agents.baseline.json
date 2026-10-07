@@ -1,0 +1,377 @@
+{
+  "module": "Admin Agents",
+  "route": "/admin/agents",
+  "createdAt": "2026-10-07",
+  "updatedAt": "2026-10-07",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Agents",
+    "Total Agents",
+    "Running",
+    "Stopped",
+    "Error",
+    "All Agents"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "24+ agent rows with stat cards, live polling text and per-row Actions menu"
+    },
+    {
+      "name": "empty",
+      "reached": true,
+      "how": "a nonsense search shows 'No agents match these filters' with a Clear filters button; the Error filter showed the same empty state when no agent was in error"
+    },
+    {
+      "name": "loading",
+      "reached": true,
+      "how": "View logs dialog shows 'Fetching logs…' with Refresh and Load more disabled; detail dialog Storage shows 'Loading usage…'"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "Agents list error state needs a backend failure; not forced on shared Dev"
+    },
+    {
+      "name": "disabled",
+      "reached": true,
+      "how": "Reset to default is disabled while the quota is the inherited default; Refresh disabled while logs load"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "page is reachable only with the admin session; logged out it redirects to /admin/login"
+    },
+    {
+      "name": "terminal",
+      "reached": false,
+      "why": "Delete, Reprovision and Deploy are terminal and state-changing; only the dialogs and menu are opened"
+    }
+  ],
+  "tables": [
+    {
+      "name": "All Agents",
+      "columns": [
+        "Agent",
+        "Owner",
+        "Status",
+        "Activity",
+        "Integrations",
+        "Created",
+        "Actions"
+      ],
+      "rowActions": [
+        "Actions for <agent name>"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "label": "Search agents by name, role or owner",
+      "type": "searchbox",
+      "placeholder": "Search agents...",
+      "urlParam": "q"
+    },
+    {
+      "label": "Filter logs…",
+      "type": "textbox",
+      "region": "View logs dialog"
+    },
+    {
+      "label": "Quota (GB)",
+      "type": "spinbutton",
+      "region": "Storage quota dialog",
+      "min": 0.1
+    }
+  ],
+  "actions": [
+    {
+      "role": "button",
+      "name": "All",
+      "region": "status filter",
+      "state": "pressed by default"
+    },
+    {
+      "role": "button",
+      "name": "Running",
+      "region": "status filter",
+      "state": "sets ?status=running"
+    },
+    {
+      "role": "button",
+      "name": "Stopped",
+      "region": "status filter",
+      "state": "sets ?status=stopped"
+    },
+    {
+      "role": "button",
+      "name": "Error",
+      "region": "status filter",
+      "state": "sets ?status=error"
+    },
+    {
+      "role": "button",
+      "name": "Clear filters",
+      "region": "empty state"
+    },
+    {
+      "role": "button (row menu)",
+      "name": "Actions for <agent name>",
+      "region": "row, opens menu",
+      "opens": {
+        "items": [
+          "View details",
+          "Deploy",
+          "Stop",
+          "Start",
+          "View logs",
+          "Download bundle",
+          "Storage quota",
+          "Reprovision",
+          "Delete"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Refresh",
+      "region": "View logs dialog",
+      "state": "disabled while loading"
+    },
+    {
+      "role": "button",
+      "name": "Close",
+      "region": "every dialog"
+    },
+    {
+      "role": "button",
+      "name": "Cancel",
+      "region": "Storage quota dialog"
+    },
+    {
+      "role": "button",
+      "name": "Save quota",
+      "region": "Storage quota dialog",
+      "state": "NOT clicked on the shared data; only on asta"
+    },
+    {
+      "role": "button",
+      "name": "Reset to default",
+      "region": "Storage quota dialog",
+      "state": "disabled while default"
+    },
+    {
+      "role": "button",
+      "name": "Regex toggle (.*)",
+      "region": "View logs dialog, regex toggle",
+      "state": "accessible name is \".*\""
+    },
+    {
+      "role": "button",
+      "name": "Match case toggle (Aa)",
+      "region": "View logs dialog, match case",
+      "state": "accessible name is \"Aa\""
+    },
+    {
+      "role": "button",
+      "name": "All",
+      "region": "View logs dialog, level"
+    },
+    {
+      "role": "button",
+      "name": "Hide noise",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Warn + errors",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Group by run",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Toggle line wrap",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Toggle auto-scroll",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Copy filtered lines",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Download all lines",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Clear logs",
+      "region": "View logs dialog",
+      "state": "live tail keeps appending new lines"
+    },
+    {
+      "role": "button",
+      "name": "Live",
+      "region": "View logs dialog"
+    },
+    {
+      "role": "button",
+      "name": "Load more (+150)",
+      "region": "View logs dialog",
+      "state": "disabled while loading"
+    }
+  ],
+  "icons": [
+    {
+      "name": "Agents created per day over the last 7 days",
+      "type": "sparkline image",
+      "region": "Total Agents card"
+    },
+    {
+      "name": "Deploy and start events per day",
+      "type": "sparkline image",
+      "region": "Running card"
+    },
+    {
+      "name": "Stop events per day",
+      "type": "sparkline image",
+      "region": "Stopped card"
+    },
+    {
+      "name": "Failed, denied or blocked events per day",
+      "type": "sparkline image",
+      "region": "Error card"
+    }
+  ],
+  "messages": [
+    {
+      "kind": "info",
+      "text": "Live · polling every 15s",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "activity covers the last 1 day, not 7 - the audit feed caps at 500 events",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No agents match these filters",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "Try a different search term, or widen the status filter.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "loading",
+      "text": "Fetching logs…",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "loading",
+      "text": "Loading usage…",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No container found for this agent.",
+      "role": "none (plain text)",
+      "note": "seen on an agent without a container"
+    }
+  ],
+  "modals": [
+    {
+      "name": "Agent detail",
+      "trigger": "View details",
+      "fields": [
+        "Agent ID",
+        "Owner",
+        "Agent email",
+        "Public URL",
+        "Container",
+        "Image",
+        "Channels",
+        "Skills",
+        "Tasks",
+        "Sub-agents",
+        "Created",
+        "Updated"
+      ],
+      "heading": "Storage",
+      "actions": [
+        "Close"
+      ]
+    },
+    {
+      "name": "Container logs",
+      "trigger": "View logs",
+      "actions": [
+        "Refresh",
+        "Close",
+        "Load more (+150)"
+      ]
+    },
+    {
+      "name": "Storage quota",
+      "trigger": "Storage quota",
+      "actions": [
+        "Close",
+        "Cancel",
+        "Save quota",
+        "Reset to default"
+      ]
+    }
+  ],
+  "views": [],
+  "menus": [
+    {
+      "trigger": "Actions for <agent name>",
+      "opens": {
+        "items": [
+          "View details",
+          "Deploy",
+          "Stop",
+          "Start",
+          "View logs",
+          "Download bundle",
+          "Storage quota",
+          "Reprovision",
+          "Delete"
+        ]
+      }
+    }
+  ],
+  "findings": [
+    "Row menu has no create-agent entry anywhere on the page",
+    "Delete, Deploy, Stop and Reprovision run with a single click path; confirm behaviour is untested on shared agents"
+  ],
+  "verifiedAbsent": [
+    {
+      "surface": "views",
+      "how": "no row opens a detail route; View details is a dialog with no URL change"
+    },
+    {
+      "surface": "pagination",
+      "how": "all rows render on one page, no pager (crawled 25 agents)"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-07",
+      "note": "Initial capture from the live Dev admin. Start appears in the row menu only for stopped or draft agents; Stop only for running ones."
+    }
+  ]
+}
