@@ -1,0 +1,42 @@
+import { test as base } from '@playwright/test';
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
+import { LegalPage } from '../pages/LegalPage';
+import { ResetPasswordPage } from '../pages/ResetPasswordPage';
+import { SessionPage } from '../pages/SessionPage';
+import { SignInPage } from '../pages/SignInPage';
+import { SignUpPage } from '../pages/SignUpPage';
+import { VerifyEmailPage } from '../pages/VerifyEmailPage';
+
+export const test = base.extend<{
+  signInPage: SignInPage;
+  signUpPage: SignUpPage;
+  forgotPasswordPage: ForgotPasswordPage;
+  verifyEmailPage: VerifyEmailPage;
+  legalPage: LegalPage;
+  sessionPage: SessionPage;
+  resetPasswordPage: ResetPasswordPage;
+}>({
+  signInPage: async ({ page }, use) => {
+    await use(new SignInPage(page));
+  },
+  signUpPage: async ({ page }, use) => {
+    await use(new SignUpPage(page));
+  },
+  forgotPasswordPage: async ({ page }, use) => {
+    await use(new ForgotPasswordPage(page));
+  },
+  verifyEmailPage: async ({ page }, use) => {
+    await use(new VerifyEmailPage(page));
+  },
+  legalPage: async ({ page }, use) => {
+    await use(new LegalPage(page));
+  },
+  sessionPage: async ({ page }, use) => {
+    await use(new SessionPage(page));
+  },
+  resetPasswordPage: async ({ page }, use) => {
+    await use(new ResetPasswordPage(page));
+  },
+});
+
+export { expect } from '@playwright/test';
