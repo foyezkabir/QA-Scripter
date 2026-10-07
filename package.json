@@ -1,0 +1,25 @@
+{
+  "name": "velacrew",
+  "version": "1.0.0",
+  "description": "A Playwright end-to-end test-automation project built around the **`qa-scripter`** agent. It turns a **Jira ticket**, **Figma design**, **Gherkin scenario**, **pasted requirement**, or the **live UI** into maintainable Playwright tests using a **Strict Decoupled Page Object Model**.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.4",
+    "dotenv": "^18.0.6",
+    "eslint": "^10.12.0",
+    "playwright-smart-reporter": "^2.2.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1"
+  }
+}

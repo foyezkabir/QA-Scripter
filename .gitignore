@@ -22,3 +22,7 @@ claude-code-extensibility-reference.txt
 
 # Playwright MCP scratch output
 .playwright-mcp/
+
+# smart-reporter artifacts
+traces/
+tests/test-history.json
