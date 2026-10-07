@@ -23,6 +23,7 @@ Session note: the admin session is the `velaops-admin` cookie plus sessionStorag
 | Admin sign-in | role-gated:unauthenticated | opening /admin/users logged out redirects to /admin/login without the query | TC-09 | @critical |
 | Admin account menu | role-gated:authenticated | Admin account menu lists the signed-in email (disabled), Appearance and Sign out | TC-10 | @regression |
 | Admin account menu | terminal | Sign out returns to /admin/login and /admin then redirects back to /admin/login | TC-11 | @critical |
+| Admin session | role-gated:authenticated | the saved cookie + sessionStorage session (adminSession fixture) opens /admin signed in, with no sign-in form | TC-12 | @critical |
 
 ## Out of scope (recorded, not tested)
 

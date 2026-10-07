@@ -68,3 +68,8 @@ test('TC-11: Verify that Sign out returns to sign-in and protects the admin dash
   await adminLoginPage.openPath('/admin');
   await adminLoginPage.expectRedirectedToLoginWithoutQuery();
 });
+
+test('TC-12: Verify that the saved admin session opens the dashboard without the sign-in form', { tag: ['@critical'] }, async ({ adminSession, adminLoginPage }) => {
+  await adminLoginPage.openPath('/admin');
+  await adminLoginPage.expectSignedIn();
+});
