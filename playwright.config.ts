@@ -31,6 +31,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium', testIgnore: /-state\.spec\.ts/, use: { ...devices['Desktop Chrome'] } },
+    // these change the state of the user's own agent, so they run after everything that reads it
+    { name: 'chromium-state', testMatch: /-state\.spec\.ts/, dependencies: ['chromium'], use: { ...devices['Desktop Chrome'] } },
   ],
 });

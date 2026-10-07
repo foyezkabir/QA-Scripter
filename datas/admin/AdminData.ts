@@ -44,3 +44,5 @@ export const AGENT_DETAIL_LABELS = [
 ] as const;
 
 export const noSuchAgent = (): string => DataHelper.unique('NoSuchAgent');
+
+export const QUOTA_OVERRIDE_GB = '0.6';

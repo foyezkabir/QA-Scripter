@@ -38,6 +38,11 @@ export class AdminAgentsLocators {
     return this.agentsTable.getByRole('row').filter({ hasText: agentName });
   }
 
+  statusOf(agentName: string, status: string): Locator {
+    // a running row shares its status cell with the public URL, so an exact text match misses it
+    return this.agentRow(agentName).getByText(status);
+  }
+
   actionsButton(agentName: string): Locator {
     return this.page.getByRole('button', { name: `Actions for ${agentName}` });
   }
@@ -45,7 +50,8 @@ export class AdminAgentsLocators {
   rowMenu = this.page.getByRole('menu');
   viewDetailsItem = this.rowMenu.getByRole('menuitem', { name: 'View details' });
   deployItem = this.rowMenu.getByRole('menuitem', { name: 'Deploy' });
-  stopItem = this.rowMenu.getByRole('menuitem', { name: 'Stop' });
+  stopItem = this.rowMenu.getByRole('menuitem', { name: 'Stop', exact: true });
+  startItem = this.rowMenu.getByRole('menuitem', { name: 'Start', exact: true });
   viewLogsItem = this.rowMenu.getByRole('menuitem', { name: 'View logs' });
   downloadBundleItem = this.rowMenu.getByRole('menuitem', { name: 'Download bundle' });
   storageQuotaItem = this.rowMenu.getByRole('menuitem', { name: 'Storage quota' });
@@ -100,5 +106,6 @@ export class AdminAgentsLocators {
   quotaResetButton = this.quotaDialog.getByRole('button', { name: 'Reset to default' });
   quotaCancelButton = this.quotaDialog.getByRole('button', { name: 'Cancel' });
   quotaSaveButton = this.quotaDialog.getByRole('button', { name: 'Save quota' });
+  quotaOverriddenNote = this.quotaDialog.getByText('Currently overridden - agent owner sees this cap, not the platform default.');
   quotaCloseButton = this.quotaDialog.getByRole('button', { name: 'Close', exact: true });
 }

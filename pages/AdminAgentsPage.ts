@@ -24,6 +24,10 @@ export class AdminAgentsPage {
     await this.locators.clearFiltersButton.click();
   }
 
+  async clickAllFilter() {
+    await this.locators.allFilter.click();
+  }
+
   async clickRunningFilter() {
     await this.locators.runningFilter.click();
   }
@@ -65,6 +69,43 @@ export class AdminAgentsPage {
 
   async cancelStorageQuota() {
     await this.locators.quotaCancelButton.click();
+  }
+
+  async stopAgent(agentName: string) {
+    await this.openRowMenu(agentName);
+    await this.locators.stopItem.click();
+  }
+
+  async startAgent(agentName: string) {
+    await this.openRowMenu(agentName);
+    await this.locators.startItem.click();
+  }
+
+  async saveStorageQuota(gigabytes: string) {
+    await this.locators.quotaInput.fill(gigabytes);
+    await this.locators.quotaSaveButton.click();
+  }
+
+  async resetStorageQuotaToDefault() {
+    await this.locators.quotaResetButton.click();
+  }
+
+  async restoreAgentState(agentName: string) {
+    await this.open();
+    await this.search(agentName);
+    await this.openRowMenu(agentName);
+    if (await this.locators.startItem.isVisible()) {
+      await this.locators.startItem.click();
+      await this.locators.statusOf(agentName, 'Running').waitFor({ timeout: 45_000 });
+    } else {
+      await this.page.keyboard.press('Escape');
+    }
+    await this.openStorageQuotaFor(agentName);
+    if (await this.locators.quotaResetButton.isEnabled()) {
+      await this.locators.quotaResetButton.click();
+    } else {
+      await this.locators.quotaCancelButton.click();
+    }
   }
 
   async expectPageIsOpen() {
@@ -194,5 +235,44 @@ export class AdminAgentsPage {
 
   async expectStorageQuotaDialogIsClosed() {
     await expect(this.locators.quotaDialog).toBeHidden();
+  }
+
+  async expectAgentIsStopped(agentName: string) {
+    // the list only learns the new status on its next 15s poll
+    await expect(this.locators.statusOf(agentName, 'Stopped')).toBeVisible({ timeout: 45_000 });
+  }
+
+  async expectAgentIsRunning(agentName: string) {
+    await expect(this.locators.statusOf(agentName, 'Running')).toBeVisible({ timeout: 45_000 });
+  }
+
+  async expectStoppedAgentMenuOffersStartInsteadOfStop() {
+    await expect(this.locators.startItem).toBeVisible();
+    await expect(this.locators.stopItem).toBeHidden();
+  }
+
+  async expectAgentIsListedUnderStoppedFilter(agentName: string) {
+    await expect(this.locators.agentRow(agentName)).toBeVisible();
+    await expect(this.locators.statusOf(agentName, 'Stopped')).toBeVisible();
+  }
+
+  async expectStorageQuotaIsOverridden(gigabytes: string) {
+    await expect(this.locators.quotaInput).toHaveValue(gigabytes);
+    await expect(this.locators.quotaOverriddenNote).toBeVisible();
+    await expect(this.locators.quotaResetButton).toBeEnabled();
+  }
+
+  async expectStorageQuotaIsInheritedDefaultOnReopen(agentName: string) {
+    // the dialog is filled from the list, which only refreshes on its 15s poll after a reset
+    await expect(async () => {
+      await this.openStorageQuotaFor(agentName);
+      try {
+        await expect(this.locators.quotaOverriddenNote).toBeHidden({ timeout: 2_000 });
+        await expect(this.locators.quotaResetButton).toBeDisabled({ timeout: 2_000 });
+      } catch (stale) {
+        await this.locators.quotaCancelButton.click();
+        throw stale;
+      }
+    }).toPass({ timeout: 50_000 });
   }
 }
