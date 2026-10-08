@@ -1,7 +1,9 @@
 import { test as base } from '@playwright/test';
 import { AdminAgentsPage } from '../pages/AdminAgentsPage';
 import { AdminAiPlatformPage } from '../pages/AdminAiPlatformPage';
+import { AdminAuditLogPage } from '../pages/AdminAuditLogPage';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { AdminFeedbackPage } from '../pages/AdminFeedbackPage';
 import { AdminLoginPage } from '../pages/AdminLoginPage';
 import { AdminUsagePage } from '../pages/AdminUsagePage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
@@ -27,7 +29,15 @@ export const test = base.extend<{
   adminUsagePage: AdminUsagePage;
   adminAiPlatformPage: AdminAiPlatformPage;
   adminUsersPage: AdminUsersPage;
+  adminAuditLogPage: AdminAuditLogPage;
+  adminFeedbackPage: AdminFeedbackPage;
 }>({
+  adminFeedbackPage: async ({ page }, use) => {
+    await use(new AdminFeedbackPage(page));
+  },
+  adminAuditLogPage: async ({ page }, use) => {
+    await use(new AdminAuditLogPage(page));
+  },
   adminUsersPage: async ({ page }, use) => {
     await use(new AdminUsersPage(page));
   },
