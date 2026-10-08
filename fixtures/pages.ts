@@ -13,6 +13,7 @@ import { ResetPasswordPage } from '../pages/ResetPasswordPage';
 import { SessionPage } from '../pages/SessionPage';
 import { SignInPage } from '../pages/SignInPage';
 import { SignUpPage } from '../pages/SignUpPage';
+import { UserChatPage } from '../pages/UserChatPage';
 import { UserHomePage } from '../pages/UserHomePage';
 import { UserShellPage } from '../pages/UserShellPage';
 import { VerifyEmailPage } from '../pages/VerifyEmailPage';
@@ -35,7 +36,11 @@ export const test = base.extend<{
   adminFeedbackPage: AdminFeedbackPage;
   userHomePage: UserHomePage;
   userShellPage: UserShellPage;
+  userChatPage: UserChatPage;
 }>({
+  userChatPage: async ({ page }, use) => {
+    await use(new UserChatPage(page));
+  },
   userShellPage: async ({ page }, use) => {
     await use(new UserShellPage(page));
   },
