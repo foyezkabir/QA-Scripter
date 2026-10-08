@@ -1,0 +1,138 @@
+{
+  "module": "User Tasks",
+  "route": "/chat/<assistant id>/tasks",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Tasks",
+    "No tasks yet",
+    "Create Task",
+    "Creating the task",
+    "Each time it ran",
+    "Full log",
+    "What it's told to do",
+    "Changes to this task",
+    "Delete this task?"
+  ],
+  "tabs": [
+    { "name": "All", "region": "Filter tasks by health, with a count" },
+    { "name": "Needs you", "region": "Filter tasks by health, with a count" },
+    { "name": "Running", "region": "Filter tasks by health, with a count" },
+    { "name": "Healthy", "region": "Filter tasks by health, with a count" },
+    { "name": "Off", "region": "Filter tasks by health, with a count" },
+    { "name": "Overview", "region": "task sheet" },
+    { "name": "Runs", "region": "task sheet" },
+    { "name": "Settings", "region": "task sheet" }
+  ],
+  "states": [
+    { "name": "empty", "reached": true, "how": "with no tasks the page shows 'No tasks yet', 'Tasks run on a schedule so your agent can work even when you're not around.' and Create your first task" },
+    { "name": "populated", "reached": true, "how": "a created task shows the summary strip, the health tabs, a search box, Sort and a task row" },
+    { "name": "task-status:off", "reached": true, "how": "a task saved with Enabled off appears under the Off tab with the summary '1 turned off' and Next run 'nothing scheduled'" },
+    { "name": "task-status:enabled", "reached": true, "how": "the row's Enable switch turns on: its label becomes Disable and the row shows a countdown to the next run" },
+    { "name": "filtered-empty", "reached": true, "how": "a search with no match shows 'No task matches “<query>”.' and '1 hidden by these filters'" },
+    { "name": "tab-filter-empty", "reached": true, "how": "the Needs you, Running and Healthy tabs show 'No task is in that state.' and Show all tasks" },
+    { "name": "disabled", "reached": true, "how": "Save in Create Task is disabled until Task Name, What it's for, How it should work and Channel are filled; Discard changes and Save changes are disabled until a setting changes; Send is disabled while the task chat box is empty" },
+    { "name": "loading", "reached": true, "how": "the task sheet briefly shows 'Reading the task's journey…' on open" },
+    { "name": "dirty-form", "reached": true, "how": "changing a setting enables Discard changes and Save changes" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page" },
+    { "name": "task-status:needs-you", "reached": false, "why": "needs a failed run; Run now sends to the channel and spends the assistant's budget, so no task is run" },
+    { "name": "task-status:running", "reached": false, "why": "needs a run in progress; no task is run" },
+    { "name": "task-status:healthy", "reached": false, "why": "needs a completed run; no task is run" },
+    { "name": "error", "reached": false, "why": "the form cannot be submitted invalid because Save stays disabled; 'This task could not be loaded.' appeared once while a sheet closed and could not be reproduced" },
+    { "name": "terminal", "reached": false, "why": "completed or expired task states need a run" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search tasks", "type": "searchbox", "region": "toolbar", "state": "no match shows 'No task matches “<query>”.'" },
+    { "label": "Task Name", "type": "textbox", "region": "Create Task and Settings tab", "state": "required; hint 'Name it after what it does, so it's easy to spot in your list.'" },
+    { "label": "What it's for", "type": "textbox", "region": "Create Task and Settings tab", "state": "required, multiline; hint 'Tell us the outcome you want and what you'll get and when.'" },
+    { "label": "Schedule", "type": "combobox", "region": "Create Task and Settings tab", "opens": { "items": ["Every morning at 9am", "Every hour", "Every weekday at 9am", "Every Monday at 9am", "Every day at noon", "Every evening at 6pm", "Every 30 minutes", "Custom…"] }, "state": "native select" },
+    { "label": "How it should work", "type": "textbox", "region": "Create Task and Settings tab", "state": "required, multiline; focusing the empty box fills a Goal / Context / Steps / Output template" },
+    { "label": "Model", "type": "combobox", "region": "Create Task and Settings tab", "opens": { "items": ["Default (agent's model)", "Primary", "Coder", "Fast", "DeepSeek V4.1 Flash", "DeepSeek V4 Pro", "GPT-5.6 Sol", "GPT-5.6 Terra", "GPT-5.6 Luna"] }, "state": "native select" },
+    { "label": "Channel", "type": "combobox", "region": "Create Task and Settings tab", "opens": { "items": ["Select a channel…", "Telegram", "Slack"] }, "state": "required; native select" },
+    { "label": "Enabled", "type": "switch", "region": "Create Task and Settings tab", "state": "on by default in Create Task; no accessible name" },
+    { "label": "Send it to", "type": "combobox", "region": "Settings tab", "opens": { "items": ["Wherever your assistant usually replies", "You (direct message)"] } },
+    { "label": "How long may it take?", "type": "combobox", "region": "Settings tab", "opens": { "items": ["5 minutes", "15 minutes", "30 minutes", "1 hour"] } },
+    { "label": "Tell me when a run is taking a while", "type": "switch", "region": "Settings tab", "state": "off by default" },
+    { "label": "Ask about <task name>", "type": "textbox", "region": "task sheet footer", "state": "NOT typed into: sending asks the assistant" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Create Task", "region": "header", "opens": { "items": ["Create Task"] } },
+    { "role": "button", "name": "Create your first task", "region": "empty state", "opens": { "items": ["Create Task"] } },
+    { "role": "button", "name": "Close", "region": "Create Task and the task sheet" },
+    { "role": "button", "name": "Cancel", "region": "Create Task", "state": "closes without creating" },
+    { "role": "button", "name": "Save", "region": "Create Task", "state": "disabled until the required fields are filled" },
+    { "role": "button", "name": "Show all tasks", "region": "empty filter state" },
+    { "role": "button", "name": "Sort: Recent", "region": "toolbar", "opens": { "items": ["Recent", "Oldest", "Name (A–Z)"] } },
+    { "role": "button", "name": "Open <task name>", "region": "task row", "opens": { "items": ["Overview", "Runs", "Settings"] } },
+    { "role": "switch", "name": "Enable", "region": "task row", "state": "becomes Disable when on; takes effect at once with no confirmation or toast" },
+    { "role": "button", "name": "Delete", "region": "task row", "opens": { "items": ["Delete this task?"] } },
+    { "role": "button", "name": "Keep it", "region": "Delete this task? dialog" },
+    { "role": "button", "name": "Yes, delete", "region": "Delete this task? dialog" },
+    { "role": "button", "name": "Custom…", "region": "Create Task, Schedule choice", "state": "shows the Custom schedule picker" },
+    { "role": "button", "name": "Advanced cron", "region": "Custom schedule picker", "state": "swaps to ADVANCED CRON" },
+    { "role": "button", "name": "Back to picker", "region": "Advanced cron" },
+    { "role": "button", "name": "Run now", "region": "task sheet, Overview tab", "state": "runs the task now; NOT pressed: it sends to the channel and spends the assistant's budget" },
+    { "role": "button", "name": "Discard changes", "region": "task sheet, Settings tab", "state": "disabled until a setting changes" },
+    { "role": "button", "name": "Save changes", "region": "task sheet, Settings tab", "state": "disabled until a setting changes" },
+    { "role": "button", "name": "Failed", "region": "task sheet, Each time it ran filter", "state": "All, Failed, Skipped and Not sent" },
+    { "role": "button", "name": "Creation", "region": "task sheet, Full log filter", "state": "Everything, Creation and Runs" },
+    { "role": "button", "name": "Show raw detail", "region": "task sheet, Runs tab", "state": "expandable; NOT clicked" },
+    { "role": "button", "name": "Always include a summary and a total", "region": "task sheet footer, Try saying", "state": "sends to the assistant; NOT clicked" },
+    { "role": "button", "name": "Move it to 7am", "region": "task sheet footer, Try saying", "state": "sends to the assistant; NOT clicked" },
+    { "role": "button", "name": "Send it somewhere else", "region": "task sheet footer, Try saying", "state": "sends to the assistant; NOT clicked" },
+    { "role": "button", "name": "Tell me when a run takes a while", "region": "task sheet footer, Try saying", "state": "sends to the assistant; NOT clicked" },
+    { "role": "button", "name": "Send", "region": "task sheet footer", "state": "disabled while the box is empty" },
+    { "role": "link", "name": "Tasks", "region": "Agent sections", "href": "/chat/<id>/tasks" },
+    { "role": "button", "name": "Back", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "New Chat", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Switch agent", "region": "sidebar footer", "state": "shell control" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Set up jobs your assistant runs on a schedule so the routine stuff happens without you lifting a finger", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Tasks run on a schedule so your agent can work even when you're not around.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No task matches “<query>”.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No task is in that state.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Set it up once and let your assistant handle it for you.", "role": "none (plain text)" },
+    { "kind": "info", "text": "This will permanently remove this task and everything it's tracking.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "This task hasn't run yet. Its first fire will appear here.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Nothing needs your attention on this task.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Times are in Asia/Dhaka, your assistant's timezone.", "role": "none (plain text)" },
+    { "kind": "hint", "text": "One short message after two minutes, so a long task doesn't look broken. Off by default - it's an extra message on your channel every time.", "role": "none (plain text)" },
+    { "kind": "absence", "text": "no toast, status or alert appears after Save, Save changes, the Enable switch or Yes, delete", "role": "status and alert regions stay empty" }
+  ],
+  "modals": [
+    { "name": "Create Task", "trigger": "Create Task", "actions": ["Close", "Cancel", "Save"] },
+    { "name": "Delete this task?", "trigger": "Delete", "actions": ["Keep it", "Yes, delete"] }
+  ],
+  "views": [
+    {
+      "name": "Task sheet",
+      "route": "/chat/<assistant id>/tasks (opens over the list; no task id in the URL)",
+      "states": [
+        { "name": "populated", "reached": true, "how": "a created task opens on the Runs tab after Save and on Overview from its row" },
+        { "name": "loading", "reached": true, "how": "'Reading the task's journey…' shows briefly" },
+        { "name": "empty", "reached": true, "how": "Runs tab of a task that never ran: '0 runs' and \"This task hasn't run yet. Its first fire will appear here.\"" },
+        { "name": "dirty-form", "reached": true, "how": "changing a setting enables Discard changes and Save changes" },
+        { "name": "run-history", "reached": false, "why": "needs the task to run; no task is run" }
+      ]
+    }
+  ],
+  "menus": [
+    { "trigger": "Sort: Recent", "opens": { "items": ["Recent", "Oldest", "Name (A–Z)"] } }
+  ],
+  "findings": [
+    "no toast or confirmation is shown after creating, saving, enabling or deleting a task",
+    "the Enabled switch in Create Task and the row's Enable switch have no consistent accessible name"
+  ],
+  "verifiedAbsent": [
+    { "surface": "toast", "how": "after Save, Save changes, the Enable switch and Yes, delete the polite status region and the assertive alert region stayed empty" },
+    { "surface": "row-menu", "how": "a task row has no menu; Delete and the Enable switch sit on the row and the rest is in the task sheet" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1 on Asta with full access: a QA-AUTO task was created disabled, opened, switched on and off for a few seconds and deleted through the UI. Run now and the Try saying suggestions are never used because they send to Telegram or the assistant and spend its budget. Tasks made by tests are QA-AUTO tasks, always saved with Enabled off, and are deleted through the UI." }
+  ]
+}

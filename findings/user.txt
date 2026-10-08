@@ -54,3 +54,26 @@ Actual result: Board (0) with "9 tasks hidden by This round".
 Expected result: a count that matches the tasks on the project, or a label that says it counts only the current round.
 Confidence: low (may be intended: the count may mean tasks in the running round)
 
+Title: /chat/<id>/tasks: no toast or confirmation after creating, saving, enabling or deleting a task
+Type: UI
+Module: user-tasks
+Description: Create Task Save, Save changes, the row Enable switch and Yes, delete all take effect silently; the polite status region and the assertive alert region stay empty. The Enable switch changes a task's schedule state at once with no confirmation.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Tasks section.
+  2. Create a task, switch its Enable switch, rename it in Settings and delete it.
+  3. Watch the notifications region after each step.
+Actual result: no toast, status or alert text for any of the four actions.
+Expected result: a visible, announced confirmation (and an error message if an action fails).
+Confidence: medium (observed with a MutationObserver and in the accessibility tree)
+
+Title: /chat/<id>/tasks: closing a task sheet right after Save changes can show "This task could not be loaded."
+Type: functional
+Module: user-tasks
+Description: Once, while the task sheet closed after Save changes, the text "This task could not be loaded." appeared inside the sheet; it could not be reproduced on demand.
+Steps to reproduce:
+  1. Open a task, change a setting in the Settings tab and choose Save changes.
+  2. Close the sheet immediately.
+Actual result: the message appeared once inside the closing sheet; the task was saved.
+Expected result: no error message after a successful save.
+Confidence: low (seen once during the crawl, not reproduced)
+
