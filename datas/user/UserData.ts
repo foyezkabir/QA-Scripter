@@ -60,3 +60,41 @@ export const CREATE_PROJECT_EDITOR_BUTTONS = ['Bold', 'Italic', 'Code', 'Bullet 
 export const NO_MATCH_SEARCH = 'zzqq-no-such-project';
 
 export const newProjectName = () => DataHelper.unique('Project');
+
+export const OWN_PROJECT = { id: '505aa081-1c30-452b-b746-3821054745d1', name: 'Pilot Release QA - Oct 2026' } as const;
+
+export const PROJECT_TABS = ['Overview', 'Board', 'Progress', 'Risks', 'Digest', 'People', 'Budget'] as const;
+
+export const PROJECT_SUBTITLES = {
+  Overview: 'Where this project stands',
+  Board: 'Every task by stage',
+  Progress: 'Pace and rounds',
+  Risks: 'What might slip and why',
+  Digest: 'Written summaries for the team',
+  People: 'Who is doing what',
+  Budget: 'What it costs, what is left, and what it earns',
+} as const;
+
+export const OVERVIEW_TILES = ['This sprint', 'Open tasks', 'Waiting to be checked', 'Your assistant'] as const;
+
+export const BOARD_VIEW_CHOICES = ['List', 'Board', 'Timeline'] as const;
+
+export const ROUND_OPTIONS = ['This round', 'Backlog (not in a round)', 'Everything'] as const;
+
+export const BOARD_FILTER_ITEMS = ['Round', 'Assignee', 'Priority', 'Hide subtasks', 'Show archived'] as const;
+
+export const NEW_TASK_FIELDS = ['Title', 'Detail', 'New label name'] as const;
+
+export const NEW_TASK_LISTS = ['Column', 'Priority', 'Assignee', 'Phase'] as const;
+
+export const BOARD_SETTINGS_TABS = ['Columns', 'Rules', 'Priorities', 'Labels', 'Rounds'] as const;
+
+export const BOARD_LAYOUTS = ['Standard', 'Full pipeline (review + QA)', 'Simple pipeline'] as const;
+
+export const PEOPLE_TILES = ['Carrying a lot', 'Could take more', 'Work nobody owns'] as const;
+
+export const PEOPLE_HEADINGS = ['Who is carrying what', 'What the team cannot cover', 'Work nobody owns'] as const;
+
+export const BUDGET_BUTTONS = ['Set up budget', 'Log time', 'Export CSV', 'Submit a cost'] as const;
+
+export const PEOPLE_ASK_BUTTONS = ['Ask about the load', 'Ask about them', 'Ask about the gap', 'Ask who should take it'] as const;
