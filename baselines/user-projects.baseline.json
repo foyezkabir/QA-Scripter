@@ -1,0 +1,563 @@
+{
+  "module": "User Projects",
+  "route": "/chat/<assistant id>/projects",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Projects",
+    "Create Project",
+    "Project Settings",
+    "People",
+    "Trash & Archive",
+    "Import from Jira",
+    "Import from Huly"
+  ],
+  "tabs": [
+    {
+      "name": "All",
+      "region": "People dialog, with a count"
+    },
+    {
+      "name": "Projects",
+      "region": "People dialog, with a count"
+    },
+    {
+      "name": "CRM",
+      "region": "People dialog, with a count"
+    },
+    {
+      "name": "Archived",
+      "region": "Trash & Archive dialog, with a count"
+    },
+    {
+      "name": "Trash",
+      "region": "Trash & Archive dialog, with a count"
+    }
+  ],
+  "states": [
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "five project cards, each with Open project and Edit project"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "the saved user-1 session opens the page"
+    },
+    {
+      "name": "empty",
+      "reached": true,
+      "how": "searching for text that matches nothing shows 'No projects match your search.'; the Archived tab shows 'Nothing archived.'"
+    },
+    {
+      "name": "disabled",
+      "reached": true,
+      "how": "Save in Create Project is disabled while Project Name is empty; the project kind is disabled once a board has tasks"
+    },
+    {
+      "name": "pending-approval",
+      "reached": false,
+      "how": "the People dialog lists people proposed by the agent with Approve and Reject",
+      "why": "the People dialog lists agent-proposed people with Approve and Reject only while some are pending; that is live data and approving or rejecting changes the shared contact book, so it is not forced"
+    },
+    {
+      "name": "loading",
+      "reached": false,
+      "why": "no loading indicator was captured; content renders after hydration"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "no failing request can be triggered read-only"
+    },
+    {
+      "name": "terminal",
+      "reached": false,
+      "why": "Archive, Move to Trash, Restore and Delete forever change shared project data and are never clicked"
+    }
+  ],
+  "tables": [],
+  "fields": [
+    {
+      "label": "Search projects",
+      "type": "searchbox",
+      "region": "toolbar",
+      "state": "filters the cards; a Clear search button appears once text is typed"
+    },
+    {
+      "label": "Project Name",
+      "type": "textbox",
+      "region": "Create Project and Project Settings",
+      "state": "required"
+    },
+    {
+      "label": "What it's for",
+      "type": "textbox",
+      "region": "Create Project and Project Settings",
+      "state": "multiline"
+    },
+    {
+      "label": "How it should work",
+      "type": "textbox",
+      "region": "Create Project and Project Settings",
+      "state": "rich-text editor"
+    },
+    {
+      "label": "Kind of project",
+      "type": "radio group",
+      "region": "Create Project and Project Settings",
+      "state": "ten kinds; General checked by default"
+    },
+    {
+      "label": "What you call a round of work",
+      "type": "textbox",
+      "region": "Project Settings",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Team project",
+      "type": "switch",
+      "region": "Create Project and Project Settings",
+      "state": "off in Create Project; NOT toggled"
+    },
+    {
+      "label": "Search people",
+      "type": "textbox",
+      "region": "People dialog",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Search projects…",
+      "type": "textbox",
+      "region": "Import from Jira and Import from Huly",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "On a first import, create board columns from the tracker's statuses",
+      "type": "checkbox",
+      "region": "Import from Jira and Import from Huly",
+      "state": "NOT toggled"
+    }
+  ],
+  "actions": [
+    {
+      "role": "button",
+      "name": "People (2 pending)",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "People"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Trash & Archive (18)",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Trash & Archive"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Import from Jira",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Import from Jira"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Import from Huly",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Import from Huly"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "New Project",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Create Project"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Sort: Recent",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Recent",
+          "Oldest",
+          "Name (A–Z)"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Clear search",
+      "region": "toolbar",
+      "state": "appears once text is typed"
+    },
+    {
+      "role": "link",
+      "name": "Open project",
+      "region": "project card",
+      "href": "/chat/<id>/projects/<project id>"
+    },
+    {
+      "role": "button",
+      "name": "Edit project",
+      "region": "project card",
+      "opens": {
+        "items": [
+          "Project Settings"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Save",
+      "region": "Create Project and Project Settings",
+      "state": "disabled while Project Name is empty; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Cancel",
+      "region": "Create Project and Project Settings",
+      "state": "closes the dialog"
+    },
+    {
+      "role": "button",
+      "name": "Close",
+      "region": "every dialog",
+      "state": "closes the dialog"
+    },
+    {
+      "role": "button",
+      "name": "Archive",
+      "region": "Project Settings",
+      "state": "puts the project away; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Move to Trash",
+      "region": "Project Settings",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Everyone in your Team Space",
+      "region": "Project Settings, Who can see this board",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Only people I add",
+      "region": "Project Settings, Who can see this board",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Approve",
+      "region": "People dialog, pending person",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Reject",
+      "region": "People dialog, pending person",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Add Person",
+      "region": "People dialog",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Edit person",
+      "region": "People dialog row",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Remove person",
+      "region": "People dialog row",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Restore project",
+      "region": "Trash & Archive row",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Delete project forever",
+      "region": "Trash & Archive row",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Import",
+      "region": "Import from Jira and Import from Huly, per project",
+      "state": "creates data; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Re-import",
+      "region": "Import from Huly, per imported project",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "link",
+      "name": "Projects",
+      "region": "Agent sections",
+      "href": "/chat/<id>/projects"
+    },
+    {
+      "role": "button",
+      "name": "Back",
+      "region": "sidebar",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Collapse sidebar",
+      "region": "sidebar",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "New Chat",
+      "region": "sidebar",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Open command palette",
+      "region": "sidebar",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Filter chats by time",
+      "region": "sidebar",
+      "state": "shell control",
+      "opens": {
+        "items": [
+          "Recent",
+          "All chats",
+          "Pick a date"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Team Spaces",
+      "region": "sidebar",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "More options",
+      "region": "sidebar conversation row",
+      "state": "shell control",
+      "opens": {
+        "items": [
+          "Rename",
+          "Pin",
+          "Move to project",
+          "Delete chat"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Switch agent",
+      "region": "sidebar footer",
+      "state": "shell control",
+      "opens": {
+        "items": [
+          "Test",
+          "Asta",
+          "Sales Agent",
+          "VOPS-358 Retest Space"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Notifications",
+      "region": "floating",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Settings",
+      "region": "floating",
+      "state": "shell control"
+    }
+  ],
+  "icons": [],
+  "messages": [
+    {
+      "kind": "info",
+      "text": "Group everything for one piece of work together so your assistant always knows the full story",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No projects match your search.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "Nothing archived.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Keep everything for one job in a single place so nothing gets lost",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Fixed now that the board has tasks - their kinds of work were sorted for it.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Your assistant's contact book - everyone across all projects, in one place.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Nothing is sent to them until you approve.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Nothing here is gone yet. Put anything back where it was, or clear out what you're sure about.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Import creates a local copy. Re-import adds issues that are new in Jira; it never changes tasks you already have.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Import creates a local copy. Re-import adds issues that are new in Huly; it never changes tasks you already have.",
+      "role": "none (plain text)"
+    }
+  ],
+  "modals": [
+    {
+      "name": "Create Project",
+      "trigger": "New Project",
+      "actions": [
+        "Close",
+        "Cancel",
+        "Save"
+      ]
+    },
+    {
+      "name": "Project Settings",
+      "trigger": "Edit project",
+      "actions": [
+        "Close",
+        "Archive",
+        "Move to Trash",
+        "Cancel",
+        "Save"
+      ]
+    },
+    {
+      "name": "People",
+      "trigger": "People (2 pending)",
+      "actions": [
+        "Close",
+        "Approve",
+        "Reject",
+        "Add Person"
+      ]
+    },
+    {
+      "name": "Trash & Archive",
+      "trigger": "Trash & Archive (18)",
+      "actions": [
+        "Close"
+      ]
+    },
+    {
+      "name": "Import from Jira",
+      "trigger": "Import from Jira",
+      "actions": [
+        "Close",
+        "Import"
+      ]
+    },
+    {
+      "name": "Import from Huly",
+      "trigger": "Import from Huly",
+      "actions": [
+        "Close",
+        "Import",
+        "Re-import"
+      ]
+    }
+  ],
+  "views": [
+    {
+      "name": "Project detail",
+      "route": "/chat/<assistant id>/projects/<project id>?tab=overview|board|progress|risks|digest|people|budget",
+      "state": "separate module: Overview, Board, Progress, Risks, Digest, People and Budget tabs, New task and Board settings",
+      "states": [
+        {
+          "name": "populated",
+          "reached": false,
+          "why": "the project detail view is its own module and is not crawled here"
+        }
+      ]
+    }
+  ],
+  "menus": [
+    {
+      "trigger": "Sort: Recent",
+      "opens": {
+        "items": [
+          "Recent",
+          "Oldest",
+          "Name (A–Z)"
+        ]
+      }
+    }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    {
+      "surface": "row-menu",
+      "how": "project cards have no row menu; the only per-card control is Edit project, which opens Project Settings"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-08",
+      "note": "Initial capture as user 1 on Asta's Projects section. Project names, counts, people, trash rows and Jira/Huly project lists are shared live data and never asserted by value. Only read-only controls are used; the Create Project and Project Settings dialogs are cancelled, nothing is saved, archived, trashed, restored, imported or deleted. The project detail view is a separate module."
+    }
+  ]
+}
