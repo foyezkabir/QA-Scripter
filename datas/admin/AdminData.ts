@@ -113,3 +113,20 @@ export const AI_MODELS = [
 ] as const;
 
 export const THRESHOLD_TYPED = { reminder: '7', warning: '3' };
+
+export const OWN_USER = {
+  name: 'Naiemul Hasan Naiem',
+  email: 'nhnaiem@tulip-tech.com',
+};
+
+export const USER_COLUMNS = ['User', 'Role', 'Status', 'Agents', 'LiteLLM Key', 'Created', 'Actions'] as const;
+
+export const USER_DETAIL_LABELS = ['Status', 'Role', 'Agents owned', 'Two-factor', 'LiteLLM key', 'Created'] as const;
+
+export const CHAT_VIEW_OPTIONS = ['Inherit default (detailed)', 'Compact', 'Detailed', 'Off'] as const;
+
+export const TOP_UP_DEFAULT_AMOUNT = '20';
+
+export const SUSPEND_DEFAULT_REASON = 'Violation of terms of service';
+
+export const noSuchUser = (): string => DataHelper.unique('NoSuchUser');

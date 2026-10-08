@@ -4,6 +4,7 @@ import { AdminAiPlatformPage } from '../pages/AdminAiPlatformPage';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { AdminLoginPage } from '../pages/AdminLoginPage';
 import { AdminUsagePage } from '../pages/AdminUsagePage';
+import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage';
 import { LegalPage } from '../pages/LegalPage';
 import { ResetPasswordPage } from '../pages/ResetPasswordPage';
@@ -25,7 +26,11 @@ export const test = base.extend<{
   adminDashboardPage: AdminDashboardPage;
   adminUsagePage: AdminUsagePage;
   adminAiPlatformPage: AdminAiPlatformPage;
+  adminUsersPage: AdminUsersPage;
 }>({
+  adminUsersPage: async ({ page }, use) => {
+    await use(new AdminUsersPage(page));
+  },
   adminAiPlatformPage: async ({ page }, use) => {
     await use(new AdminAiPlatformPage(page));
   },
