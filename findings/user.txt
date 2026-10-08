@@ -43,3 +43,14 @@ Actual result: three unnamed switches and one unnamed select.
 Expected result: each control is named for the setting it changes.
 Confidence: high (observed in the accessibility snapshot)
 
+Title: /chat/<id>/projects/<project id>: the Board tab label shows (0) while the project has 9 open tasks
+Type: UI
+Module: user-project-detail
+Description: The tab reads "Board (0)" and the Progress tab "(0%)", but the project card lists 9 open tasks and the Board tab says "9 tasks hidden by This round"; the count appears to follow the default This round filter, so it reads as an empty board.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Projects section, then open the project Pilot Release QA - Oct 2026.
+  2. Compare the Board tab label with the project card and with the status line on the Board tab.
+Actual result: Board (0) with "9 tasks hidden by This round".
+Expected result: a count that matches the tasks on the project, or a label that says it counts only the current round.
+Confidence: low (may be intended: the count may mean tasks in the running round)
+
