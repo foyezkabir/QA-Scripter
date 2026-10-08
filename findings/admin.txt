@@ -52,3 +52,25 @@ Steps to reproduce:
 Actual result: no results, no navigation, no message.
 Expected result: matching agents, people or events are listed, or the box is not offered.
 Confidence: medium
+
+Title: /admin/usage: Agent Creation Timeline (Last 7 Days) shows only a caveat sentence and no chart
+Type: functional
+Module: admin
+Description: The section has a heading and the note "This metric is calculated from audit logs..." but no chart or figures.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin/usage.
+  2. Scroll to Agent Creation Timeline (Last 7 Days).
+Actual result: heading and caveat text only.
+Expected result: a 7-day creation chart or an explicit empty message.
+Confidence: medium
+
+Title: /admin/usage: each Tracker Imports row ends with a bare "?" that has no label
+Type: ui
+Module: admin
+Description: Every tracker row shows "<project> / <tracker> · never" followed by a "?" with no accessible name or tooltip.
+Steps to reproduce:
+  1. Sign in to the Dev admin app and open /admin/usage.
+  2. Look at the Tracker Imports rows.
+Actual result: an unlabeled "?" on each row.
+Expected result: a labelled status or a tooltip explaining the marker.
+Confidence: low (needs-verification)

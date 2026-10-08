@@ -1,0 +1,110 @@
+{
+  "module": "Admin Usage",
+  "route": "/admin/usage",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Usage",
+    "Integration Adoption",
+    "Tracker Imports",
+    "Agent Creation Timeline (Last 7 Days)"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "three stat cards, five integration tiles, 27 tracker import rows and the timeline caveat render live data"
+    },
+    {
+      "name": "empty",
+      "reached": false,
+      "why": "no empty variant of Tracker Imports or Integration Adoption can be forced on shared Dev data"
+    },
+    {
+      "name": "loading",
+      "reached": false,
+      "why": "page renders before a stable skeleton can be held on shared Dev"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "needs a backend failure; not forced on shared Dev"
+    },
+    {
+      "name": "role-gated:unauthenticated",
+      "reached": true,
+      "how": "logged out, /admin/usage redirects to /admin/login"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "the saved admin session opens the page"
+    },
+    {
+      "name": "terminal",
+      "reached": false,
+      "why": "read-only report page with no actions"
+    }
+  ],
+  "tables": [],
+  "fields": [],
+  "actions": [],
+  "icons": [],
+  "messages": [
+    {
+      "kind": "info",
+      "text": "Provisioning volume and integration adoption.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "This metric is calculated from audit logs. Check the Audit Log tab for detailed provisioning history.",
+      "role": "none (plain text)"
+    }
+  ],
+  "stats": [
+    "Total Agents Provisioned",
+    "Active Agents",
+    "Total Integrations Enabled"
+  ],
+  "integrations": [
+    "teams",
+    "telegram",
+    "slack",
+    "github",
+    "atlassian"
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [],
+  "findings": [
+    "Agent Creation Timeline (Last 7 Days) has a heading and only a caveat sentence - no chart is rendered",
+    "Tracker Imports shows a bare '?' beside each row with no label or tooltip"
+  ],
+  "verifiedAbsent": [
+    {
+      "surface": "modals",
+      "how": "page has no buttons or links in its main area; nothing opens a dialog"
+    },
+    {
+      "surface": "views",
+      "how": "single report page with no drill-down links"
+    },
+    {
+      "surface": "filters",
+      "how": "no search, filter, tab, pagination or query parameter on the page (crawled)"
+    },
+    {
+      "surface": "fields",
+      "how": "no input, select, searchbox or button in the main area (crawled and snapshotted)"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-08",
+      "note": "Initial capture. All numbers and tracker rows are live data and are never asserted. The credit banner and sidebar are shared with the dashboard module."
+    }
+  ]
+}

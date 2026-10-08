@@ -1,0 +1,195 @@
+{
+  "module": "Admin AI Platform",
+  "route": "/admin/ai-platform",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "AI Platform",
+    "OpenRouter Credit",
+    "Model Configuration",
+    "Virtual API Keys",
+    "Today's Activity",
+    "LiteLLM Dashboard"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "four stat cards, credit with thresholds, nine model cards, a 95-row key table, today's activity and the dashboard link"
+    },
+    {
+      "name": "empty",
+      "reached": false,
+      "why": "no empty variant of the key table or model list can be forced on shared Dev"
+    },
+    {
+      "name": "loading",
+      "reached": false,
+      "why": "no stable skeleton can be held on shared Dev"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "needs a backend or OpenRouter failure; not forced on shared Dev"
+    },
+    {
+      "name": "role-gated:unauthenticated",
+      "reached": true,
+      "how": "logged out, /admin/ai-platform redirects to /admin/login"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "the saved admin session opens the page"
+    },
+    {
+      "name": "populated:credit-healthy",
+      "reached": false,
+      "why": "the credit pill (Healthy or Low - reminder) is driven by live OpenRouter credit; each was seen on a different day but neither can be held or forced on shared Dev"
+    },
+    {
+      "name": "terminal",
+      "reached": false,
+      "why": "Refresh, Save thresholds, Cleanup Orphaned and Delete key re-query or change shared state and were not clicked"
+    }
+  ],
+  "tables": [
+    {
+      "name": "Virtual API Keys",
+      "columns": [
+        "Key",
+        "User",
+        "Spend",
+        "Budget",
+        "Status",
+        "Actions"
+      ],
+      "rowActions": [
+        "Delete key <masked key>"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "label": "Reminder at (USD)",
+      "type": "spinbutton",
+      "region": "OpenRouter Credit",
+      "state": "editable; not saved"
+    },
+    {
+      "label": "Warning at (USD)",
+      "type": "spinbutton",
+      "region": "OpenRouter Credit",
+      "state": "editable; not saved"
+    }
+  ],
+  "actions": [
+    {
+      "role": "button",
+      "name": "Refresh",
+      "region": "OpenRouter Credit",
+      "state": "re-reads credit; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Save thresholds",
+      "region": "OpenRouter Credit",
+      "state": "changes shared alert settings; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Cleanup Orphaned",
+      "region": "Virtual API Keys header",
+      "state": "deletes orphaned keys; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Delete key <masked key>",
+      "region": "Virtual API Keys row",
+      "state": "deletes a key; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Refresh",
+      "region": "Today's Activity",
+      "state": "re-reads usage; NOT clicked"
+    },
+    {
+      "role": "link",
+      "name": "Open Dashboard",
+      "region": "LiteLLM Dashboard",
+      "href": "http://localhost:4001",
+      "state": "points at localhost; NOT clicked"
+    }
+  ],
+  "icons": [],
+  "messages": [
+    {
+      "kind": "info",
+      "text": "LiteLLM keys, models and OpenRouter credit.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Full dashboard with detailed analytics, logs, and configuration",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Last checked <date>",
+      "role": "none (plain text)"
+    }
+  ],
+  "stats": [
+    "Models",
+    "API Keys",
+    "Today’s Spend",
+    "Today’s Requests",
+    "Remaining",
+    "Prompt Tokens",
+    "Completion Tokens",
+    "Successful",
+    "Failed"
+  ],
+  "models": [
+    "agent-primary",
+    "agent-coder",
+    "agent-fast",
+    "agent-vision",
+    "agent-image",
+    "agent-free-primary",
+    "agent-free-fast",
+    "whisper-1",
+    "gpt-4o-transcribe"
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [],
+  "findings": [
+    "Open Dashboard links to http://localhost:4001 (already in findings/admin.txt)",
+    "Key rows show an extra 32-character string beside the user (already in findings/admin.txt)",
+    "Cleanup Orphaned and Delete key have no confirmation step observed in the markup (not clicked)"
+  ],
+  "verifiedAbsent": [
+    {
+      "surface": "modals",
+      "how": "no dialog is mounted on load; the destructive buttons were deliberately not clicked, so any confirm step they show is unverified"
+    },
+    {
+      "surface": "views",
+      "how": "single page; no key detail, model detail or pagination (all 95 rows render inline)"
+    },
+    {
+      "surface": "filters",
+      "how": "no search, filter, tab or query parameter on the page (crawled)"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-08",
+      "note": "Initial capture. Credit, spend, request and token numbers are live and never asserted. The credit banner and sidebar are shared with the dashboard module."
+    }
+  ]
+}
