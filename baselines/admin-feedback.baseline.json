@@ -1,0 +1,54 @@
+{
+  "module": "Admin Feedback",
+  "route": "/admin/feedback",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Feedback",
+    "Response Quality",
+    "Recent Negative Feedback"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "empty", "reached": true, "how": "with no ratings both sections show 'No feedback data yet' with a hint and 'No negative feedback yet.'" },
+    { "name": "loading", "reached": true, "how": "while the two requests are open Refresh is disabled" },
+    { "name": "error", "reached": true, "how": "a failed request shows 'Could not load this', the error message and Try again in Response Quality, and 'This list could not be loaded. The counts above are unaffected.' under Recent Negative Feedback" },
+    { "name": "populated", "reached": false, "why": "needs people to rate agent replies in chat and the rating response shape is not observable while Dev holds no ratings; not seeded on shared Dev" },
+    { "name": "disabled", "reached": true, "how": "Refresh is disabled while loading" },
+    { "name": "role-gated:unauthenticated", "reached": true, "how": "logged out, /admin/feedback redirects to /admin/login" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved admin session opens the page" },
+    { "name": "terminal", "reached": false, "why": "read-only report; no actions beyond Refresh and Try again" }
+  ],
+  "tables": [],
+  "fields": [],
+  "actions": [
+    { "role": "button", "name": "Refresh", "region": "Response Quality", "state": "disabled while loading; re-reads the ratings" },
+    { "role": "button", "name": "Try again", "region": "Response Quality error state" },
+    { "role": "link", "name": "Top up", "region": "credit banner, only while credit is low", "state": "leaves for openrouter.ai; NOT clicked" },
+    { "role": "button", "name": "Dismiss", "region": "credit banner, only while credit is low", "state": "NOT clicked" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Reply ratings and the messages people flagged.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No feedback data yet", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Ratings appear here once people start liking or disliking agent replies in chat.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No negative feedback yet.", "role": "none (plain text)" },
+    { "kind": "error", "text": "Could not load this", "role": "none (plain text)" },
+    { "kind": "error", "text": "This list could not be loaded. The counts above are unaffected.", "role": "none (plain text)" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [],
+  "findings": [
+    "The error banners are plain text with no ARIA role (already noted for the other admin pages)"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog on the page; Refresh and Try again act inline" },
+    { "surface": "views", "how": "no row, tab or link opens a detail view while no feedback exists" },
+    { "surface": "fields", "how": "no input, select or search on the page (crawled and snapshotted)" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Re-crawl after the Dev backend recovered. Empty state is real (no ratings yet); error and loading reached by mocking GET /api/admin/feedback-stats and /api/admin/feedback-negative. Populated and filters still not observed because no ratings exist." }
+  ]
+}

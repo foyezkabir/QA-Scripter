@@ -74,3 +74,14 @@ Steps to reproduce:
 Actual result: an unlabeled "?" on each row.
 Expected result: a labelled status or a tooltip explaining the marker.
 Confidence: low (needs-verification)
+
+Title: /admin/feedback: Try again clears the Response Quality error but leaves the Recent Negative Feedback error notice in place
+Type: functional
+Module: admin
+Description: When both feedback requests fail, Try again re-reads only the ratings; the notice "This list could not be loaded. The counts above are unaffected." stays on screen even after the ratings load.
+Steps to reproduce:
+  1. Open /admin/feedback while GET /api/admin/feedback-stats and /api/admin/feedback-negative both fail (simulated).
+  2. Let the requests succeed again and press Try again.
+Actual result: Response Quality recovers, the negative-list notice remains.
+Expected result: Try again (or the page) re-reads both lists, or the negative section has its own retry.
+Confidence: medium (reproduced with simulated failures, not against a real outage)

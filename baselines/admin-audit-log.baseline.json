@@ -1,0 +1,64 @@
+{
+  "module": "Admin Audit Log",
+  "route": "/admin/audit-log",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://admin.dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Audit Log"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "50 rows per page with a (Total: N) count, filter, Refresh and pagination" },
+    { "name": "empty", "reached": true, "how": "an empty response shows 'No audit log entries' with 'Provisioning and lifecycle events appear here as soon as they happen.'; a filter with no events shows 'No <action> events' with Clear filters" },
+    { "name": "loading", "reached": true, "how": "while the request is open Refresh is disabled and a skeleton replaces the table" },
+    { "name": "error", "reached": true, "how": "a failed request shows 'Could not load this', the error message and a Try again button" },
+    { "name": "disabled", "reached": true, "how": "Previous is disabled on the first page; Refresh is disabled while loading" },
+    { "name": "role-gated:unauthenticated", "reached": true, "how": "logged out, /admin/audit-log redirects to /admin/login" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved admin session opens the page" },
+    { "name": "terminal", "reached": false, "why": "read-only log; the only exits are paging and filtering" }
+  ],
+  "tables": [
+    {
+      "name": "Audit Log",
+      "columns": ["Timestamp", "Action", "Agent", "Details"],
+      "rowActions": []
+    }
+  ],
+  "fields": [
+    { "label": "Filter by action", "type": "combobox", "id": "audit-action-filter", "options": ["All Actions", "Provision", "Deploy", "Stop", "Start", "Reprovision", "Delete"], "state": "no URL parameter" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Refresh", "region": "toolbar", "state": "disabled while loading; re-reads the list" },
+    { "role": "button", "name": "Next", "region": "pagination", "state": "50 events per page" },
+    { "role": "button", "name": "Previous", "region": "pagination", "state": "disabled on page 1" },
+    { "role": "button", "name": "Clear filters", "region": "empty state of a filtered list" },
+    { "role": "button", "name": "Try again", "region": "error state" },
+    { "role": "link", "name": "Top up", "region": "credit banner, only while credit is low", "state": "leaves for openrouter.ai; NOT clicked" },
+    { "role": "button", "name": "Dismiss", "region": "credit banner, only while credit is low", "state": "NOT clicked" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Every provisioning and lifecycle event, newest first.", "role": "none (plain text)" },
+    { "kind": "info", "text": "(Total: N)", "role": "none (plain text)" },
+    { "kind": "info", "text": "Showing 1–50 of N events", "role": "navigation Pagination" },
+    { "kind": "empty", "text": "No audit log entries", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Provisioning and lifecycle events appear here as soon as they happen.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No reprovision events", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Nothing has been recorded for this action yet. Try All Actions.", "role": "none (plain text)" },
+    { "kind": "error", "text": "Could not load this", "role": "none (plain text)" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [],
+  "findings": [
+    "When the audit request hangs the table stays on a skeleton with no timeout message (already in findings/admin.txt)"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog on the page; filter, paging and refresh act inline" },
+    { "surface": "views", "how": "rows have no controls and open nothing; the list pages in place" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Re-crawl after the Dev backend recovered. Empty, error and loading states reached by mocking GET /api/admin/audit-log; the real events and totals are live data and are never asserted." }
+  ]
+}
