@@ -38,3 +38,15 @@ export const newChatMessage = (): ChatMessage => {
 export const TYPED_TEXT = 'draft';
 
 export const CHANNEL_MODEL_OPTIONS = ['Fast (recommended)', 'Primary · For everyday work and general reasoning', 'Coder · For complex, code-heavy or technical work', 'Fast · Fastest for quick, simple answers'] as const;
+
+export const SETTINGS_SECTION_HEADINGS = ['Basic Information', 'Behavior', 'Access key', 'Agent-to-agent access', 'Backup', 'Danger Zone'] as const;
+
+export const RESPONSE_TONES = ['Professional', 'Friendly', 'Concise', 'Detailed', 'Custom'] as const;
+
+export const DEFAULT_TONE = 'Concise';
+
+export const CHANGED_TONE = 'Friendly';
+
+export const CHANGED_ROLE = 'QA Assistant (edited)';
+
+export const EMOJI_TABS = ['Frequently Used', 'Smileys & People', 'Animals & Nature', 'Food & Drink', 'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags'] as const;

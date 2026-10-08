@@ -16,6 +16,7 @@ import { SignUpPage } from '../pages/SignUpPage';
 import { UserChatPage } from '../pages/UserChatPage';
 import { UserHomePage } from '../pages/UserHomePage';
 import { UserMessagingPage } from '../pages/UserMessagingPage';
+import { UserSettingsPage } from '../pages/UserSettingsPage';
 import { UserShellPage } from '../pages/UserShellPage';
 import { VerifyEmailPage } from '../pages/VerifyEmailPage';
 
@@ -39,7 +40,11 @@ export const test = base.extend<{
   userShellPage: UserShellPage;
   userChatPage: UserChatPage;
   userMessagingPage: UserMessagingPage;
+  userSettingsPage: UserSettingsPage;
 }>({
+  userSettingsPage: async ({ page }, use) => {
+    await use(new UserSettingsPage(page));
+  },
   userMessagingPage: async ({ page }, use) => {
     await use(new UserMessagingPage(page));
   },

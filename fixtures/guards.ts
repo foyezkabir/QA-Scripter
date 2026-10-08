@@ -4,7 +4,7 @@ import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -36,6 +36,25 @@ export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatClea
     } catch (error) {
       await testInfo.attach('chat-not-deleted.txt', {
         body: `A QA-AUTO conversation may be left in ${OWN_ASSISTANT.name}'s sidebar after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /**
+   * Puts Asta's Role, Dream Mode and Response Tone back to their usual values after a test that
+   * changed them. Teardown ladder rung 3 (UI): the settings page is the only way to set them. A
+   * failed restore is attached, never thrown.
+   */
+  restoredSettings: [async ({ userSettingsPage }, use, testInfo) => {
+    await use();
+    try {
+      await userSettingsPage.restoreOwnSettings();
+    } catch (error) {
+      await testInfo.attach('settings-not-restored.txt', {
+        body: `${OWN_ASSISTANT.name}'s Role, Dream Mode or Response Tone may still be changed after ${testInfo.title}:
+${String(error)}
+`,
         contentType: 'text/plain',
       });
     }
