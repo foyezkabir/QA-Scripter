@@ -1,0 +1,90 @@
+{
+  "module": "User Shell",
+  "route": "/dashboard",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Command palette",
+    "Notifications",
+    "Settings"
+  ],
+  "tabs": [
+    "All",
+    "Chats",
+    "Projects",
+    "Tasks",
+    "Tools"
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "sidebar, palette, notifications panel, settings dialog and account menu all open on /dashboard as user 1" },
+    { "name": "empty", "reached": false, "why": "an empty notification list or no assistants needs a different account; none is approved" },
+    { "name": "loading", "reached": false, "why": "no stable loading state can be held on shared Dev" },
+    { "name": "error", "reached": false, "why": "needs a backend failure; not forced on shared Dev" },
+    { "name": "disabled", "reached": true, "how": "the palette quick actions New chat, New task, New project and Connect a tool are disabled on Home" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the account menu shows the signed-in user's name and email" },
+    { "name": "role-gated:unauthenticated", "reached": false, "why": "covered by the auth module redirect test" },
+    { "name": "terminal", "reached": false, "why": "Sign Out, Profile, Help, Share Feedback and the legal links leave the page or end the session; they are listed, never clicked here" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search or run a command", "type": "combobox", "region": "Command palette", "state": "typing returns the user's own chats, projects and tasks (live data; not asserted)" }
+  ],
+  "actions": [
+    { "role": "link", "name": "VelaCrew", "region": "sidebar logo", "href": "/dashboard" },
+    { "role": "link", "name": "Home", "region": "sidebar", "href": "/dashboard" },
+    { "role": "link", "name": "My work", "region": "sidebar", "href": "/dashboard/my-work" },
+    { "role": "button", "name": "Search", "region": "sidebar", "state": "opens the command palette" },
+    { "role": "link", "name": "Asta", "region": "sidebar assistants", "href": "/chat/<id>" },
+    { "role": "button", "name": "Notifications", "region": "sidebar footer", "state": "opens the Notifications panel" },
+    { "role": "button", "name": "Settings", "region": "sidebar footer", "state": "opens the Settings dialog" },
+    { "role": "button", "name": "Account", "region": "sidebar footer", "state": "opens the account menu" },
+    { "role": "button", "name": "Close command palette", "region": "Command palette", "state": "esc" },
+    { "role": "radio", "name": "All", "region": "Notifications, Show notifications", "state": "checked by default" },
+    { "role": "radio", "name": "Unread", "region": "Notifications, Show notifications" },
+    { "role": "button", "name": "General", "region": "Settings sections" },
+    { "role": "button", "name": "Preferences", "region": "Settings sections" },
+    { "role": "button", "name": "Notifications", "region": "Settings sections" },
+    { "role": "button", "name": "Security", "region": "Settings sections" },
+    { "role": "button", "name": "Usage", "region": "Settings sections" },
+    { "role": "button", "name": "Privacy", "region": "Settings sections" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Search chats, projects, tasks and tools, or run a quick action.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    {
+      "name": "Command palette",
+      "trigger": "Search or Ctrl+K",
+      "fields": ["Search or run a command"],
+      "actions": ["Close command palette", "New chat", "New task", "New project", "Connect a tool"]
+    },
+    {
+      "name": "Notifications",
+      "trigger": "Notifications",
+      "fields": ["Show notifications: All, Unread"],
+      "actions": []
+    },
+    {
+      "name": "Settings",
+      "trigger": "Settings",
+      "fields": ["General", "Preferences", "Notifications", "Security", "Usage", "Privacy"],
+      "actions": []
+    }
+  ],
+  "views": [],
+  "menus": [
+    {
+      "trigger": "Account",
+      "opens": { "items": ["Profile", "Help", "Share Feedback", "Privacy Policy", "Terms of Service", "Sign Out"] }
+    }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    { "surface": "views", "how": "the shell has no sub-view; its links open other modules (my-work, chat) and its dialogs close back to the page" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1. Notification items, palette results, assistant and space links are the user's live data and are never asserted beyond Asta." }
+  ]
+}
