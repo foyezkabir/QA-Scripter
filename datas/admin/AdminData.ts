@@ -85,3 +85,31 @@ export const OVERVIEW_CARDS = {
   money: { name: 'Money left', path: /\/admin\/ai-platform$/ },
   replies: { name: 'Happy replies', path: /\/admin\/feedback$/ },
 } as const;
+
+export const USAGE_STATS = [
+  'Total Agents Provisioned',
+  'Active Agents',
+  'Total Integrations Enabled',
+] as const;
+
+export const INTEGRATIONS = ['teams', 'telegram', 'slack', 'github', 'atlassian'] as const;
+
+export const AI_STATS = ['Models', 'API Keys', 'Today’s Spend', 'Today’s Requests'] as const;
+
+export const AI_ACTIVITY_LABELS = ['Prompt Tokens', 'Completion Tokens', 'Successful', 'Failed'] as const;
+
+export const AI_KEY_COLUMNS = ['Key', 'User', 'Spend', 'Budget', 'Status', 'Actions'] as const;
+
+export const AI_MODELS = [
+  'agent-primary',
+  'agent-coder',
+  'agent-fast',
+  'agent-vision',
+  'agent-image',
+  'agent-free-primary',
+  'agent-free-fast',
+  'whisper-1',
+  'gpt-4o-transcribe',
+] as const;
+
+export const THRESHOLD_TYPED = { reminder: '7', warning: '3' };
