@@ -1,0 +1,89 @@
+{
+  "module": "User Chat",
+  "route": "/chat/<assistant id>",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Good evening",
+    "Command palette"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "empty", "reached": true, "how": "a fresh conversation shows the greeting, the 'What would you like Asta to help you with today?' prompt and three suggestions" },
+    { "name": "populated", "reached": true, "how": "after a message the thread shows the user message with Copy, Edit and Regenerate response, and Asta's reply with Copy, Retry, Read aloud, Like and Unlike" },
+    { "name": "loading", "reached": true, "how": "while Asta works the reply shows a Thinking button" },
+    { "name": "disabled", "reached": true, "how": "Send message is disabled while the composer is empty" },
+    { "name": "error", "reached": false, "why": "needs a stopped or over-budget assistant or a backend failure; not forced on shared Dev" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens Asta's chat" },
+    { "name": "collapsed", "reached": true, "how": "Collapse sidebar turns the button into Expand sidebar" },
+    { "name": "terminal", "reached": true, "how": "Delete chat asks 'Delete this chat?' and Yes, delete removes the conversation; Keep it leaves it" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Type a message…", "type": "textbox", "region": "composer", "state": "Enter sends, Shift+Enter adds a line" },
+    { "label": "Search in chat", "type": "textbox", "region": "sidebar", "state": "filters the conversation list; results are live data and not asserted" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Send message", "region": "composer", "state": "disabled while empty" },
+    { "role": "button", "name": "Add attachments", "region": "composer", "state": "opens a file chooser; NOT clicked" },
+    { "role": "button", "name": "Speech to text", "region": "composer", "state": "needs microphone permission; NOT clicked" },
+    { "role": "button", "name": "Fast", "region": "composer, shows the active model", "opens": { "items": ["Primary", "Coder", "Fast", "DeepSeek V4.1 Flash", "DeepSeek V4 Pro", "GPT-5.6 Sol", "GPT-5.6 Terra", "GPT-5.6 Luna"] }, "state": "switching reloads the agent; NOT chosen" },
+    { "role": "button", "name": "What can you do for me?", "region": "suggestions", "state": "sends a message; NOT clicked" },
+    { "role": "button", "name": "How are my projects performing?", "region": "suggestions", "state": "sends a message; NOT clicked" },
+    { "role": "button", "name": "Draft an email to a client", "region": "suggestions", "state": "sends a message; NOT clicked" },
+    { "role": "button", "name": "Back", "region": "sidebar", "state": "NOT clicked" },
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar", "state": "becomes Expand sidebar" },
+    { "role": "button", "name": "New Chat", "region": "sidebar", "state": "NOT clicked" },
+    { "role": "button", "name": "Open command palette", "region": "sidebar", "state": "Ctrl+K" },
+    { "role": "button", "name": "All", "region": "sidebar filter", "state": "pressed by default" },
+    { "role": "button", "name": "Chats", "region": "sidebar filter" },
+    { "role": "button", "name": "Projects", "region": "sidebar filter" },
+    { "role": "button", "name": "CRM", "region": "sidebar filter" },
+    { "role": "button", "name": "Filter chats by time", "region": "sidebar", "opens": { "items": ["Recent", "All chats", "Pick a date"] } },
+    { "role": "button", "name": "Switch agent", "region": "sidebar footer", "opens": { "items": ["Test", "Asta", "Sales Agent", "VOPS-358 Retest Space"] }, "state": "NOT chosen" },
+    { "role": "button (row menu)", "name": "More options", "region": "conversation row", "opens": { "items": ["Rename", "Pin", "Move to project", "Delete chat"] } },
+    { "role": "button", "name": "Keep it", "region": "Delete this chat? dialog" },
+    { "role": "button", "name": "Yes, delete", "region": "Delete this chat? dialog" },
+    { "role": "button", "name": "Copy", "region": "message and reply" },
+    { "role": "button", "name": "Edit", "region": "user message", "state": "NOT clicked" },
+    { "role": "button", "name": "Regenerate response", "region": "user message", "state": "NOT clicked" },
+    { "role": "button", "name": "Retry", "region": "reply", "state": "NOT clicked" },
+    { "role": "button", "name": "Read aloud", "region": "reply", "state": "NOT clicked" },
+    { "role": "button", "name": "Like", "region": "reply", "state": "NOT clicked" },
+    { "role": "button", "name": "Unlike", "region": "reply", "state": "NOT clicked" },
+    { "role": "link", "name": "Projects", "region": "Agent sections", "href": "/chat/<id>/projects" },
+    { "role": "link", "name": "Tasks", "region": "Agent sections" },
+    { "role": "link", "name": "Workspace", "region": "Agent sections" },
+    { "role": "link", "name": "Tools", "region": "Agent sections" },
+    { "role": "link", "name": "Messaging", "region": "Agent sections", "href": "/chat/<id>/messaging" },
+    { "role": "link", "name": "Skills", "region": "Agent sections" },
+    { "role": "link", "name": "CRM", "region": "Agent sections", "href": "/chat/<id>/crm" },
+    { "role": "link", "name": "Settings", "region": "Agent sections" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "What would you like Asta to help you with today?", "role": "none (plain text)" },
+    { "kind": "info", "text": "Enter to send, Shift+Enter for new line · Esc to leave, / to return or Drag and Drop your files here", "role": "none (plain text)" },
+    { "kind": "info", "text": "Agent model (applies to all conversations)", "role": "none (plain text)" },
+    { "kind": "info", "text": "Switching will briefly reload the agent.", "role": "none (plain text)" },
+    { "kind": "info", "text": "This will permanently remove this conversation and all its messages.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    { "name": "Agent model", "trigger": "Fast", "actions": ["Primary", "Coder", "Fast"] },
+    { "name": "Switch Agent", "trigger": "Switch agent", "actions": [] },
+    { "name": "Delete this chat?", "trigger": "Delete chat", "actions": ["Keep it", "Yes, delete"] }
+  ],
+  "views": [],
+  "menus": [
+    { "trigger": "Filter chats by time", "opens": { "items": ["Recent", "All chats", "Pick a date"] } },
+    { "trigger": "More options", "opens": { "items": ["Rename", "Pin", "Move to project", "Delete chat"] } }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    { "surface": "views", "how": "the agent sections (Projects, Tasks, Workspace, Tools, Messaging, Skills, CRM, Settings) are separate modules; a conversation opens at /chat/<id>/<conversation id> without leaving this module" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1 on Asta. Existing conversations, notification counts and model prices are live data and never asserted. Conversations created by tests are QA-AUTO messages and are deleted through the UI." }
+  ]
+}
