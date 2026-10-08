@@ -50,3 +50,13 @@ export const CHANGED_TONE = 'Friendly';
 export const CHANGED_ROLE = 'QA Assistant (edited)';
 
 export const EMOJI_TABS = ['Frequently Used', 'Smileys & People', 'Animals & Nature', 'Food & Drink', 'Travel & Places', 'Activities', 'Objects', 'Symbols', 'Flags'] as const;
+
+export const PROJECT_SORT_OPTIONS = ['Recent', 'Oldest', 'Name (A–Z)'] as const;
+
+export const PROJECT_KINDS = ['General', 'Software delivery', 'Event', 'Marketing campaign', 'Construction or renovation', 'Study or course', 'Client work (agency)', 'Hiring', 'Research', 'Operations'] as const;
+
+export const CREATE_PROJECT_EDITOR_BUTTONS = ['Bold', 'Italic', 'Code', 'Bullet List', 'Numbered List', 'Link'] as const;
+
+export const NO_MATCH_SEARCH = 'zzqq-no-such-project';
+
+export const newProjectName = () => DataHelper.unique('Project');
