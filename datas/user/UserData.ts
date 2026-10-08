@@ -36,3 +36,5 @@ export const newChatMessage = (): ChatMessage => {
 };
 
 export const TYPED_TEXT = 'draft';
+
+export const CHANNEL_MODEL_OPTIONS = ['Fast (recommended)', 'Primary · For everyday work and general reasoning', 'Coder · For complex, code-heavy or technical work', 'Fast · Fastest for quick, simple answers'] as const;
