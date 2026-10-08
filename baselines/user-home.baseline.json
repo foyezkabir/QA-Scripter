@@ -1,0 +1,57 @@
+{
+  "module": "User Home",
+  "route": "/dashboard",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Welcome back",
+    "Assistants",
+    "Team spaces"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "signed in as user 1: three assistants (Test, Asta, Sales Agent) and one team space render" },
+    { "name": "empty", "reached": false, "why": "user 1 owns assistants and a space; an account with none would be needed and none is approved for this" },
+    { "name": "loading", "reached": false, "why": "cards render before a stable skeleton can be held" },
+    { "name": "error", "reached": false, "why": "needs a backend failure; not forced on shared Dev" },
+    { "name": "role-gated:unauthenticated", "reached": false, "why": "covered by auth module redirect test (opening /dashboard logged out redirects to /auth/signin?callbackUrl=%2Fdashboard)" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens Home" },
+    { "name": "stopped", "reached": true, "how": "Test and Sales Agent show 'Stopped - tap Activate to wake it' with an Activate button; their More menu offers only Configure" },
+    { "name": "needs-attention", "reached": true, "how": "Asta showed 'Needs your attention' and a 'Credit limit reached - top up' button when its budget ran out; data-driven, not asserted" },
+    { "name": "terminal", "reached": false, "why": "Create, Activate, Restart and Stop change shared state or start a wizard; only their menus are opened" }
+  ],
+  "tables": [],
+  "fields": [],
+  "actions": [
+    { "role": "button", "name": "Create", "region": "page header", "opens": { "items": ["Agent - Your own assistant, guided setup.", "Team space - Invite people who bring their own agents."] } },
+    { "role": "button (card menu)", "name": "More for <assistant name>", "region": "assistant card", "opens": { "items": ["Configure", "Restart", "Stop"] }, "state": "a running assistant offers Configure, Restart and Stop; a stopped one only Configure" },
+    { "role": "button", "name": "Activate", "region": "stopped assistant card", "state": "starts the assistant; NOT clicked" },
+    { "role": "link", "name": "Connect a channel", "region": "assistant card without a channel", "href": "/chat/<id>/messaging" },
+    { "role": "button", "name": "Credit limit reached - top up", "region": "assistant card whose budget ran out", "state": "data-driven; NOT clicked" },
+    { "role": "link", "name": "Enable 2FA", "region": "security banner", "href": "/settings/security" },
+    { "role": "button", "name": "Dismiss", "region": "security banner", "state": "hides the banner; NOT clicked" },
+    { "role": "link", "name": "Asta needs your attention", "region": "Needs you list", "state": "data-driven; NOT asserted" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Your assistants, and the teams they work in.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Protect your account. Turn on two-factor authentication.", "role": "none (plain text)", "note": "shown until two-factor is enabled" },
+    { "kind": "info", "text": "Stopped - tap Activate to wake it", "role": "none (plain text)" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    { "trigger": "Create", "opens": { "items": ["Agent", "Team space"] } },
+    { "trigger": "More for <assistant name>", "opens": { "items": ["Configure", "Restart", "Stop"] } }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog on load; Create and More open menus, and the command palette, notifications and settings dialogs belong to the user-shell module" },
+    { "surface": "views", "how": "Home links out to chat, space and settings pages (other modules); it has no sub-view of its own" },
+    { "surface": "fields", "how": "no input, select or search on the page body" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1. Assistant and space names are the user's own live data; only Asta is relied on by tests." }
+  ]
+}
