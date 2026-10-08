@@ -1,0 +1,102 @@
+{
+  "module": "User Settings",
+  "route": "/chat/<assistant id>/configuration",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Settings",
+    "Basic Information",
+    "Behavior",
+    "Response Behavior",
+    "Access key",
+    "Agent-to-agent access",
+    "Backup",
+    "Danger Zone"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "Agent Name Asta, Role QA Assistant, a description, Learn from your feedback on, Response Tone Concise and one revoked A2A key" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page" },
+    { "name": "disabled", "reached": true, "how": "Save Changes is disabled until a field changes; Create in the New key form is disabled while the key name is empty" },
+    { "name": "dirty", "reached": true, "how": "changing Role enables Save Changes; Save Changes then stores it and disables the button again" },
+    { "name": "error", "reached": true, "how": "emptying Agent Name or Role marks the field invalid (aria-invalid) and keeps Save Changes disabled" },
+    { "name": "autosaved", "reached": true, "how": "the Behavior switches and Response Tone send a change request as soon as they change, with no Save button" },
+    { "name": "no-access-key", "reached": true, "how": "Access key shows No access key with the fallback hint and Generate access key" },
+    { "name": "revoked-key", "reached": true, "how": "the Agent-to-agent access list shows one key with a revoked badge" },
+    { "name": "empty", "reached": false, "why": "the key list is not empty and reaching an empty list would need deleting keys" },
+    { "name": "loading", "reached": false, "why": "no loading indicator was seen; content renders once the page hydrates" },
+    { "name": "terminal", "reached": false, "why": "deleting the agent is the terminal action and agents are never deleted by tests" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Agent Name", "type": "textbox", "region": "Basic Information", "state": "required; hint 'Give your assistant a name your team and customers will see.'" },
+    { "label": "Role", "type": "textbox", "region": "Basic Information", "state": "required; hint 'Sum up its job in a few words, like Customer assistant or Sales helper.'" },
+    { "label": "Describe what your agent does", "type": "textbox (multiline)", "region": "Basic Information", "state": "hint 'Describe how it should help and what it handles, its tone, and when to pass things to a person.'" },
+    { "label": "Learn from your feedback", "type": "switch", "region": "Response Behavior", "state": "no accessible name; autosaves" },
+    { "label": "Dream Mode", "type": "switch", "region": "Response Behavior", "state": "no accessible name; autosaves" },
+    { "label": "Sentiment Analysis", "type": "switch", "region": "Response Behavior", "state": "no accessible name; NOT toggled" },
+    { "label": "Response Tone", "type": "combobox", "region": "Response Behavior", "opens": { "items": ["Professional", "Friendly", "Concise", "Detailed", "Custom"] }, "state": "native select with no accessible name; autosaves" },
+    { "label": "What will use it? e.g. Zapier, our CI, Maya's agent", "type": "textbox", "region": "Agent-to-agent access, New key form", "state": "placeholder only; maxlength 80; NOT typed into" },
+    { "label": "Type to search for an emoji", "type": "textbox", "region": "emoji picker", "state": "NOT typed into" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Pick an icon", "region": "Basic Information, icon picker", "opens": { "items": ["Type to search for an emoji", "Skin tone NEUTRAL", "Skin tone LIGHT", "Skin tone MEDIUM_LIGHT", "Skin tone MEDIUM", "Skin tone MEDIUM_DARK", "Skin tone DARK", "Frequently Used", "Smileys & People", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags"] }, "state": "opens the emoji picker; no emoji chosen" },
+    { "role": "button", "name": "Save Changes", "region": "Basic Information", "state": "disabled until a field changes" },
+    { "role": "button", "name": "Generate access key", "region": "Access key", "state": "creates a key whose private part is shown once; NOT clicked" },
+    { "role": "button", "name": "New key", "region": "Agent-to-agent access", "opens": { "items": ["What will use it? e.g. Zapier, our CI, Maya's agent", "Create", "Cancel"] } },
+    { "role": "button", "name": "Create", "region": "New key form", "state": "disabled while the key name is empty; NOT clicked, it would create a key" },
+    { "role": "button", "name": "Cancel", "region": "New key form", "state": "closes the form" },
+    { "role": "button", "name": "Backup now", "region": "Backup", "state": "triggers a backup; NOT clicked" },
+    { "role": "button", "name": "Download Copy", "region": "Backup", "state": "starts a download; NOT clicked" },
+    { "role": "button", "name": "Download bundle", "region": "Backup", "state": "starts a download; NOT clicked" },
+    { "role": "button", "name": "Delete Agent", "region": "Danger Zone", "state": "destructive; NOT clicked, its dialog never opened" },
+    { "role": "link", "name": "Settings", "region": "Agent sections", "href": "/chat/<id>/configuration" },
+    { "role": "button", "name": "Back", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Switch agent", "region": "sidebar footer", "state": "shell control" },
+    { "role": "button", "name": "Notifications", "region": "floating", "state": "shell control" }
+  ],
+  "icons": [
+    { "name": "Pick an icon", "type": "icon-button", "region": "Basic Information" }
+  ],
+  "messages": [
+    { "kind": "info", "text": "Set up who your assistant is, how it behaves, and what happens to it.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Your assistant's name and what it does. Save when you're done.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Pick an icon", "role": "none (plain text)" },
+    { "kind": "info", "text": "Shape how your assistant replies and learns. Changes save on their own.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Gets better over time by learning from the way you correct it.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Run a nightly memory-consolidation pass (3am) that promotes recurring details into long-term memory. Off by default.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Detect customer sentiment and adjust tone accordingly.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Choose the tone your assistant replies in.", "role": "none (plain text)" },
+    { "kind": "info", "text": "No access key", "role": "none (plain text)" },
+    { "kind": "info", "text": "Terminal access falls back to your login session. Generate a key to require the .pem and encrypt backups.", "role": "none (plain text)" },
+    { "kind": "info", "text": "The private key is shown once at generation and never stored on our servers. This key grants terminal access and is required for encrypted backups. Regenerate to rotate the key, which immediately revokes the previous one.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Let other software send this agent a message and read its answer, over the open A2A protocol. A key reaches this agent only, acts with your permissions, and can be revoked on its own.", "role": "none (plain text)" },
+    { "kind": "info", "text": "revoked", "role": "none (plain text)" },
+    { "kind": "info", "text": "Save a full copy of your assistant so you can restore it later or move it somewhere else.", "role": "none (plain text)" },
+    { "kind": "info", "text": "A complete copy of your assistant - its name, personality, memory, and settings. Saved automatically, but you can save one anytime.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Choose this if you want to run your assistant on your own systems.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Destructive actions live here. Proceed carefully.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Permanently remove this agent, all its subagents, conversations, and files. This can't be undone.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    { "name": "Delete Agent confirmation", "trigger": "Delete Agent", "actions": [], "reached": false, "why": "agents are never deleted; the dialog is not opened" }
+  ],
+  "views": [],
+  "menus": [
+    { "trigger": "Pick an icon", "opens": { "items": ["Type to search for an emoji", "Frequently Used", "Smileys & People", "Animals & Nature", "Food & Drink", "Travel & Places", "Activities", "Objects", "Symbols", "Flags"] } },
+    { "trigger": "Response Tone", "opens": { "items": ["Professional", "Friendly", "Concise", "Detailed", "Custom"] } }
+  ],
+  "findings": [
+    "the three Behavior switches and the Response Tone select have no accessible name",
+    "no feedback is shown after Save Changes or an autosave: the notification regions stay empty"
+  ],
+  "verifiedAbsent": [
+    { "surface": "views", "how": "the page is a single scrolling page of sections with no tabs; other agent sections are separate modules" },
+    { "surface": "toast", "how": "after Save Changes and after an autosave the status and alert regions stayed empty, so no success message exists to assert" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1 on Asta. Tests that change Role, Dream Mode or Response Tone put the original value back through the UI. The key list, tokens and description text are live data and never asserted. Generate access key, New key Create, Backup now, the downloads and Delete Agent are never clicked." }
+  ]
+}

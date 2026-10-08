@@ -20,3 +20,26 @@ Actual result: the text asks to click Connect; only Disconnect is visible (Conne
 Expected result: instructions that match the visible buttons, or a Connect/Save button when fields are edited.
 Confidence: low (the Connect button may appear only for a disconnected channel or an edited field)
 
+Title: /chat/<id>/configuration: no success or error feedback after Save Changes or an autosaved setting
+Type: UI
+Module: user-agent-settings
+Description: Saving Role, switching Dream Mode or choosing a Response Tone sends the change at once, but the page shows no toast or message; the status and alert regions stay empty. The only sign of success is Save Changes becoming disabled (and nothing at all for the autosaved controls).
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Settings section.
+  2. Change Role and click Save Changes, or switch Dream Mode, or pick another Response Tone.
+  3. Watch the page and the notifications region.
+Actual result: the change request succeeds silently; no confirmation is announced.
+Expected result: a visible, announced confirmation (and an error message if the save fails).
+Confidence: medium (observed for Role, Dream Mode and Response Tone; the failure path was not forced)
+
+Title: /chat/<id>/configuration: the Behavior switches and the Response Tone select have no accessible name
+Type: accessibility
+Module: user-agent-settings
+Description: Learn from your feedback, Dream Mode and Sentiment Analysis are role=switch with an empty name, and Response Tone is a role=combobox with an empty name; their labels are separate plain text.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Settings section.
+  2. Inspect the accessibility tree of the Behavior section.
+Actual result: three unnamed switches and one unnamed select.
+Expected result: each control is named for the setting it changes.
+Confidence: high (observed in the accessibility snapshot)
+
