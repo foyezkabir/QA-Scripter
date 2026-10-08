@@ -98,3 +98,46 @@ export const PEOPLE_HEADINGS = ['Who is carrying what', 'What the team cannot co
 export const BUDGET_BUTTONS = ['Set up budget', 'Log time', 'Export CSV', 'Submit a cost'] as const;
 
 export const PEOPLE_ASK_BUTTONS = ['Ask about the load', 'Ask about them', 'Ask about the gap', 'Ask who should take it'] as const;
+
+export type NewTask = { name: string; purpose: string; instructions: string; channel: string };
+
+export const newTask = (): NewTask => ({
+  name: DataHelper.unique('Task'),
+  purpose: 'A short QA check that only exists for automated tests',
+  instructions: 'Do nothing. This task is created disabled by an automated test and removed afterwards.',
+  channel: 'Telegram',
+});
+
+export const TASK_SUBTITLE = 'Set up jobs your assistant runs on a schedule so the routine stuff happens without you lifting a finger';
+
+export const SCHEDULE_OPTIONS = ['Every morning at 9am', 'Every hour', 'Every weekday at 9am', 'Every Monday at 9am', 'Every day at noon', 'Every evening at 6pm', 'Every 30 minutes', 'Custom…'] as const;
+
+export const DEFAULT_SCHEDULE = 'Every morning at 9am';
+
+export const TASK_MODEL_DEFAULT = "Default (agent's model)";
+
+export const TASK_MODEL_OPTIONS = ['Primary · For everyday work and general reasoning', 'Coder · For complex, code-heavy or technical work', 'Fast · Fastest for quick, simple answers'] as const;
+
+export const TASK_CHANNEL_OPTIONS = ['Telegram', 'Slack'] as const;
+
+export const TASK_HEALTH_TABS = ['All', 'Needs you', 'Running', 'Healthy', 'Off'] as const;
+
+export const TASK_EMPTY_TABS = ['Needs you', 'Running', 'Healthy'] as const;
+
+export const TASK_SUMMARY_CARDS = ['Running now', 'Needs you', 'Next run', 'Ran clean'] as const;
+
+export const TASK_SHEET_TABS = ['Overview', 'Runs', 'Settings'] as const;
+
+export const TASK_RUN_FILTERS = ['All', 'Failed', 'Skipped', 'Not sent'] as const;
+
+export const TASK_LOG_FILTERS = ['Everything', 'Creation', 'Runs'] as const;
+
+export const TASK_SUGGESTIONS = ['Always include a summary and a total', 'Move it to 7am', 'Send it somewhere else', 'Tell me when a run takes a while'] as const;
+
+export const TASK_NO_MATCH_SEARCH = 'zzqq-no-such-task';
+
+export const TASK_RENAME_SUFFIX = ' renamed';
+
+export const TASK_TEMPLATE_WORDS = ['Goal', 'Context', 'Steps', 'Output'] as const;
+
+export const DEFAULT_SCHEDULE_LABEL = 'Every day at 9:00am';

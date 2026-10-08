@@ -1,10 +1,10 @@
 import { mergeTests } from '@playwright/test';
-import { newChatMessage, OWN_ASSISTANT, type ChatMessage } from '../datas/user/UserData';
+import { newChatMessage, newTask, OWN_ASSISTANT, type ChatMessage, type NewTask } from '../datas/user/UserData';
 import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -58,6 +58,36 @@ ${String(error)}
         contentType: 'text/plain',
       });
     }
+  }, { timeout: 60_000 }],
+
+  /**
+   * Deletes every QA-AUTO task left in Asta's Tasks list after the test.
+   * Teardown ladder rung 3 (UI delete): tasks have no API delete the suite can call. A failed
+   * cleanup is attached, never thrown.
+   */
+  taskCleanup: [async ({ userTasksPage }, use, testInfo) => {
+    await use();
+    try {
+      await userTasksPage.deleteAutomationTasks();
+    } catch (error) {
+      await testInfo.attach('task-not-deleted.txt', {
+        body: `A QA-AUTO task may be left in ${OWN_ASSISTANT.name}'s Tasks list after ${testInfo.title}:
+${String(error)}
+`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /**
+   * A task that already exists: created through the UI (no API seeding path) with Enabled
+   * switched off, so it never runs or sends to a channel; removed by taskCleanup.
+   */
+  createdTask: [async ({ taskCleanup, userTasksPage }, use) => {
+    const task = newTask();
+    await userTasksPage.open();
+    await userTasksPage.createTask(task);
+    await use(task);
   }, { timeout: 60_000 }],
 
   /**
