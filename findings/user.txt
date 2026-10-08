@@ -1,0 +1,22 @@
+Title: /chat/<id>/messaging: the channel switches and the per-channel model selects have no accessible name
+Type: accessibility
+Module: user-messaging
+Description: The four channel on/off switches and the two model selects expose no accessible name, so a screen reader announces an unnamed switch or combobox and tests must locate them by position or count.
+Steps to reproduce:
+  1. Sign in to https://dev.app.velaops.ai as a user and open Asta's Messaging section.
+  2. Inspect the accessibility tree for the WhatsApp, Telegram, Microsoft Teams and Slack switches and for the Telegram and Slack model selects.
+Actual result: role=switch and role=combobox with an empty name; the channel title and the Telegram/Slack label are separate plain text.
+Expected result: each switch is named for its channel and each select for the channel it configures.
+Confidence: high (observed in the accessibility snapshot)
+
+Title: /chat/<id>/messaging: Slack help text says "Click Connect to save" but only Disconnect is shown for a connected channel
+Type: UI
+Module: user-messaging
+Description: The Slack setup instructions end with "Click Connect to save." while the card of the connected Slack channel offers only a Disconnect button.
+Steps to reproduce:
+  1. Sign in as a user with Slack connected and open Asta's Messaging section.
+  2. Read the text under the Slack fields and look for a Connect button.
+Actual result: the text asks to click Connect; only Disconnect is visible (Connect was not seen; the switch for a disconnected channel was not toggled).
+Expected result: instructions that match the visible buttons, or a Connect/Save button when fields are edited.
+Confidence: low (the Connect button may appear only for a disconnected channel or an edited field)
+

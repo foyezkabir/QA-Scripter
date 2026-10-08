@@ -1,0 +1,92 @@
+{
+  "module": "User Messaging",
+  "route": "/chat/<assistant id>/messaging",
+  "createdAt": "2026-10-08",
+  "updatedAt": "2026-10-08",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Messaging",
+    "Connected channels",
+    "Model per channel"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "four channel cards; Telegram and Slack are connected, WhatsApp and Microsoft Teams are disconnected, and Model per channel lists Telegram and Slack" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page; a signed-out visit redirects to /auth/signin?callbackUrl=..." },
+    { "name": "connected", "reached": true, "how": "Telegram and Slack show Connected, a checked switch, masked credential fields and a Disconnect button" },
+    { "name": "disconnected", "reached": true, "how": "WhatsApp and Microsoft Teams show Disconnected, an unchecked switch and no credential fields" },
+    { "name": "disabled", "reached": false, "why": "no control on the page was disabled" },
+    { "name": "empty", "reached": false, "why": "needs every channel disconnected, which changes shared channel configuration; not forced" },
+    { "name": "loading", "reached": false, "why": "no loading indicator was seen; content renders once the page hydrates" },
+    { "name": "error", "reached": false, "why": "needs a bad token or a Connect attempt, which saves configuration; not triggered" },
+    { "name": "channel-enabling form", "reached": false, "why": "turning on a disconnected channel's switch changes configuration; the Connect button and fields for WhatsApp and Teams are not captured" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Bot token", "type": "textbox", "region": "Telegram card", "state": "password input, masked, placeholder 123456:ABC-..." },
+    { "label": "Allowed Telegram user IDs (comma-separated)", "type": "textbox", "region": "Telegram card", "state": "placeholder e.g. 8300623867" },
+    { "label": "Bot token (xoxb-…)", "type": "textbox", "region": "Slack card", "state": "password input, masked, placeholder xoxb-..." },
+    { "label": "App-level token (xapp-…)", "type": "textbox", "region": "Slack card", "state": "password input, masked, placeholder xapp-..." },
+    { "label": "Allowed Slack user IDs (comma-separated)", "type": "textbox", "region": "Slack card", "state": "placeholder e.g. U0123ABCD" },
+    { "label": "Telegram model", "type": "combobox", "region": "Model per channel", "state": "native select with no accessible name; changing it is NOT done" },
+    { "label": "Slack model", "type": "combobox", "region": "Model per channel", "state": "native select with no accessible name; changing it is NOT done" },
+    { "label": "Search in chat", "type": "textbox", "region": "sidebar", "state": "shell control, covered by the chat module" }
+  ],
+  "actions": [
+    { "role": "switch", "name": "WhatsApp channel switch", "region": "WhatsApp card", "state": "unchecked, no accessible name; NOT clicked" },
+    { "role": "switch", "name": "Telegram channel switch", "region": "Telegram card", "state": "checked, no accessible name; NOT clicked" },
+    { "role": "switch", "name": "Microsoft Teams channel switch", "region": "Teams card", "state": "unchecked, no accessible name; NOT clicked" },
+    { "role": "switch", "name": "Slack channel switch", "region": "Slack card", "state": "checked, no accessible name; NOT clicked" },
+    { "role": "button", "name": "Disconnect", "region": "Telegram card and Slack card", "state": "disconnects a live channel; NOT clicked" },
+    { "role": "link", "name": "Slack app", "region": "Slack card help text", "state": "external docs link; NOT followed" },
+    { "role": "link", "name": "Messaging", "region": "Agent sections", "href": "/chat/<id>/messaging" },
+    { "role": "button", "name": "Back", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "New Chat", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Open command palette", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "All", "region": "sidebar filter", "state": "shell control" },
+    { "role": "button", "name": "Chats", "region": "sidebar filter", "state": "shell control" },
+    { "role": "button", "name": "Projects", "region": "sidebar filter", "state": "shell control" },
+    { "role": "button", "name": "CRM", "region": "sidebar filter", "state": "shell control" },
+    { "role": "button", "name": "Filter chats by time", "region": "sidebar", "opens": { "items": ["Recent", "All chats", "Pick a date"] }, "state": "shell control, covered by the chat module" },
+    { "role": "button", "name": "Team Spaces", "region": "sidebar section", "state": "expanded; shell control" },
+    { "role": "button", "name": "Recents", "region": "sidebar section", "state": "expanded; shell control" },
+    { "role": "button", "name": "View all", "region": "sidebar sections", "state": "shell control" },
+    { "role": "button (row menu)", "name": "More options", "region": "conversation row", "opens": { "items": ["Rename", "Pin", "Move to project", "Delete chat"] }, "state": "shell control, covered by the chat module" },
+    { "role": "button", "name": "Switch agent", "region": "sidebar footer", "state": "shell control, covered by the chat module" },
+    { "role": "button", "name": "Notifications", "region": "sidebar footer", "state": "shell control" },
+    { "role": "button", "name": "Settings", "region": "sidebar footer", "state": "shell control" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Talk to your agent from anywhere. Connect a channel to start sending and receiving messages.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Receive and respond to customer messages via your own WhatsApp number.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Chat with customers via Telegram bot.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Receive @-mentions and DMs via a registered Azure Bot (Bot Framework).", "role": "none (plain text)" },
+    { "kind": "info", "text": "Receive @-mentions and DMs via a Slack app in Socket Mode.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Numeric Telegram user IDs only - the bot ignores everyone else. Leave empty to lock to you automatically once you first message the bot.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Slack user IDs only - the bot ignores everyone else. Leave empty to lock to you automatically once you first message the bot.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Create a Slack app with Socket Mode enabled. Make sure to create the slack app with \"App Manifest (JSON)\", then copy its Bot User OAuth token (xoxb-…) and an App-level token (xapp-…, scope connections:write) into the fields above. Click Connect to save.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Each channel replies on a fast model by default so responses stay snappy. Override a channel to a specific model - including any connected DeepSeek / Claude / OpenAI model. Flagship models reply more slowly on channels.", "role": "none (plain text)" },
+    { "kind": "info", "text": "slower replies", "role": "none (plain text)" },
+    { "kind": "status", "text": "Disconnected", "role": "none (plain text)" },
+    { "kind": "status", "text": "Connected", "role": "none (plain text)" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    { "trigger": "Telegram model", "opens": { "items": ["Fast (recommended)", "Primary", "Coder", "Fast", "DeepSeek V4.1 Flash", "DeepSeek V4 Pro", "GPT-5.6 Sol", "GPT-5.6 Terra", "GPT-5.6 Luna"] } },
+    { "trigger": "Slack model", "opens": { "items": ["Fast (recommended)", "Primary", "Coder", "Fast", "DeepSeek V4.1 Flash", "DeepSeek V4 Pro", "GPT-5.6 Sol", "GPT-5.6 Terra", "GPT-5.6 Luna"] } }
+  ],
+  "findings": [
+    "the four channel switches and both model selects have no accessible name",
+    "the Slack help text says Click Connect to save while only Disconnect is shown"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog opens from any control on the page that was safe to click; Disconnect and the switches change configuration and were not clicked" },
+    { "surface": "views", "how": "the page is a single view; the other agent sections are separate modules" }
+  ],
+  "changelog": [
+    { "date": "2026-10-08", "note": "Initial capture as user 1 on Asta. The connected bot name, tokens, model prices and the conversation list are live data and never asserted. Nothing was clicked, switched or saved." }
+  ]
+}
