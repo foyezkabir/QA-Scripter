@@ -14,6 +14,7 @@ import { SessionPage } from '../pages/SessionPage';
 import { SignInPage } from '../pages/SignInPage';
 import { SignUpPage } from '../pages/SignUpPage';
 import { UserHomePage } from '../pages/UserHomePage';
+import { UserShellPage } from '../pages/UserShellPage';
 import { VerifyEmailPage } from '../pages/VerifyEmailPage';
 
 export const test = base.extend<{
@@ -33,7 +34,11 @@ export const test = base.extend<{
   adminAuditLogPage: AdminAuditLogPage;
   adminFeedbackPage: AdminFeedbackPage;
   userHomePage: UserHomePage;
+  userShellPage: UserShellPage;
 }>({
+  userShellPage: async ({ page }, use) => {
+    await use(new UserShellPage(page));
+  },
   userHomePage: async ({ page }, use) => {
     await use(new UserHomePage(page));
   },
