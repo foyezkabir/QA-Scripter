@@ -171,3 +171,28 @@ export const TOOLS_WITH_PERMISSION = ['Google Calendar', 'Gmail', 'Google Drive'
 export const TOOL_SEARCH = { partName: 'git', match: 'GitHub', other: 'Gmail', nothing: 'zzqq-no-such-tool' } as const;
 
 export const TOOLS_INTRO = 'Connect the apps you already use so your assistant can do the work for you.';
+
+export type NewSkill = { name: string; category: string; whenToUse: string; steps: string };
+
+export const newSkill = (): NewSkill => ({
+  name: DataHelper.unique('Skill'),
+  category: 'QA-AUTO',
+  whenToUse: 'Use this skill when an automated test needs a placeholder skill.',
+  steps: '1. Do nothing.\n2. Report that nothing was done.',
+});
+
+export const SKILLS_SUBTITLE = 'Save the things you have taught your assistant so it can repeat them anytime you ask';
+
+export const SKILL_TABS = ['Browse', 'Installed', 'Custom'] as const;
+
+export const SKILL_SOURCE_FILTERS = ['All', 'VelaCrew', 'Anthropic', 'GitHub'] as const;
+
+export const INSTALLED_SKILLS = ['data-visualization', 'file-sharing', 'image-creation', 'memory-purge', 'pdf', 'space-collab'] as const;
+
+export const SKILL_NO_MATCH_SEARCH = 'zzqq-no-such-skill';
+
+export const NOT_INSTALLED_SKILL = 'Academy Guide';
+
+export const BUILT_IN_SKILL = { name: 'data-visualization', byline: /v1\.0\.0.*by VelaCrew.*Apache-2\.0/ } as const;
+
+export const CUSTOM_SKILL_BYLINE = /v1\.0\.0.*by User/;

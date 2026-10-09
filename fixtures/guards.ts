@@ -1,10 +1,10 @@
 import { mergeTests } from '@playwright/test';
-import { newChatMessage, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewTask } from '../datas/user/UserData';
+import { newChatMessage, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewSkill, type NewTask } from '../datas/user/UserData';
 import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -144,6 +144,34 @@ ${String(error)}
     await userWorkspacePage.openAdvancedView();
     await userWorkspacePage.createFolder(folderName);
     await use(folderName);
+  }, { timeout: 60_000 }],
+
+  /**
+   * Removes every QA-AUTO custom skill left in Asta's Skills list after the test.
+   * Teardown ladder rung 3 (UI delete): skills have no API delete the suite can call. A failed
+   * cleanup is attached, never thrown.
+   */
+  skillCleanup: [async ({ userSkillsPage }, use, testInfo) => {
+    await use();
+    try {
+      await userSkillsPage.removeAutomationSkills();
+    } catch (error) {
+      await testInfo.attach('skill-not-removed.txt', {
+        body: `A QA-AUTO skill may be left in ${OWN_ASSISTANT.name}'s Skills list after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /**
+   * A custom skill that already exists: created through Create Skill (no API seeding path);
+   * removed by skillCleanup.
+   */
+  createdSkill: [async ({ skillCleanup, userSkillsPage }, use) => {
+    const skill = newSkill();
+    await userSkillsPage.open();
+    await userSkillsPage.createSkill(skill);
+    await use(skill);
   }, { timeout: 60_000 }],
 
   /**
