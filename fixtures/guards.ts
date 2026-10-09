@@ -1,10 +1,10 @@
 import { mergeTests } from '@playwright/test';
-import { newChatMessage, newProjectName, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewSkill, type NewTask } from '../datas/user/UserData';
+import { newChatMessage, newDashboardName, newMember, newPerson, newProjectName, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewMember, type NewPerson, type NewSkill, type NewTask } from '../datas/user/UserData';
 import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string; crmCleanup: void; createdPerson: NewPerson; createdMember: NewMember; createdDashboard: string }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -200,6 +200,50 @@ ${String(error)}
     await userProjectsPage.open();
     await userProjectsPage.createProject(projectName);
     await use(projectName);
+  }, { timeout: 60_000 }],
+
+  /**
+   * Removes every QA-AUTO person, team member and dashboard left in Asta's CRM and deletes
+   * their trash rows forever. Teardown ladder rung 3 (UI delete): the CRM has no API delete the
+   * suite can call. A failed cleanup is attached, never thrown.
+   */
+  crmCleanup: [async ({ userCrmPage }, use, testInfo) => {
+    await use();
+    try {
+      await userCrmPage.removeAutomationRecords();
+    } catch (error) {
+      await testInfo.attach('crm-not-deleted.txt', {
+        body: `A QA-AUTO record may be left in ${OWN_ASSISTANT.name}'s CRM after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /** A person that already exists: created through New (no API seeding path); removed by crmCleanup. */
+  createdPerson: [async ({ crmCleanup, userCrmPage }, use) => {
+    const person = newPerson();
+    await userCrmPage.openWorkspace();
+    await userCrmPage.chooseTab('People');
+    await userCrmPage.createPerson(person);
+    await use(person);
+  }, { timeout: 60_000 }],
+
+  /** A team member that already exists: added through Add person; removed by crmCleanup. */
+  createdMember: [async ({ crmCleanup, userCrmPage }, use) => {
+    const member = newMember();
+    await userCrmPage.openWorkspace();
+    await userCrmPage.chooseTab('Team');
+    await userCrmPage.addMember(member);
+    await use(member);
+  }, { timeout: 60_000 }],
+
+  /** A dashboard that already exists: created through New dashboard; removed by crmCleanup. */
+  createdDashboard: [async ({ crmCleanup, userCrmPage }, use) => {
+    const dashboardName = newDashboardName();
+    await userCrmPage.openWorkspace();
+    await userCrmPage.chooseTab('Dashboards');
+    await userCrmPage.createDashboard(dashboardName);
+    await use(dashboardName);
   }, { timeout: 60_000 }],
 
   /**

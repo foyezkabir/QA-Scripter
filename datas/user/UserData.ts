@@ -206,3 +206,40 @@ export const PROJECT_TOASTS = {
 } as const;
 
 export const PROJECT_RENAME_SUFFIX = ' renamed';
+
+export type NewPerson = { first: string; last: string; name: string };
+
+export const newPerson = (): NewPerson => {
+  const last = `Person-${DataHelper.uid()}`;
+  return { first: 'QA-AUTO', last, name: `QA-AUTO ${last}` };
+};
+
+export type NewMember = { name: string; email: string };
+
+export const newMember = (): NewMember => ({ name: DataHelper.unique('Member'), email: DataHelper.email('example.test') });
+
+export const newDashboardName = () => DataHelper.unique('Dashboard');
+
+export const CRM_SUBTITLE = 'Your book of business in one place, so your assistant always knows who matters and what is at risk';
+
+export const CRM_TABS = ['Dashboards', 'Companies', 'People', 'Opportunities', 'Notes', 'Tasks', 'Team', 'Setup'] as const;
+
+export const DASHBOARD_WIDGETS = ['Open pipeline', 'Open opportunities', 'Won', 'Overdue tasks', 'Six checks'] as const;
+
+export const CRM_TABLES = {
+  Companies: { search: 'Search companies', chips: ['Has open opportunity', 'Dark over 30d', 'Single-threaded'], columns: ['Name', 'Domain', 'Revenue', 'Account owner', 'Location', 'Last contact', 'Contacts', 'Open opportunities', 'Open value'] },
+  People: { search: 'Search people', chips: ['Owes us a reply', 'Never replied', 'Exec level'], columns: ['Name', 'Job title', 'Email', 'Company', 'They last replied', 'We last wrote', 'Reply debt'] },
+  Opportunities: { search: 'Search opportunities', chips: ['Open only', '2+ risk signals', 'Dark over 30d', 'Close date passed', 'Closing in 30 days', 'Single-threaded'], columns: ['Opportunity', 'Stage', 'Amount', 'Close date', 'Company', 'Point of contact', 'Owner', 'Days to close', 'Since contact'] },
+  Notes: { search: 'Search notes', chips: ['Last 14 days', 'About a deal'], columns: ['Title', 'About', 'Body', 'Written'] },
+  Tasks: { search: 'Search tasks', chips: ['Not done', 'Overdue', 'Due this week'], columns: ['Task', 'Status', 'Due', 'Timing', 'Assignee', 'About'] },
+} as const;
+
+export const CRM_TAB_MENU = ['Companies', 'People', 'Opportunities', 'Notes', 'Tasks', 'Team'] as const;
+
+export const COLUMN_MENU = ['Sort ascending', 'Sort descending', 'Move left', 'Move right', 'Hide column'] as const;
+
+export const PERSON_EDIT_BUTTONS = ['Edit Name', 'Edit Email', 'Edit Phone', 'Edit Job title', 'Edit LinkedIn', 'Edit Company'] as const;
+
+export const PERSON_JOB_TITLE = 'QA Automation Lead';
+
+export const CRM_EMPTY_NAME_ERROR = 'Name cannot be empty.';
