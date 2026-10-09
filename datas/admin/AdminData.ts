@@ -131,7 +131,7 @@ export const SUSPEND_DEFAULT_REASON = 'Violation of terms of service';
 
 export const noSuchUser = (): string => DataHelper.unique('NoSuchUser');
 
-export const AUDIT_REQUEST = /\/api\/admin\/audit-log/;
+export const AUDIT_REQUEST = /\/api\/admin-proxy\/admin\/audit-log/;
 
 export const AUDIT_ACTIONS = ['All Actions', 'Provision', 'Deploy', 'Stop', 'Start', 'Reprovision', 'Delete'] as const;
 
@@ -139,6 +139,6 @@ export const AUDIT_COLUMNS = ['Timestamp', 'Action', 'Agent', 'Details'] as cons
 
 export const AUDIT_ERROR_MESSAGE = 'Audit log is unavailable';
 
-export const FEEDBACK_REQUEST = /\/api\/admin\/feedback-/;
+export const FEEDBACK_REQUEST = /\/api\/admin-proxy\/admin\/feedback-/;
 
 export const FEEDBACK_ERROR_MESSAGE = 'Feedback is unavailable';
