@@ -1,10 +1,10 @@
 import { mergeTests } from '@playwright/test';
-import { newChatMessage, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewSkill, type NewTask } from '../datas/user/UserData';
+import { newChatMessage, newProjectName, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewSkill, type NewTask } from '../datas/user/UserData';
 import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -172,6 +172,34 @@ ${String(error)}
     await userSkillsPage.open();
     await userSkillsPage.createSkill(skill);
     await use(skill);
+  }, { timeout: 60_000 }],
+
+  /**
+   * Puts away every QA-AUTO project left in Asta's Projects (active, archived or in the trash)
+   * and deletes it forever. Teardown ladder rung 3 (UI delete): projects have no API delete the
+   * suite can call. A failed cleanup is attached, never thrown.
+   */
+  projectCleanup: [async ({ userProjectsPage }, use, testInfo) => {
+    await use();
+    try {
+      await userProjectsPage.removeAutomationProjects();
+    } catch (error) {
+      await testInfo.attach('project-not-deleted.txt', {
+        body: `A QA-AUTO project may be left in ${OWN_ASSISTANT.name}'s Projects after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /**
+   * A project that already exists: created through New Project (no API seeding path); removed by
+   * projectCleanup.
+   */
+  createdProject: [async ({ projectCleanup, userProjectsPage }, use) => {
+    const projectName = newProjectName();
+    await userProjectsPage.open();
+    await userProjectsPage.createProject(projectName);
+    await use(projectName);
   }, { timeout: 60_000 }],
 
   /**

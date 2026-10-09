@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { CREATE_PROJECT_EDITOR_BUTTONS, OWN_ASSISTANT, PROJECT_KINDS, PROJECT_SORT_OPTIONS } from '../datas/user/UserData';
+import { CREATE_PROJECT_EDITOR_BUTTONS, OWN_ASSISTANT, PROJECT_KINDS, PROJECT_SORT_OPTIONS, PROJECT_TOASTS } from '../datas/user/UserData';
 import { HydrationHelper } from '../helpers/HydrationHelper';
 import { UserProjectsLocators } from '../locators/UserProjectsLocators';
 
@@ -219,6 +219,184 @@ export class UserProjectsPage {
 
   async expectHulyDialog() {
     await this.expectImportDialog(this.locators.hulyDialog, 'Huly');
+  }
+
+  async saveProject() {
+    await this.locators.dialogButton(this.locators.createDialog, 'Save').click();
+  }
+
+  async createProject(projectName: string) {
+    await this.openNewProjectDialog();
+    await this.typeProjectName(projectName);
+    await this.saveProject();
+    await this.locators.createDialog.waitFor({ state: 'hidden' });
+    await this.locators.projectLinkNamed(projectName).waitFor();
+  }
+
+  async openSettingsOf(projectName: string) {
+    await this.locators.cardEditButton(projectName).click();
+    await expect(this.locators.settingsDialog).toBeVisible();
+  }
+
+  async renameProjectTo(newName: string) {
+    await this.locators.dialogField(this.locators.settingsDialog, 'Project Name').fill(newName);
+  }
+
+  async saveSettings() {
+    await this.locators.dialogButton(this.locators.settingsDialog, 'Save').click();
+  }
+
+  async clickArchive() {
+    await this.locators.dialogButton(this.locators.settingsDialog, 'Archive').click();
+  }
+
+  async clickMoveToTrash() {
+    await this.locators.dialogButton(this.locators.settingsDialog, 'Move to Trash').click();
+  }
+
+  async confirmArchive(projectName: string) {
+    await this.locators.confirmButton(this.locators.archiveDialog(projectName), 'Yes, archive it').click();
+  }
+
+  async cancelArchive(projectName: string) {
+    await this.locators.confirmButton(this.locators.archiveDialog(projectName), 'Cancel').click();
+  }
+
+  async confirmMoveToTrash(projectName: string) {
+    await this.locators.confirmButton(this.locators.trashConfirmDialog(projectName), 'Move to trash').click();
+  }
+
+  async cancelMoveToTrash(projectName: string) {
+    await this.locators.confirmButton(this.locators.trashConfirmDialog(projectName), 'Cancel').click();
+  }
+
+  async chooseArchivedTab() {
+    await this.locators.archivedTab.click();
+  }
+
+  async clickRestore(projectName: string) {
+    await this.locators.restoreButton(projectName).click();
+  }
+
+  async confirmRestore(projectName: string) {
+    await this.locators.confirmButton(this.locators.restoreDialog(projectName), 'Yes, restore').click();
+  }
+
+  async clickDeleteForever(projectName: string) {
+    await this.locators.deleteForeverButton(projectName).click();
+  }
+
+  async keepProject(projectName: string) {
+    await this.locators.confirmButton(this.locators.deleteForeverDialog(projectName), 'Keep it').click();
+  }
+
+  async confirmDeleteForever(projectName: string) {
+    await this.locators.confirmButton(this.locators.deleteForeverDialog(projectName), 'Yes, delete').click();
+  }
+
+  async removeAutomationProjects() {
+    await this.open();
+    while ((await this.locators.automationCards.count()) > 0) {
+      const before = await this.locators.automationCards.count();
+      await this.locators.firstAutomationEdit.click();
+      await this.clickMoveToTrash();
+      await this.locators.dialogButton(this.locators.topDialog, 'Move to trash').click();
+      await expect(this.locators.automationCards).toHaveCount(before - 1);
+    }
+    await this.openTrashDialog();
+    await this.chooseArchivedTab();
+    while ((await this.locators.automationArchivedRows.count()) > 0) {
+      const before = await this.locators.automationArchivedRows.count();
+      await this.locators.firstAutomationArchived.click();
+      await expect(this.locators.automationArchivedRows).toHaveCount(before - 1);
+    }
+    await this.chooseTrashTab();
+    while ((await this.locators.automationDeleteButtons.count()) > 0) {
+      const before = await this.locators.automationDeleteButtons.count();
+      await this.locators.firstAutomationDelete.click();
+      await this.locators.confirmButton(this.locators.topDialog, 'Yes, delete').click();
+      await expect(this.locators.automationDeleteButtons).toHaveCount(before - 1);
+    }
+  }
+
+  async expectProjectCreated(projectName: string) {
+    await expect(this.locators.toast(PROJECT_TOASTS.created)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(projectName)).toBeVisible();
+  }
+
+  async expectNewProjectCard(projectName: string) {
+    await expect(this.locators.projectLinkNamed(projectName)).toBeVisible();
+    await expect(this.locators.cardText(projectName, 'Last updated')).toBeVisible();
+    await expect(this.locators.cardText(projectName, '0 of 0 milestones done')).toBeVisible();
+    await expect(this.locators.cardText(projectName, 'No milestones planned yet')).toBeVisible();
+  }
+
+  async expectProjectRenamed(newName: string) {
+    await expect(this.locators.toast(PROJECT_TOASTS.updated)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(newName)).toBeVisible();
+  }
+
+  async expectArchiveConfirmation(projectName: string) {
+    await expect(this.locators.archiveDialog(projectName)).toBeVisible();
+    await expect(this.locators.archiveWarning(projectName)).toBeVisible();
+    await expect(this.locators.confirmButton(this.locators.archiveDialog(projectName), 'Cancel')).toBeVisible();
+    await expect(this.locators.confirmButton(this.locators.archiveDialog(projectName), 'Yes, archive it')).toBeVisible();
+  }
+
+  async expectProjectIsStillListed(projectName: string) {
+    await expect(this.locators.projectLinkNamed(projectName)).toBeVisible();
+  }
+
+  async expectProjectIsArchived(projectName: string) {
+    await expect(this.locators.toast(PROJECT_TOASTS.archived)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(projectName)).toHaveCount(0);
+  }
+
+  async expectArchivedRow(projectName: string) {
+    await expect(this.locators.archivedRowText(projectName)).toBeVisible();
+    await expect(this.locators.archivedMeta).toBeVisible();
+    await expect(this.locators.restoreButton(projectName)).toBeVisible();
+    await expect(this.locators.moveToTrashButton(projectName)).toBeVisible();
+  }
+
+  async expectRestoreConfirmation(projectName: string) {
+    await expect(this.locators.restoreDialog(projectName)).toBeVisible();
+    await expect(this.locators.restoreWarning(projectName)).toBeVisible();
+  }
+
+  async expectProjectIsBack(projectName: string) {
+    await expect(this.locators.restoreDialog(projectName)).toBeHidden();
+    await expect(this.locators.toast(`Restored "${projectName}"`)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(projectName)).toBeVisible();
+  }
+
+  async expectTrashConfirmation(projectName: string) {
+    await expect(this.locators.trashConfirmDialog(projectName)).toBeVisible();
+    await expect(this.locators.trashWarning(projectName)).toBeVisible();
+  }
+
+  async expectProjectIsTrashed(projectName: string) {
+    await expect(this.locators.toast(PROJECT_TOASTS.trashed)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(projectName)).toHaveCount(0);
+  }
+
+  async expectTrashedRow(projectName: string) {
+    await expect(this.locators.deleteForeverButton(projectName)).toBeVisible();
+  }
+
+  async expectDeleteForeverConfirmation(projectName: string) {
+    await expect(this.locators.deleteForeverDialog(projectName)).toBeVisible();
+    await expect(this.locators.deleteForeverWarning(projectName)).toBeVisible();
+  }
+
+  async expectTrashedProjectIsKept(projectName: string) {
+    await expect(this.locators.deleteForeverDialog(projectName)).toBeHidden();
+    await expect(this.locators.deleteForeverButton(projectName)).toBeVisible();
+  }
+
+  async expectProjectIsDeleted(projectName: string) {
+    await expect(this.locators.toast(PROJECT_TOASTS.deleted)).toBeVisible();
+    await expect(this.locators.deleteForeverButton(projectName)).toHaveCount(0);
   }
 
   private async expectImportDialog(dialog: ReturnType<Page['getByRole']>, trackerName: string) {

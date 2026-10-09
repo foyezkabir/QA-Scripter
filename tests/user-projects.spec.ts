@@ -1,5 +1,7 @@
 import { test } from '../fixtures/base';
-import { NO_MATCH_SEARCH, newProjectName } from '../datas/user/UserData';
+import { NO_MATCH_SEARCH, newProjectName, PROJECT_RENAME_SUFFIX } from '../datas/user/UserData';
+
+test.describe.configure({ mode: 'default', timeout: 60_000 });
 
 test('TC-01: Verify that the Projects page shows its heading, toolbar, search and sort', { tag: ['@smoke'] }, async ({ userProjectsPage }) => {
   await userProjectsPage.open();
@@ -114,4 +116,99 @@ test('TC-18: Verify that Import from Huly opens with its description, search, ch
   await userProjectsPage.open();
   await userProjectsPage.openHulyDialog();
   await userProjectsPage.expectHulyDialog();
+});
+
+test('TC-19: Verify that saving a new project shows the created toast and lists the project', { tag: ['@critical'] }, async ({ userProjectsPage, projectCleanup }) => {
+  const projectName = newProjectName();
+  await userProjectsPage.open();
+  await userProjectsPage.openNewProjectDialog();
+  await userProjectsPage.typeProjectName(projectName);
+  await userProjectsPage.saveProject();
+  await userProjectsPage.expectProjectCreated(projectName);
+});
+
+test('TC-20: Verify that a new project card shows its date and empty milestones', { tag: ['@regression'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.expectNewProjectCard(createdProject);
+});
+
+test('TC-21: Verify that renaming a project in Project Settings shows the updated toast and the new name', { tag: ['@critical'] }, async ({ userProjectsPage, createdProject }) => {
+  const renamed = createdProject + PROJECT_RENAME_SUFFIX;
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.renameProjectTo(renamed);
+  await userProjectsPage.saveSettings();
+  await userProjectsPage.expectProjectRenamed(renamed);
+});
+
+test('TC-22: Verify that Archive asks for confirmation and Cancel keeps the project listed', { tag: ['@regression'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickArchive();
+  await userProjectsPage.expectArchiveConfirmation(createdProject);
+  await userProjectsPage.cancelArchive(createdProject);
+  await userProjectsPage.cancelProjectSettings();
+  await userProjectsPage.expectProjectIsStillListed(createdProject);
+});
+
+test('TC-23: Verify that Yes, archive it archives the project and Trash & Archive lists it under Archived', { tag: ['@critical'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickArchive();
+  await userProjectsPage.confirmArchive(createdProject);
+  await userProjectsPage.expectProjectIsArchived(createdProject);
+  await userProjectsPage.openTrashDialog();
+  await userProjectsPage.chooseArchivedTab();
+  await userProjectsPage.expectArchivedRow(createdProject);
+});
+
+test('TC-24: Verify that Restore asks for confirmation and Yes, restore brings the project back', { tag: ['@critical'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickArchive();
+  await userProjectsPage.confirmArchive(createdProject);
+  await userProjectsPage.expectProjectIsArchived(createdProject);
+  await userProjectsPage.openTrashDialog();
+  await userProjectsPage.chooseArchivedTab();
+  await userProjectsPage.clickRestore(createdProject);
+  await userProjectsPage.expectRestoreConfirmation(createdProject);
+  await userProjectsPage.confirmRestore(createdProject);
+  await userProjectsPage.expectProjectIsBack(createdProject);
+});
+
+test('TC-25: Verify that Move to Trash asks for confirmation and Cancel keeps the project listed', { tag: ['@regression'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickMoveToTrash();
+  await userProjectsPage.expectTrashConfirmation(createdProject);
+  await userProjectsPage.cancelMoveToTrash(createdProject);
+  await userProjectsPage.cancelProjectSettings();
+  await userProjectsPage.expectProjectIsStillListed(createdProject);
+});
+
+test('TC-26: Verify that Move to trash puts the project in the trash and shows a toast', { tag: ['@critical'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickMoveToTrash();
+  await userProjectsPage.confirmMoveToTrash(createdProject);
+  await userProjectsPage.expectProjectIsTrashed(createdProject);
+  await userProjectsPage.openTrashDialog();
+  await userProjectsPage.chooseTrashTab();
+  await userProjectsPage.expectTrashedRow(createdProject);
+});
+
+test('TC-27: Verify that Delete forever asks for confirmation and Keep it leaves the project in the trash', { tag: ['@regression'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickMoveToTrash();
+  await userProjectsPage.confirmMoveToTrash(createdProject);
+  await userProjectsPage.openTrashDialog();
+  await userProjectsPage.chooseTrashTab();
+  await userProjectsPage.clickDeleteForever(createdProject);
+  await userProjectsPage.expectDeleteForeverConfirmation(createdProject);
+  await userProjectsPage.keepProject(createdProject);
+  await userProjectsPage.expectTrashedProjectIsKept(createdProject);
+});
+
+test('TC-28: Verify that Yes, delete deletes the trashed project forever and shows a toast', { tag: ['@critical'] }, async ({ userProjectsPage, createdProject }) => {
+  await userProjectsPage.openSettingsOf(createdProject);
+  await userProjectsPage.clickMoveToTrash();
+  await userProjectsPage.confirmMoveToTrash(createdProject);
+  await userProjectsPage.openTrashDialog();
+  await userProjectsPage.chooseTrashTab();
+  await userProjectsPage.clickDeleteForever(createdProject);
+  await userProjectsPage.confirmDeleteForever(createdProject);
+  await userProjectsPage.expectProjectIsDeleted(createdProject);
 });

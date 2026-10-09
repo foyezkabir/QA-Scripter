@@ -196,3 +196,13 @@ export const NOT_INSTALLED_SKILL = 'Academy Guide';
 export const BUILT_IN_SKILL = { name: 'data-visualization', byline: /v1\.0\.0.*by VelaCrew.*Apache-2\.0/ } as const;
 
 export const CUSTOM_SKILL_BYLINE = /v1\.0\.0.*by User/;
+
+export const PROJECT_TOASTS = {
+  created: 'Project created successfully',
+  updated: 'Project updated successfully',
+  archived: 'Project archived',
+  trashed: 'Project moved to trash',
+  deleted: 'Project permanently deleted',
+} as const;
+
+export const PROJECT_RENAME_SUFFIX = ' renamed';
