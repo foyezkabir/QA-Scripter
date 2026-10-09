@@ -22,155 +22,870 @@
     "Board settings"
   ],
   "tabs": [
-    { "name": "Overview", "region": "Project dashboard", "state": "selected by default; no tab parameter in the URL" },
-    { "name": "Board (0)", "region": "Project dashboard", "state": "?tab=board; the count is live" },
-    { "name": "Progress (0%)", "region": "Project dashboard", "state": "?tab=progress; the percentage is live" },
-    { "name": "Risks", "region": "Project dashboard", "state": "?tab=risks" },
-    { "name": "Digest", "region": "Project dashboard", "state": "?tab=digest" },
-    { "name": "People", "region": "Project dashboard", "state": "?tab=people" },
-    { "name": "Budget", "region": "Project dashboard", "state": "?tab=budget" },
-    { "name": "Columns", "region": "Board settings dialog" },
-    { "name": "Rules", "region": "Board settings dialog" },
-    { "name": "Priorities", "region": "Board settings dialog" },
-    { "name": "Labels", "region": "Board settings dialog" },
-    { "name": "Rounds", "region": "Board settings dialog" }
+    {
+      "name": "Overview",
+      "region": "Project dashboard",
+      "state": "selected by default; no tab parameter in the URL"
+    },
+    {
+      "name": "Board (0)",
+      "region": "Project dashboard",
+      "state": "?tab=board; the count is live"
+    },
+    {
+      "name": "Progress (0%)",
+      "region": "Project dashboard",
+      "state": "?tab=progress; the percentage is live"
+    },
+    {
+      "name": "Risks",
+      "region": "Project dashboard",
+      "state": "?tab=risks"
+    },
+    {
+      "name": "Digest",
+      "region": "Project dashboard",
+      "state": "?tab=digest"
+    },
+    {
+      "name": "People",
+      "region": "Project dashboard",
+      "state": "?tab=people"
+    },
+    {
+      "name": "Budget",
+      "region": "Project dashboard",
+      "state": "?tab=budget"
+    },
+    {
+      "name": "Columns",
+      "region": "Board settings dialog"
+    },
+    {
+      "name": "Rules",
+      "region": "Board settings dialog"
+    },
+    {
+      "name": "Priorities",
+      "region": "Board settings dialog"
+    },
+    {
+      "name": "Labels",
+      "region": "Board settings dialog"
+    },
+    {
+      "name": "Rounds",
+      "region": "Board settings dialog"
+    }
   ],
   "states": [
-    { "name": "populated", "reached": true, "how": "Overview shows tiles, People on task and Latest activity; People shows the load and the work nobody owns" },
-    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the project" },
-    { "name": "empty", "reached": true, "how": "Risks shows 'Nothing needs attention.', Digest shows 'No digest yet', Budget shows 'No budget yet', 'No time logged yet.' and 'No costs decided yet.', Progress shows 'Nothing has been finished yet.', Labels shows 'No labels yet.'" },
-    { "name": "disabled", "reached": true, "how": "Send message is disabled while the composer is empty; Create task is disabled until Title is filled; Save view is disabled until a view name is typed; Add column and New label are disabled until a name is typed" },
-    { "name": "filtered", "reached": true, "how": "the Board tab shows '9 tasks hidden by This round' with Show all" },
-    { "name": "loading", "reached": false, "why": "no loading indicator was seen" },
-    { "name": "error", "reached": false, "why": "no failing request can be triggered read-only" },
-    { "name": "terminal", "reached": false, "why": "task creation, board changes, rounds and digest or budget actions change shared project data and are never clicked" }
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "Overview shows tiles, People on task and Latest activity; People shows the load and the work nobody owns"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "the saved user-1 session opens the project"
+    },
+    {
+      "name": "empty",
+      "reached": true,
+      "how": "Risks shows 'Nothing needs attention.', Digest shows 'No digest yet', Budget shows 'No budget yet', 'No time logged yet.' and 'No costs decided yet.', Progress shows 'Nothing has been finished yet.', Labels shows 'No labels yet.'"
+    },
+    {
+      "name": "disabled",
+      "reached": true,
+      "how": "Send message is disabled while the composer is empty; Create task is disabled until Title is filled; Save view is disabled until a view name is typed; Add column and New label are disabled until a name is typed"
+    },
+    {
+      "name": "filtered",
+      "reached": true,
+      "how": "the Board tab shows '9 tasks hidden by This round' with Show all"
+    },
+    {
+      "name": "loading",
+      "reached": false,
+      "why": "no loading indicator was seen"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "no failing request can be triggered read-only"
+    },
+    {
+      "name": "terminal",
+      "reached": false,
+      "why": "task creation, board changes, rounds and digest or budget actions change shared project data and are never clicked"
+    },
+    {
+      "name": "team-project-created",
+      "reached": true,
+      "how": "a QA-AUTO Team project shows the toast 'Team project created. Open the dashboard to see the board.' and opens with 'No round of work is running yet' and Start the first round"
+    },
+    {
+      "name": "task-created",
+      "reached": true,
+      "how": "Create task with a Title closes the form with no toast; the board says '1 task hidden by This round' and Show all reveals the card"
+    }
   ],
   "tables": [],
   "fields": [
-    { "label": "Type a message…", "type": "textbox", "region": "project chat pane", "state": "NOT typed into: sending spends the assistant's budget" },
-    { "label": "Search the cards on this board", "type": "searchbox", "region": "Board toolbar", "state": "NOT typed into" },
-    { "label": "View name", "type": "textbox", "region": "Views dialog", "state": "NOT typed into" },
-    { "label": "Share with everyone on this board", "type": "checkbox", "region": "Views dialog", "state": "NOT toggled" },
-    { "label": "Group by", "type": "combobox", "region": "View options dialog", "state": "Group: Status; NOT changed" },
-    { "label": "Sort by", "type": "combobox", "region": "View options dialog", "state": "Sort: Manual; NOT changed" },
-    { "label": "Title", "type": "textbox", "region": "New task dialog", "state": "NOT typed into" },
-    { "label": "Detail", "type": "textbox", "region": "New task dialog", "state": "multiline; NOT typed into" },
-    { "label": "Column", "type": "combobox", "region": "New task dialog", "state": "default To do" },
-    { "label": "Priority", "type": "combobox", "region": "New task dialog", "state": "default No priority" },
-    { "label": "Assignee", "type": "combobox", "region": "New task dialog", "state": "default Nobody yet" },
-    { "label": "Phase", "type": "combobox", "region": "New task dialog", "state": "default No phase" },
-    { "label": "Estimate", "type": "spinbutton", "region": "New task dialog", "state": "NOT typed into" },
-    { "label": "New label name", "type": "textbox", "region": "New task and Board settings dialogs", "state": "NOT typed into" },
-    { "label": "Create another", "type": "checkbox", "region": "New task dialog", "state": "NOT toggled" },
-    { "label": "Column name", "type": "textbox", "region": "Board settings, Columns tab, per column", "state": "NOT typed into" },
-    { "label": "Only allow the moves listed under Can move to", "type": "switch", "region": "Board settings, Rules tab", "state": "checked; NOT toggled" }
+    {
+      "label": "Type a message…",
+      "type": "textbox",
+      "region": "project chat pane",
+      "state": "NOT typed into: sending spends the assistant's budget"
+    },
+    {
+      "label": "Search the cards on this board",
+      "type": "searchbox",
+      "region": "Board toolbar",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "View name",
+      "type": "textbox",
+      "region": "Views dialog",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Share with everyone on this board",
+      "type": "checkbox",
+      "region": "Views dialog",
+      "state": "NOT toggled"
+    },
+    {
+      "label": "Group by",
+      "type": "combobox",
+      "region": "View options dialog",
+      "state": "Group: Status; NOT changed"
+    },
+    {
+      "label": "Sort by",
+      "type": "combobox",
+      "region": "View options dialog",
+      "state": "Sort: Manual; NOT changed"
+    },
+    {
+      "label": "Title",
+      "type": "textbox",
+      "region": "New task dialog",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Detail",
+      "type": "textbox",
+      "region": "New task dialog",
+      "state": "multiline; NOT typed into"
+    },
+    {
+      "label": "Column",
+      "type": "combobox",
+      "region": "New task dialog",
+      "state": "default To do"
+    },
+    {
+      "label": "Priority",
+      "type": "combobox",
+      "region": "New task dialog",
+      "state": "default No priority"
+    },
+    {
+      "label": "Assignee",
+      "type": "combobox",
+      "region": "New task dialog",
+      "state": "default Nobody yet"
+    },
+    {
+      "label": "Phase",
+      "type": "combobox",
+      "region": "New task dialog",
+      "state": "default No phase"
+    },
+    {
+      "label": "Estimate",
+      "type": "spinbutton",
+      "region": "New task dialog",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "New label name",
+      "type": "textbox",
+      "region": "New task and Board settings dialogs",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Create another",
+      "type": "checkbox",
+      "region": "New task dialog",
+      "state": "NOT toggled"
+    },
+    {
+      "label": "Column name",
+      "type": "textbox",
+      "region": "Board settings, Columns tab, per column",
+      "state": "NOT typed into"
+    },
+    {
+      "label": "Only allow the moves listed under Can move to",
+      "type": "switch",
+      "region": "Board settings, Rules tab",
+      "state": "checked; NOT toggled"
+    }
   ],
   "actions": [
-    { "role": "button", "name": "Close the dashboard", "region": "dashboard header", "state": "closes the dashboard" },
-    { "role": "button", "name": "New task", "region": "dashboard header", "opens": { "items": ["New task"] } },
-    { "role": "button", "name": "Board settings", "region": "dashboard header", "opens": { "items": ["Columns", "Rules", "Priorities", "Labels", "Rounds"] } },
-    { "role": "button", "name": "Compact density", "region": "dashboard header", "state": "NOT toggled" },
-    { "role": "button", "name": "Ask to change these tiles", "region": "Overview", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Ask to even this out", "region": "Overview", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Share them out", "region": "Overview", "state": "asks the assistant to assign work; NOT clicked" },
-    { "role": "button", "name": "See everything (32)", "region": "Overview, Latest", "state": "NOT clicked" },
-    { "role": "button", "name": "How This sprint is worked out", "region": "Overview", "state": "info button; NOT clicked" },
-    { "role": "button", "name": "Views", "region": "Board toolbar", "opens": { "items": ["View name", "Share with everyone on this board", "Save view"] } },
-    { "role": "radio", "name": "List", "region": "Board toolbar", "state": "view mode; NOT clicked" },
-    { "role": "radio", "name": "Board", "region": "Board toolbar", "state": "checked" },
-    { "role": "radio", "name": "Timeline", "region": "Board toolbar", "state": "view mode; NOT clicked" },
-    { "role": "button", "name": "My tasks", "region": "Board toolbar", "state": "filter toggle; NOT clicked" },
-    { "role": "button", "name": "Round This round", "region": "Board toolbar", "opens": { "items": ["This round", "Backlog (not in a round)", "Everything"] } },
-    { "role": "button", "name": "Filter", "region": "Board toolbar", "opens": { "items": ["Round", "Assignee", "Priority", "Hide subtasks", "Show archived"] } },
-    { "role": "button", "name": "View options", "region": "Board toolbar", "opens": { "items": ["Group by", "Sort by", "Comfortable", "Compact", "Keyboard shortcuts"] } },
-    { "role": "button", "name": "Show all", "region": "Board status line", "state": "NOT clicked" },
-    { "role": "button", "name": "Manage rounds", "region": "Progress tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Ask to change these numbers", "region": "Progress tab", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Ask about the load", "region": "People tab", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Ask about them", "region": "People tab", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Ask about the gap", "region": "People tab", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Ask who should take it", "region": "People tab", "state": "asks the assistant; NOT clicked" },
-    { "role": "button", "name": "Open PRQO-2", "region": "People tab, Work nobody owns", "state": "NOT clicked" },
-    { "role": "button", "name": "Assign", "region": "People tab, suggestions", "state": "assigns work; NOT clicked" },
-    { "role": "button", "name": "Covers: Sprint 3", "region": "Digest tab", "opens": { "items": ["The round that is running", "A date range…", "The whole project"] } },
-    { "role": "button", "name": "Write the first digest", "region": "Digest tab", "state": "triggers an AI write; NOT clicked" },
-    { "role": "button", "name": "Write it for the client", "region": "Digest tab", "state": "triggers an AI write; NOT clicked" },
-    { "role": "button", "name": "Set up budget", "region": "Budget tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Log time", "region": "Budget tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Export CSV", "region": "Budget tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Submit a cost", "region": "Budget tab", "state": "NOT clicked" },
-    { "role": "button", "name": "New chat", "region": "project chat pane", "state": "NOT clicked" },
-    { "role": "button", "name": "Add attachments", "region": "project chat composer", "state": "opens a file chooser; NOT clicked" },
-    { "role": "button", "name": "Fast", "region": "project chat composer", "state": "model dialog; NOT clicked" },
-    { "role": "button", "name": "Speech to text", "region": "project chat composer", "state": "NOT clicked" },
-    { "role": "button", "name": "Send message", "region": "project chat composer", "state": "disabled while the composer is empty" },
-    { "role": "button", "name": "Where does this project stand?", "region": "project chat suggestions", "state": "sends a message; NOT clicked" },
-    { "role": "button", "name": "Share out the unowned tasks", "region": "project chat suggestions", "state": "sends a message; NOT clicked" },
-    { "role": "button", "name": "Needs you", "region": "project chat suggestions", "state": "sends a message; NOT clicked" },
-    { "role": "button", "name": "Create task", "region": "New task dialog", "state": "disabled until Title is filled; NOT clicked" },
-    { "role": "button", "name": "Add", "region": "New task dialog, label", "state": "disabled until a label name is typed" },
-    { "role": "button", "name": "Save view", "region": "Views dialog", "state": "disabled until a view name is typed; NOT clicked" },
-    { "role": "button", "name": "Keyboard shortcuts", "region": "View options dialog", "state": "NOT clicked" },
-    { "role": "button", "name": "Close", "region": "dialogs", "state": "closes the dialog" },
-    { "role": "button", "name": "Cancel", "region": "Board settings dialog", "state": "closes without saving" },
-    { "role": "button", "name": "Save", "region": "Board settings dialog", "state": "NOT clicked" },
-    { "role": "button", "name": "Standard", "region": "Board settings dialog, Columns tab layout", "state": "NOT clicked" },
-    { "role": "button", "name": "Full pipeline (review + QA)", "region": "Board settings dialog, Columns tab layout", "state": "NOT clicked" },
-    { "role": "button", "name": "Simple pipeline", "region": "Board settings dialog, Columns tab layout", "state": "NOT clicked" },
-    { "role": "button", "name": "Use the shared layout", "region": "Board settings dialog, Columns tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Add column", "region": "Board settings dialog, Columns tab", "state": "disabled until a name is typed" },
-    { "role": "button", "name": "Reset to defaults", "region": "Board settings dialog, Priorities tab", "state": "disabled" },
-    { "role": "button", "name": "New label", "region": "Board settings dialog, Labels tab", "state": "disabled until a name is typed" },
-    { "role": "button", "name": "Plan a round", "region": "Board settings dialog, Rounds tab", "state": "NOT clicked" },
-    { "role": "button", "name": "Start", "region": "Board settings dialog, Rounds tab", "state": "starts a round; NOT clicked" },
-    { "role": "button", "name": "Finish", "region": "Board settings dialog, Rounds tab", "state": "finishes a round; NOT clicked" },
-    { "role": "button (row menu)", "name": "More actions for round", "region": "Board settings dialog, Rounds tab", "opens": { "items": ["Edit dates and name"] } },
-    { "role": "button", "name": "Notifications", "region": "dashboard header", "state": "shell control" },
-    { "role": "button", "name": "Settings", "region": "dashboard header", "state": "shell control" }
+    {
+      "role": "button",
+      "name": "Close the dashboard",
+      "region": "dashboard header",
+      "state": "closes the dashboard"
+    },
+    {
+      "role": "button",
+      "name": "New task",
+      "region": "dashboard header",
+      "opens": {
+        "items": [
+          "New task"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Board settings",
+      "region": "dashboard header",
+      "opens": {
+        "items": [
+          "Columns",
+          "Rules",
+          "Priorities",
+          "Labels",
+          "Rounds"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Compact density",
+      "region": "dashboard header",
+      "state": "NOT toggled"
+    },
+    {
+      "role": "button",
+      "name": "Ask to change these tiles",
+      "region": "Overview",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask to even this out",
+      "region": "Overview",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Share them out",
+      "region": "Overview",
+      "state": "asks the assistant to assign work; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "See everything (32)",
+      "region": "Overview, Latest",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "How This sprint is worked out",
+      "region": "Overview",
+      "state": "info button; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Views",
+      "region": "Board toolbar",
+      "opens": {
+        "items": [
+          "View name",
+          "Share with everyone on this board",
+          "Save view"
+        ]
+      }
+    },
+    {
+      "role": "radio",
+      "name": "List",
+      "region": "Board toolbar",
+      "state": "view mode; NOT clicked"
+    },
+    {
+      "role": "radio",
+      "name": "Board",
+      "region": "Board toolbar",
+      "state": "checked"
+    },
+    {
+      "role": "radio",
+      "name": "Timeline",
+      "region": "Board toolbar",
+      "state": "view mode; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "My tasks",
+      "region": "Board toolbar",
+      "state": "filter toggle; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Round This round",
+      "region": "Board toolbar",
+      "opens": {
+        "items": [
+          "This round",
+          "Backlog (not in a round)",
+          "Everything"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Filter",
+      "region": "Board toolbar",
+      "opens": {
+        "items": [
+          "Round",
+          "Assignee",
+          "Priority",
+          "Hide subtasks",
+          "Show archived"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "View options",
+      "region": "Board toolbar",
+      "opens": {
+        "items": [
+          "Group by",
+          "Sort by",
+          "Comfortable",
+          "Compact",
+          "Keyboard shortcuts"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Show all",
+      "region": "Board status line",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Manage rounds",
+      "region": "Progress tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask to change these numbers",
+      "region": "Progress tab",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask about the load",
+      "region": "People tab",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask about them",
+      "region": "People tab",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask about the gap",
+      "region": "People tab",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Ask who should take it",
+      "region": "People tab",
+      "state": "asks the assistant; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Open PRQO-2",
+      "region": "People tab, Work nobody owns",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Assign",
+      "region": "People tab, suggestions",
+      "state": "assigns work; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Covers: Sprint 3",
+      "region": "Digest tab",
+      "opens": {
+        "items": [
+          "The round that is running",
+          "A date range…",
+          "The whole project"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Write the first digest",
+      "region": "Digest tab",
+      "state": "triggers an AI write; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Write it for the client",
+      "region": "Digest tab",
+      "state": "triggers an AI write; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Set up budget",
+      "region": "Budget tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Log time",
+      "region": "Budget tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Export CSV",
+      "region": "Budget tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Submit a cost",
+      "region": "Budget tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "New chat",
+      "region": "project chat pane",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Add attachments",
+      "region": "project chat composer",
+      "state": "opens a file chooser; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Fast",
+      "region": "project chat composer",
+      "state": "model dialog; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Speech to text",
+      "region": "project chat composer",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Send message",
+      "region": "project chat composer",
+      "state": "disabled while the composer is empty"
+    },
+    {
+      "role": "button",
+      "name": "Where does this project stand?",
+      "region": "project chat suggestions",
+      "state": "sends a message; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Share out the unowned tasks",
+      "region": "project chat suggestions",
+      "state": "sends a message; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Needs you",
+      "region": "project chat suggestions",
+      "state": "sends a message; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Create task",
+      "region": "New task dialog",
+      "state": "disabled until Title is filled; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Add",
+      "region": "New task dialog, label",
+      "state": "disabled until a label name is typed"
+    },
+    {
+      "role": "button",
+      "name": "Save view",
+      "region": "Views dialog",
+      "state": "disabled until a view name is typed; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Keyboard shortcuts",
+      "region": "View options dialog",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Close",
+      "region": "dialogs",
+      "state": "closes the dialog"
+    },
+    {
+      "role": "button",
+      "name": "Cancel",
+      "region": "Board settings dialog",
+      "state": "closes without saving"
+    },
+    {
+      "role": "button",
+      "name": "Save",
+      "region": "Board settings dialog",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Standard",
+      "region": "Board settings dialog, Columns tab layout",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Full pipeline (review + QA)",
+      "region": "Board settings dialog, Columns tab layout",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Simple pipeline",
+      "region": "Board settings dialog, Columns tab layout",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Use the shared layout",
+      "region": "Board settings dialog, Columns tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Add column",
+      "region": "Board settings dialog, Columns tab",
+      "state": "disabled until a name is typed"
+    },
+    {
+      "role": "button",
+      "name": "Reset to defaults",
+      "region": "Board settings dialog, Priorities tab",
+      "state": "disabled"
+    },
+    {
+      "role": "button",
+      "name": "New label",
+      "region": "Board settings dialog, Labels tab",
+      "state": "disabled until a name is typed"
+    },
+    {
+      "role": "button",
+      "name": "Plan a round",
+      "region": "Board settings dialog, Rounds tab",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Start",
+      "region": "Board settings dialog, Rounds tab",
+      "state": "starts a round; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Finish",
+      "region": "Board settings dialog, Rounds tab",
+      "state": "finishes a round; NOT clicked"
+    },
+    {
+      "role": "button (row menu)",
+      "name": "More actions for round",
+      "region": "Board settings dialog, Rounds tab",
+      "opens": {
+        "items": [
+          "Edit dates and name"
+        ]
+      }
+    },
+    {
+      "role": "button",
+      "name": "Notifications",
+      "region": "dashboard header",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Settings",
+      "region": "dashboard header",
+      "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Start the first round",
+      "region": "Overview of a new Team project",
+      "state": "starts a round; NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Set up the budget",
+      "region": "Overview of a new Team project",
+      "state": "NOT clicked"
+    },
+    {
+      "role": "button",
+      "name": "Project settings",
+      "region": "dashboard header",
+      "state": "NOT clicked"
+    }
   ],
   "icons": [
-    { "name": "Reorder column - drag, or Alt+Arrow up or down", "type": "drag-handle", "region": "Board settings, Columns tab" }
+    {
+      "name": "Reorder column - drag, or Alt+Arrow up or down",
+      "type": "drag-handle",
+      "region": "Board settings, Columns tab"
+    }
   ],
   "messages": [
-    { "kind": "info", "text": "Where this project stands", "role": "none (plain text)" },
-    { "kind": "info", "text": "Every task by stage", "role": "none (plain text)" },
-    { "kind": "info", "text": "Pace and rounds", "role": "none (plain text)" },
-    { "kind": "info", "text": "What might slip and why", "role": "none (plain text)" },
-    { "kind": "info", "text": "Written summaries for the team", "role": "none (plain text)" },
-    { "kind": "info", "text": "Who is doing what", "role": "none (plain text)" },
-    { "kind": "info", "text": "What it costs, what is left, and what it earns", "role": "none (plain text)" },
-    { "kind": "status", "text": "9 tasks hidden by This round", "role": "status" },
-    { "kind": "empty", "text": "Nothing needs attention.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "No digest yet", "role": "status" },
-    { "kind": "empty", "text": "No budget yet", "role": "none (plain text)" },
-    { "kind": "empty", "text": "Nothing waiting for approval.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "No time logged yet.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "No costs decided yet.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "Nothing has been finished yet.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "No saved views yet. Save what you are looking at.", "role": "none (plain text)" },
-    { "kind": "empty", "text": "No labels yet. Add one above, or from a task.", "role": "none (plain text)" },
-    { "kind": "hint", "text": "Only a manager can move cards into this column.", "role": "none (plain text)" },
-    { "kind": "hint", "text": "A planned round holds work without counting yet. Start it when the team is ready.", "role": "none (plain text)" }
+    {
+      "kind": "info",
+      "text": "Where this project stands",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Every task by stage",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Pace and rounds",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "What might slip and why",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Written summaries for the team",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Who is doing what",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "What it costs, what is left, and what it earns",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "status",
+      "text": "9 tasks hidden by This round",
+      "role": "status"
+    },
+    {
+      "kind": "empty",
+      "text": "Nothing needs attention.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No digest yet",
+      "role": "status"
+    },
+    {
+      "kind": "empty",
+      "text": "No budget yet",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "Nothing waiting for approval.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No time logged yet.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No costs decided yet.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "Nothing has been finished yet.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No saved views yet. Save what you are looking at.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "empty",
+      "text": "No labels yet. Add one above, or from a task.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "hint",
+      "text": "Only a manager can move cards into this column.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "hint",
+      "text": "A planned round holds work without counting yet. Start it when the team is ready.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "toast",
+      "text": "Team project created. Open the dashboard to see the board.",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "info",
+      "text": "No round of work is running yet, so there is no progress to show here.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Nothing is waiting for an owner",
+      "role": "none (plain text)"
+    }
   ],
   "modals": [
-    { "name": "New task", "trigger": "New task", "actions": ["Close", "Create task", "Add"] },
-    { "name": "Board settings", "trigger": "Board settings", "actions": ["Close", "Cancel", "Save", "Standard", "Full pipeline (review + QA)", "Simple pipeline", "Use the shared layout", "Add column", "Reset to defaults", "New label", "Plan a round", "Start", "Finish"] },
-    { "name": "Views", "trigger": "Views", "actions": ["Save view"] },
-    { "name": "View options", "trigger": "View options", "actions": ["Keyboard shortcuts"] }
+    {
+      "name": "New task",
+      "trigger": "New task",
+      "actions": [
+        "Close",
+        "Create task",
+        "Add"
+      ]
+    },
+    {
+      "name": "Board settings",
+      "trigger": "Board settings",
+      "actions": [
+        "Close",
+        "Cancel",
+        "Save",
+        "Standard",
+        "Full pipeline (review + QA)",
+        "Simple pipeline",
+        "Use the shared layout",
+        "Add column",
+        "Reset to defaults",
+        "New label",
+        "Plan a round",
+        "Start",
+        "Finish"
+      ]
+    },
+    {
+      "name": "Views",
+      "trigger": "Views",
+      "actions": [
+        "Save view"
+      ]
+    },
+    {
+      "name": "View options",
+      "trigger": "View options",
+      "actions": [
+        "Keyboard shortcuts"
+      ]
+    }
   ],
   "views": [],
   "menus": [
-    { "trigger": "Round This round", "opens": { "items": ["This round", "Backlog (not in a round)", "Everything"] } },
-    { "trigger": "Filter", "opens": { "items": ["Round", "Assignee", "Priority", "Hide subtasks", "Show archived"] } },
-    { "trigger": "Covers: Sprint 3", "opens": { "items": ["The round that is running", "A date range…", "The whole project"] } }
+    {
+      "trigger": "Round This round",
+      "opens": {
+        "items": [
+          "This round",
+          "Backlog (not in a round)",
+          "Everything"
+        ]
+      }
+    },
+    {
+      "trigger": "Filter",
+      "opens": {
+        "items": [
+          "Round",
+          "Assignee",
+          "Priority",
+          "Hide subtasks",
+          "Show archived"
+        ]
+      }
+    },
+    {
+      "trigger": "Covers: Sprint 3",
+      "opens": {
+        "items": [
+          "The round that is running",
+          "A date range…",
+          "The whole project"
+        ]
+      }
+    }
   ],
   "findings": [
     "the Board tab label shows (0) while the project has 9 open tasks; they are hidden by the default This round filter"
   ],
   "verifiedAbsent": [
-    { "surface": "views", "how": "the project is one dashboard whose tabs are listed in tabs[]; the project list is the User Projects module" }
+    {
+      "surface": "views",
+      "how": "the project is one dashboard whose tabs are listed in tabs[]; the project list is the User Projects module"
+    }
   ],
   "changelog": [
-    { "date": "2026-10-08", "note": "Initial capture on the project 'Pilot Release QA - Oct 2026' as user 1. Task counts, people, activity, rounds and the saved views, digest and budget are live shared data and never asserted by value. The project chat is not used: sending spends the assistant's budget. Nothing was created, saved, started, finished or deleted." }
+    {
+      "date": "2026-10-08",
+      "note": "Initial capture on the project 'Pilot Release QA - Oct 2026' as user 1. Task counts, people, activity, rounds and the saved views, digest and budget are live shared data and never asserted by value. The project chat is not used: sending spends the assistant's budget. Nothing was created, saved, started, finished or deleted."
+    },
+    {
+      "date": "2026-10-09",
+      "note": "Mutations added with full access: only disposable QA-AUTO Team projects are created and tasks are added inside them; the project is moved to the trash and deleted forever after each test. The existing project 'Pilot Release QA - Oct 2026' is still only read."
+    }
   ]
 }

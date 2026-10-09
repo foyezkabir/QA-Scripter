@@ -4,7 +4,7 @@ Depth: **standard**. Source: live UI only, no Jira/Figma/Gherkin. Baseline: `bas
 
 Spec file: `user-project-detail.spec.ts`. Runs signed in as **DEV user 1** through the default `.auth/user.json`, on the user's project **Pilot Release QA - Oct 2026**, opened by its fixed address.
 
-Setup: none. Every test only reads or cancels: no task, view, label, round, digest, budget entry or board setting is created, saved, started, finished or deleted, and nothing is sent in the project chat (a send spends the assistant's budget). Task counts, people, the activity feed, round names and the saved views, digest and budget are shared live data and are never asserted by value; tests check headings, labels and controls. The project may be renamed or emptied by its owners, which would fail these tests for that reason, not because of the page. Plain-text messages have no ARIA role.
+Setup: TC-01 to TC-19 only read or cancel; TC-20 to TC-23 (full access granted on this Dev account) create a disposable QA-AUTO Team project through New Project with Team project switched on, because a task on the real project would be seen by its team. Tests that need it get it from the `createdTeamProject` fixture and the `teamProjectCleanup` fixture, which also covers TC-20, moves every project whose name starts with QA-AUTO Team to the trash and deletes it forever through the UI (the project takes its tasks with it), even after a failure; a failed cleanup is attached, never thrown. The cleanup is scoped by that name prefix so it cannot remove projects another spec file created at the same time, and the spec runs its tests one after another. For TC-01 to TC-19: every test only reads or cancels: no task, view, label, round, digest, budget entry or board setting is created, saved, started, finished or deleted, and nothing is sent in the project chat (a send spends the assistant's budget). Task counts, people, the activity feed, round names and the saved views, digest and budget are shared live data and are never asserted by value; tests check headings, labels and controls. The project may be renamed or emptied by its owners, which would fail these tests for that reason, not because of the page. Plain-text messages have no ARIA role.
 
 ## Dashboard and Overview
 
@@ -21,7 +21,7 @@ Setup: none. Every test only reads or cancels: no task, view, label, round, dige
 
 | View | State | Action / rule | TC | Tag |
 |---|---|---|---|---|
-| Board | filtered | the Board tab shows "Every task by stage", the Board filters toolbar (Views, the View choices List, Board and Timeline with Board chosen, Search the cards on this board, My tasks, Round This round, Filter and View options) and a status "tasks hidden by This round" with Show all | TC-07 | @regression |
+| Board | filtered | the Board tab shows "Every task by stage", the Board filters toolbar (Views, the View choices List, Board and Timeline with Board chosen, Search the cards on this board, My tasks, Round This round, Filter and View options) | TC-07 | @regression |
 | Round menu | populated | Round This round offers This round, Backlog (not in a round) and Everything | TC-08 | @regression |
 | Filter menu | populated | Filter offers Round, Assignee, Priority, Hide subtasks and Show archived | TC-09 | @regression |
 | View options dialog | populated | View options shows Group by, Sort by, Comfortable and Compact and Keyboard shortcuts | TC-10 | @regression |
@@ -43,11 +43,22 @@ Setup: none. Every test only reads or cancels: no task, view, label, round, dige
 | Risks | empty | the Risks tab shows "What might slip and why" and the heading All risks | TC-16 | @regression |
 | Digest | empty | the Digest tab shows "Written summaries for the team", the Covers button and the buttons Write the first digest and Write it for the client | TC-17 | @regression |
 | People | populated | the People tab shows "Who is doing what", the tiles Carrying a lot, Could take more and Work nobody owns, the headings "Who is carrying what", "What the team cannot cover" and "Work nobody owns", and the Ask about the load, Ask about them, Ask about the gap and Ask who should take it buttons | TC-18 | @regression |
-| Budget | empty | the Budget tab shows "What it costs, what is left, and what it earns", the buttons Set up budget, Log time, Export CSV and Submit a cost, and the headings Time and Decided costs | TC-19 | @regression |
+| Budget | empty | the Budget tab shows "What it costs, what is left, and what it earns", the buttons Log time, Export CSV and Submit a cost, and the headings Time and Decided costs | TC-19 | @regression |
+
+## Team project and board tasks
+
+| View | State | Action / rule | TC | Tag |
+|---|---|---|---|---|
+| Create Project dialog | created | with Team project switched on, Save shows the toast "Team project created" and lists the project | TC-20 | @critical |
+| Project dashboard | populated | a new Team project opens with "This project", "No round of work is running yet, so there is no progress to show here.", Start the first round, Set up the budget, Project settings and "Nothing is waiting for an owner" | TC-21 | @regression |
+| New task dialog | created | choosing Create task with a Title closes the form and the Board tab says "1 task hidden by This round" with Show all | TC-22 | @critical |
+| Board | populated | choosing Show all reveals the created task's card on the board | TC-23 | @critical |
 
 ## Out of scope (recorded, not tested)
 
-- **Create task** and **Add** in New task, **Save view**, **Save**, **Standard**, **Full pipeline (review + QA)**, **Simple pipeline**, **Use the shared layout**, **Add column**, **Reset to defaults**, **New label**, **Plan a round**, **Start**, **Finish** and **More actions for round** in Board settings, **Set up budget**, **Log time**, **Export CSV**, **Submit a cost**, **Write the first digest**, **Write it for the client**, **Manage rounds**, **Assign** and **Open PRQO-2** create or change shared project data and are only checked for presence where the table says so.
+- The status "9 tasks hidden by This round" with its **Show all** button, and the **Set up budget** button, depend on the live state of the project (they appear only while tasks sit outside the current round and no budget is set) and are not asserted on the existing project; the disposable Team project covers the hidden-by-round status and Show all in TC-22 and TC-23.
+
+- **Create task** is used on the disposable Team project only (TC-22, TC-23); **Add** in New task, **Save view**, **Save**, **Standard**, **Full pipeline (review + QA)**, **Simple pipeline**, **Use the shared layout**, **Add column**, **Reset to defaults**, **New label**, **Plan a round**, **Start**, **Finish** and **More actions for round** in Board settings, **Set up budget**, **Log time**, **Export CSV**, **Submit a cost**, **Write the first digest**, **Write it for the client**, **Manage rounds**, **Assign** and **Open PRQO-2** create or change shared project data and are only checked for presence where the table says so.
 - **Ask to change these tiles**, **Ask to even this out**, **Share them out**, **Ask to change these numbers**, **Ask about the load**, **Ask about them**, **Ask about the gap**, **Ask who should take it**, **How This sprint is worked out** and the project chat suggestions **Share out the unowned tasks** and **Needs you** send a message to the assistant and spend its budget; they are shown and never clicked. **Where does this project stand?** and **Send message** are not clicked either.
 - **List**, **Timeline**, **My tasks**, **Show all**, **Compact density**, **Keyboard shortcuts** and **See everything** change what is displayed or open other screens and are not clicked; typing in **Search the cards on this board**, **View name**, **Title** and the other fields is not done.
 - The columns, rules, priority and label settings inside Board settings (**Column name**, **Only allow the moves listed under Can move to**, and the per-column menus) change the board when edited and are not touched; **Reorder column - drag, or Alt+Arrow up or down** is not used.
