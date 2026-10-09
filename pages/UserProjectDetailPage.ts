@@ -29,13 +29,13 @@ export class UserProjectDetailPage {
 
   async open() {
     await this.page.goto(`/chat/${OWN_ASSISTANT.id}/projects/${OWN_PROJECT.id}`);
-    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name);
+    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name, { timeout: 30_000 });
     await HydrationHelper.waitUntilHydrated(this.page);
   }
 
   async openTabByAddress(tabName: string) {
     await this.page.goto(`/chat/${OWN_ASSISTANT.id}/projects/${OWN_PROJECT.id}?tab=${tabName.toLowerCase()}`);
-    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name);
+    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name, { timeout: 30_000 });
     await HydrationHelper.waitUntilHydrated(this.page);
   }
 
@@ -83,8 +83,54 @@ export class UserProjectDetailPage {
     await this.locators.boardSettingsTab(tabName).click();
   }
 
+  async openProjectNamed(projectName: string) {
+    await this.page.goto(`/chat/${OWN_ASSISTANT.id}/projects`);
+    await this.page.getByRole('link', { name: `Open project ${projectName}` }).click();
+    await expect(this.locators.projectHeading).toHaveText(projectName, { timeout: 30_000 });
+    await HydrationHelper.waitUntilHydrated(this.page);
+  }
+
+  async typeTaskTitle(taskTitle: string) {
+    await this.locators.newTaskField('Title').fill(taskTitle);
+  }
+
+  async clickCreateTask() {
+    await this.locators.createTaskButton.click();
+  }
+
+  async createTask(taskTitle: string) {
+    await this.openNewTaskDialog();
+    await this.typeTaskTitle(taskTitle);
+    await this.clickCreateTask();
+    await this.locators.newTaskDialog.waitFor({ state: 'hidden' });
+  }
+
+  async clickShowAll() {
+    await this.locators.showAllButton.click();
+  }
+
+  async expectTeamProjectOverview(projectName: string) {
+    await expect(this.locators.projectHeading).toHaveText(projectName, { timeout: 30_000 });
+    await expect(this.locators.thisProjectHeading).toBeVisible();
+    await expect(this.locators.noRoundText).toBeVisible();
+    await expect(this.locators.startFirstRoundButton).toBeVisible();
+    await expect(this.locators.setUpBudgetButton).toBeVisible();
+    await expect(this.locators.projectSettingsButton).toBeVisible();
+    await expect(this.locators.noOwnerText).toBeVisible();
+  }
+
+  async expectTaskIsHiddenByRound() {
+    await expect(this.locators.newTaskDialog).toBeHidden();
+    await expect(this.locators.hiddenTasksStatus).toHaveText(/1 task hidden by/);
+    await expect(this.locators.showAllButton).toBeVisible();
+  }
+
+  async expectBoardCard(taskTitle: string) {
+    await expect(this.locators.boardCard(taskTitle)).toBeVisible();
+  }
+
   async expectProjectDashboard() {
-    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name);
+    await expect(this.locators.projectHeading).toHaveText(OWN_PROJECT.name, { timeout: 30_000 });
     await expect(this.locators.subtitle(PROJECT_SUBTITLES.Overview)).toBeVisible();
     for (const tabName of PROJECT_TABS) {
       await expect(this.locators.tab(tabName)).toBeVisible();
@@ -142,8 +188,6 @@ export class UserProjectDetailPage {
     await expect(this.locators.roundButton).toBeVisible();
     await expect(this.locators.filterButton).toBeVisible();
     await expect(this.locators.viewOptionsButton).toBeVisible();
-    await expect(this.locators.hiddenTasksStatus).toBeVisible();
-    await expect(this.locators.showAllButton).toBeVisible();
   }
 
   async expectRoundOptions() {

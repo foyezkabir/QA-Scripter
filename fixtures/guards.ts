@@ -1,10 +1,10 @@
 import { mergeTests } from '@playwright/test';
-import { newChatMessage, newDashboardName, newMember, newPerson, newProjectName, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewMember, type NewPerson, type NewSkill, type NewTask } from '../datas/user/UserData';
+import { newChatMessage, newDashboardName, newMember, newTeamProjectName, PROJECT_CLEANUP_PREFIX, TEAM_PROJECT_CLEANUP_PREFIX, newPerson, newProjectName, newSkill, newTask, newWorkspaceName, OWN_ASSISTANT, type ChatMessage, type NewMember, type NewPerson, type NewSkill, type NewTask } from '../datas/user/UserData';
 import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string; crmCleanup: void; createdPerson: NewPerson; createdMember: NewMember; createdDashboard: string }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string; crmCleanup: void; createdPerson: NewPerson; createdMember: NewMember; createdDashboard: string; teamProjectCleanup: void; createdTeamProject: string }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -182,7 +182,7 @@ ${String(error)}
   projectCleanup: [async ({ userProjectsPage }, use, testInfo) => {
     await use();
     try {
-      await userProjectsPage.removeAutomationProjects();
+      await userProjectsPage.removeAutomationProjects(PROJECT_CLEANUP_PREFIX);
     } catch (error) {
       await testInfo.attach('project-not-deleted.txt', {
         body: `A QA-AUTO project may be left in ${OWN_ASSISTANT.name}'s Projects after ${testInfo.title}:\n${String(error)}\n`,
@@ -244,6 +244,34 @@ ${String(error)}
     await userCrmPage.chooseTab('Dashboards');
     await userCrmPage.createDashboard(dashboardName);
     await use(dashboardName);
+  }, { timeout: 60_000 }],
+
+  /**
+   * Puts away every QA-AUTO Team project (name starts with "QA-AUTO Team") and deletes it
+   * forever. Scoped by name so it cannot remove the projects another spec file created at the
+   * same time. Teardown ladder rung 3 (UI delete). A failed cleanup is attached, never thrown.
+   */
+  teamProjectCleanup: [async ({ userProjectsPage }, use, testInfo) => {
+    await use();
+    try {
+      await userProjectsPage.removeAutomationProjects(TEAM_PROJECT_CLEANUP_PREFIX);
+    } catch (error) {
+      await testInfo.attach('team-project-not-deleted.txt', {
+        body: `A QA-AUTO Team project may be left in ${OWN_ASSISTANT.name}'s Projects after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
+  }, { timeout: 60_000 }],
+
+  /**
+   * A Team project (board, rounds, dashboard) that already exists: created through New Project
+   * with Team project switched on (no API seeding path); removed by teamProjectCleanup.
+   */
+  createdTeamProject: [async ({ teamProjectCleanup, userProjectsPage }, use) => {
+    const projectName = newTeamProjectName();
+    await userProjectsPage.open();
+    await userProjectsPage.createTeamProject(projectName);
+    await use(projectName);
   }, { timeout: 60_000 }],
 
   /**

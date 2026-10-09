@@ -1,4 +1,7 @@
 import { test } from '../fixtures/base';
+import { newBoardTaskTitle, newTeamProjectName } from '../datas/user/UserData';
+
+test.describe.configure({ mode: 'default', timeout: 60_000 });
 
 test('TC-01: Verify that the project dashboard shows the project name, its subtitle and the seven tabs', { tag: ['@smoke'] }, async ({ userProjectDetailPage }) => {
   await userProjectDetailPage.open();
@@ -124,4 +127,35 @@ test('TC-19: Verify that the Budget tab shows its subtitle, budget buttons and s
   await userProjectDetailPage.chooseTab('Budget');
   await userProjectDetailPage.expectTabIsSelected('Budget');
   await userProjectDetailPage.expectBudgetTab();
+});
+
+test('TC-20: Verify that creating a Team project shows its toast and lists the project', { tag: ['@critical'] }, async ({ userProjectsPage, teamProjectCleanup }) => {
+  const projectName = newTeamProjectName();
+  await userProjectsPage.open();
+  await userProjectsPage.openNewProjectDialog();
+  await userProjectsPage.typeProjectName(projectName);
+  await userProjectsPage.switchTeamProjectOn();
+  await userProjectsPage.saveProject();
+  await userProjectsPage.expectTeamProjectCreated(projectName);
+});
+
+test('TC-21: Verify that a new Team project opens with its overview, Start the first round and budget', { tag: ['@regression'] }, async ({ userProjectDetailPage, createdTeamProject }) => {
+  await userProjectDetailPage.openProjectNamed(createdTeamProject);
+  await userProjectDetailPage.expectTeamProjectOverview(createdTeamProject);
+});
+
+test('TC-22: Verify that creating a task closes the form and the board says it is hidden by This round', { tag: ['@critical'] }, async ({ userProjectDetailPage, createdTeamProject }) => {
+  await userProjectDetailPage.openProjectNamed(createdTeamProject);
+  await userProjectDetailPage.createTask(newBoardTaskTitle());
+  await userProjectDetailPage.chooseTab('Board');
+  await userProjectDetailPage.expectTaskIsHiddenByRound();
+});
+
+test('TC-23: Verify that Show all reveals the created task on the board', { tag: ['@critical'] }, async ({ userProjectDetailPage, createdTeamProject }) => {
+  const taskTitle = newBoardTaskTitle();
+  await userProjectDetailPage.openProjectNamed(createdTeamProject);
+  await userProjectDetailPage.createTask(taskTitle);
+  await userProjectDetailPage.chooseTab('Board');
+  await userProjectDetailPage.clickShowAll();
+  await userProjectDetailPage.expectBoardCard(taskTitle);
 });

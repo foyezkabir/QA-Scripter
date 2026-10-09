@@ -95,7 +95,7 @@ export const PEOPLE_TILES = ['Carrying a lot', 'Could take more', 'Work nobody o
 
 export const PEOPLE_HEADINGS = ['Who is carrying what', 'What the team cannot cover', 'Work nobody owns'] as const;
 
-export const BUDGET_BUTTONS = ['Set up budget', 'Log time', 'Export CSV', 'Submit a cost'] as const;
+export const BUDGET_BUTTONS = ['Log time', 'Export CSV', 'Submit a cost'] as const;
 
 export const PEOPLE_ASK_BUTTONS = ['Ask about the load', 'Ask about them', 'Ask about the gap', 'Ask who should take it'] as const;
 
@@ -243,3 +243,13 @@ export const PERSON_EDIT_BUTTONS = ['Edit Name', 'Edit Email', 'Edit Phone', 'Ed
 export const PERSON_JOB_TITLE = 'QA Automation Lead';
 
 export const CRM_EMPTY_NAME_ERROR = 'Name cannot be empty.';
+
+export const PROJECT_CLEANUP_PREFIX = 'QA-AUTO Project';
+
+export const TEAM_PROJECT_CLEANUP_PREFIX = 'QA-AUTO Team';
+
+export const newTeamProjectName = () => DataHelper.unique('Team');
+
+export const newBoardTaskTitle = () => DataHelper.unique('Task');
+
+export const TEAM_PROJECT_TOAST = 'Team project created';

@@ -1,5 +1,5 @@
 import { expect, type Page } from '@playwright/test';
-import { CREATE_PROJECT_EDITOR_BUTTONS, OWN_ASSISTANT, PROJECT_KINDS, PROJECT_SORT_OPTIONS, PROJECT_TOASTS } from '../datas/user/UserData';
+import { CREATE_PROJECT_EDITOR_BUTTONS, OWN_ASSISTANT, PROJECT_KINDS, PROJECT_SORT_OPTIONS, PROJECT_TOASTS, TEAM_PROJECT_TOAST } from '../datas/user/UserData';
 import { HydrationHelper } from '../helpers/HydrationHelper';
 import { UserProjectsLocators } from '../locators/UserProjectsLocators';
 
@@ -294,29 +294,47 @@ export class UserProjectsPage {
     await this.locators.confirmButton(this.locators.deleteForeverDialog(projectName), 'Yes, delete').click();
   }
 
-  async removeAutomationProjects() {
+  async removeAutomationProjects(prefix: string) {
     await this.open();
-    while ((await this.locators.automationCards.count()) > 0) {
-      const before = await this.locators.automationCards.count();
-      await this.locators.firstAutomationEdit.click();
+    while ((await this.locators.automationCards(prefix).count()) > 0) {
+      const before = await this.locators.automationCards(prefix).count();
+      await this.locators.firstAutomationEdit(prefix).click();
       await this.clickMoveToTrash();
       await this.locators.dialogButton(this.locators.topDialog, 'Move to trash').click();
-      await expect(this.locators.automationCards).toHaveCount(before - 1);
+      await expect(this.locators.automationCards(prefix)).toHaveCount(before - 1);
     }
     await this.openTrashDialog();
     await this.chooseArchivedTab();
-    while ((await this.locators.automationArchivedRows.count()) > 0) {
-      const before = await this.locators.automationArchivedRows.count();
-      await this.locators.firstAutomationArchived.click();
-      await expect(this.locators.automationArchivedRows).toHaveCount(before - 1);
+    while ((await this.locators.automationArchivedRows(prefix).count()) > 0) {
+      const before = await this.locators.automationArchivedRows(prefix).count();
+      await this.locators.firstAutomationArchived(prefix).click();
+      await expect(this.locators.automationArchivedRows(prefix)).toHaveCount(before - 1);
     }
     await this.chooseTrashTab();
-    while ((await this.locators.automationDeleteButtons.count()) > 0) {
-      const before = await this.locators.automationDeleteButtons.count();
-      await this.locators.firstAutomationDelete.click();
+    while ((await this.locators.automationDeleteButtons(prefix).count()) > 0) {
+      const before = await this.locators.automationDeleteButtons(prefix).count();
+      await this.locators.firstAutomationDelete(prefix).click();
       await this.locators.confirmButton(this.locators.topDialog, 'Yes, delete').click();
-      await expect(this.locators.automationDeleteButtons).toHaveCount(before - 1);
+      await expect(this.locators.automationDeleteButtons(prefix)).toHaveCount(before - 1);
     }
+  }
+
+  async createTeamProject(projectName: string) {
+    await this.openNewProjectDialog();
+    await this.typeProjectName(projectName);
+    await this.locators.teamProjectSwitch(this.locators.createDialog).click();
+    await this.saveProject();
+    await this.locators.createDialog.waitFor({ state: 'hidden' });
+    await this.locators.projectLinkNamed(projectName).waitFor();
+  }
+
+  async switchTeamProjectOn() {
+    await this.locators.teamProjectSwitch(this.locators.createDialog).click();
+  }
+
+  async expectTeamProjectCreated(projectName: string) {
+    await expect(this.locators.toast(TEAM_PROJECT_TOAST)).toBeVisible();
+    await expect(this.locators.projectLinkNamed(projectName)).toBeVisible();
   }
 
   async expectProjectCreated(projectName: string) {

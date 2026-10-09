@@ -46,6 +46,17 @@ export class UserProjectDetailLocators {
   chatSpeech = this.page.getByRole('button', { name: 'Speech to text' });
   chatSuggestion = this.page.getByRole('button', { name: 'Where does this project stand?' });
 
+  thisProjectHeading = this.dashboard.getByRole('heading', { name: 'This project', level: 3 });
+  noRoundText = this.dashboard.getByText('No round of work is running yet, so there is no progress to show here.');
+  startFirstRoundButton = this.dashboard.getByRole('button', { name: 'Start the first round' });
+  setUpBudgetButton = this.dashboard.getByRole('button', { name: 'Set up the budget' });
+  projectSettingsButton = this.dashboard.getByRole('button', { name: 'Project settings' });
+  noOwnerText = this.dashboard.getByText('Nothing is waiting for an owner');
+
+  boardCard(taskTitle: string): Locator {
+    return this.dashboard.getByText(taskTitle, { exact: true });
+  }
+
   boardToolbar = this.dashboard.getByRole('toolbar', { name: 'Board filters' });
   viewsButton = this.boardToolbar.getByRole('button', { name: 'Views' });
   viewGroup = this.boardToolbar.getByRole('radiogroup', { name: 'View' });

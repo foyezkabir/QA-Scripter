@@ -162,15 +162,32 @@ export class UserProjectsLocators {
 
   // a confirmation opens on top of the dialog that started it, so the last dialog is the topmost one
   topDialog = this.page.getByRole('dialog').last();
-  automationCards = this.main.getByRole('link', { name: /^Open project QA-AUTO / });
-  // every QA-AUTO project is put away in turn, so whichever card is first is the next one
-  firstAutomationEdit = this.automationCards.first().getByRole('button', { name: 'Edit project' });
-  automationArchivedRows = this.trashDialog.getByRole('button', { name: /^Move QA-AUTO .* to trash$/ });
-  // every archived QA-AUTO project is moved in turn, so the first one is the next
-  firstAutomationArchived = this.automationArchivedRows.first();
-  automationDeleteButtons = this.trashDialog.getByRole('button', { name: /^Delete QA-AUTO .* forever$/ });
-  // every trashed QA-AUTO project is deleted in turn, so the first one is the next
-  firstAutomationDelete = this.automationDeleteButtons.first();
+  automationCards(prefix: string): Locator {
+    return this.main.getByRole('link', { name: new RegExp(`^Open project ${prefix} `) });
+  }
+
+  firstAutomationEdit(prefix: string): Locator {
+    // every project with this prefix is put away in turn, so whichever card is first is the next one
+    return this.automationCards(prefix).first().getByRole('button', { name: 'Edit project' });
+  }
+
+  automationArchivedRows(prefix: string): Locator {
+    return this.trashDialog.getByRole('button', { name: new RegExp(`^Move ${prefix} .* to trash$`) });
+  }
+
+  firstAutomationArchived(prefix: string): Locator {
+    // every archived project with this prefix is moved in turn, so the first one is the next
+    return this.automationArchivedRows(prefix).first();
+  }
+
+  automationDeleteButtons(prefix: string): Locator {
+    return this.trashDialog.getByRole('button', { name: new RegExp(`^Delete ${prefix} .* forever$`) });
+  }
+
+  firstAutomationDelete(prefix: string): Locator {
+    // every trashed project with this prefix is deleted in turn, so the first one is the next
+    return this.automationDeleteButtons(prefix).first();
+  }
 
   agentSections = this.page.getByRole('navigation', { name: 'Agent sections' });
   projectsLink = this.agentSections.getByRole('link', { name: 'Projects', exact: true });
