@@ -153,3 +153,21 @@ export const WORKSPACE_FILE_MENU = ['Preview', 'Download', 'Share to', 'Rename',
 export const WORKSPACE_FOLDER_MENU = ['New file', 'New folder', 'Upload file', 'Upload folder', 'Download as zip', 'Share to', 'Rename', 'Delete'] as const;
 
 export const WORKSPACE_ADVANCED_BUTTONS = ['New file', 'New folder', 'Upload file', 'Upload folder', 'Show hidden', 'Simple view'] as const;
+
+export const TOOL_CATEGORIES = ['Google Workspace', 'Microsoft 365', 'Atlassian', 'Productivity', 'Developer', 'Scheduling', 'Finance & Accounting'] as const;
+
+export const TOOL_NAMES = [
+  'Google Calendar', 'Gmail', 'Google Drive', 'Google Sheets', 'Google Docs',
+  'Outlook', 'OneDrive', 'SharePoint', 'Excel', 'Microsoft Teams',
+  'Jira', 'Confluence',
+  'Notion', 'Linear', 'Asana', 'Trello', 'Dropbox', 'Slack', 'Huly',
+  'GitHub',
+  'Cal.com', 'Calendly',
+  'Xero', 'Odoo', 'QuickBooks',
+] as const;
+
+export const TOOLS_WITH_PERMISSION = ['Google Calendar', 'Gmail', 'Google Drive', 'Jira', 'GitHub'] as const;
+
+export const TOOL_SEARCH = { partName: 'git', match: 'GitHub', other: 'Gmail', nothing: 'zzqq-no-such-tool' } as const;
+
+export const TOOLS_INTRO = 'Connect the apps you already use so your assistant can do the work for you.';
