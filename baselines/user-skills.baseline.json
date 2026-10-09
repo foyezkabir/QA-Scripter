@@ -1,0 +1,101 @@
+{
+  "module": "User Skills",
+  "route": "/chat/<assistant id>/skills",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Skills",
+    "Create Skill",
+    "Remove this skill?",
+    "No custom skills yet",
+    "No skills found"
+  ],
+  "tabs": [
+    { "name": "Browse (62)", "region": "skill views", "state": "button; the count is live" },
+    { "name": "Installed (6)", "region": "skill views", "state": "button; the count is live" },
+    { "name": "Custom (0)", "region": "skill views", "state": "button; the count is live" }
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "Browse lists the skill catalog and Installed lists the installed skills" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page; the user can create and remove custom skills" },
+    { "name": "empty", "reached": true, "how": "Custom with no custom skills shows 'No custom skills yet' and a Create skill button" },
+    { "name": "filtered-empty", "reached": true, "how": "a search with no match shows 'No skills found' on all three tabs" },
+    { "name": "installed", "reached": true, "how": "installed skills carry an 'Installed on this agent' badge; the six VelaCrew skills are installed" },
+    { "name": "not-installed", "reached": true, "how": "other Browse skills offer an Install <name> button" },
+    { "name": "built-in", "reached": true, "how": "installed VelaCrew skills are by VelaCrew with the Apache-2.0 licence" },
+    { "name": "custom", "reached": true, "how": "a created skill is 'VelaCrew v1.0.0 by User' with no licence" },
+    { "name": "error", "reached": true, "how": "an empty Save shows the alert 'Name, When to use it, and Steps to follow are required.'; a duplicate Skill Name marks the field invalid with 'A skill named \"<name>\" already exists. Pick a different name.'" },
+    { "name": "disabled", "reached": true, "how": "Save is disabled while the form is submitting or after a duplicate name" },
+    { "name": "terminal", "reached": true, "how": "Remove this skill? confirms removal and the toast 'Skill removed' appears" },
+    { "name": "loading", "reached": false, "why": "no loading indicator was seen; content renders after hydration" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search skills...", "type": "textbox", "region": "Browse tab" },
+    { "label": "Search installed skills...", "type": "textbox", "region": "Installed tab" },
+    { "label": "Search custom skills...", "type": "textbox", "region": "Custom tab" },
+    { "label": "Skill Name", "type": "textbox", "region": "Create Skill", "state": "required; placeholder 'e.g. Weekly status report'; hint 'Name the thing you're teaching your assistant to do.'" },
+    { "label": "Category", "type": "textbox", "region": "Create Skill", "state": "optional; placeholder 'e.g. Reporting'; hint 'Group it with similar skills, like Reports, Sales, or Support.'" },
+    { "label": "When to use it", "type": "textbox", "region": "Create Skill", "state": "required; hint 'Describe the moment this should kick in, so your assistant knows when to reach for it.'" },
+    { "label": "Steps to follow", "type": "textbox (multiline)", "region": "Create Skill", "state": "required; hint 'List the steps in order and your assistant will follow them every time.'" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Create skill", "region": "page header and Custom tab empty state", "opens": { "items": ["Create Skill"] } },
+    { "role": "button", "name": "Browse (62)", "region": "skill views" },
+    { "role": "button", "name": "Installed (6)", "region": "skill views" },
+    { "role": "button", "name": "Custom (0)", "region": "skill views" },
+    { "role": "button", "name": "All (62)", "region": "Browse source filter", "state": "pressed by default" },
+    { "role": "button", "name": "VelaCrew (6)", "region": "Browse source filter" },
+    { "role": "button", "name": "Anthropic (19)", "region": "Browse source filter" },
+    { "role": "button", "name": "GitHub (37)", "region": "Browse source filter" },
+    { "role": "button", "name": "View details for <skill name>", "region": "skill card", "opens": { "items": ["<skill name>"] } },
+    { "role": "button", "name": "Install <skill name>", "region": "Browse card, not-installed skills", "state": "fetches from an external marketplace; NOT clicked" },
+    { "role": "button", "name": "Close", "region": "dialogs" },
+    { "role": "button", "name": "Cancel", "region": "Create Skill and skill detail dialogs" },
+    { "role": "button", "name": "Save", "region": "Create Skill" },
+    { "role": "button", "name": "Remove", "region": "installed and custom skill detail dialog", "opens": { "items": ["Remove this skill?"] } },
+    { "role": "button", "name": "Install", "region": "not-installed skill detail dialog", "state": "NOT clicked" },
+    { "role": "button", "name": "Keep it", "region": "Remove this skill? dialog", "state": "leaves the detail dialog open" },
+    { "role": "button", "name": "Yes, remove", "region": "Remove this skill? dialog" },
+    { "role": "button", "name": "Close toast", "region": "toast" },
+    { "role": "link", "name": "Skills", "region": "Agent sections", "href": "/chat/<id>/skills" }
+  ],
+  "icons": [
+    { "name": "Installed on this agent", "type": "badge", "region": "skill card" }
+  ],
+  "messages": [
+    { "kind": "info", "text": "Save the things you have taught your assistant so it can repeat them anytime you ask", "role": "none (plain text)" },
+    { "kind": "info", "text": "Show your assistant how to do something once and it remembers it for next time", "role": "none (plain text)" },
+    { "kind": "error", "text": "Name, When to use it, and Steps to follow are required.", "role": "alert" },
+    { "kind": "error", "text": "A skill named \"<name>\" already exists. Pick a different name.", "role": "none (plain text under the invalid field)" },
+    { "kind": "toast", "text": "Custom skill created", "role": "status" },
+    { "kind": "toast", "text": "Skill removed", "role": "status" },
+    { "kind": "empty", "text": "No custom skills yet", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Write your own skill to teach this assistant a routine only you need - the steps you would otherwise repeat in chat every time.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No skills found", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Try a different search or pick a different source.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No installed skill matches your search. Try a different term.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No custom skill matches your search. Try a different term.", "role": "none (plain text)" },
+    { "kind": "info", "text": "This will remove the skill from your agent.", "role": "none (plain text)" },
+    { "kind": "info", "text": "FILES IN THIS SKILL", "role": "none (plain text)" },
+    { "kind": "info", "text": "Installed at skills/<slug>/ in the agent's workspace. OpenClaw auto-discovers it on the next chat turn.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    { "name": "Create Skill", "trigger": "Create skill", "actions": ["Close", "Cancel", "Save"] },
+    { "name": "<skill name>", "trigger": "View details for <skill name>", "actions": ["Close", "Cancel", "Remove", "Install"] },
+    { "name": "Remove this skill?", "trigger": "Remove", "actions": ["Keep it", "Yes, remove"] }
+  ],
+  "views": [],
+  "menus": [],
+  "findings": [
+    "an empty Save in Create Skill is enabled and shows an alert instead of being disabled"
+  ],
+  "verifiedAbsent": [
+    { "surface": "row-menu", "how": "skill cards have no row or kebab menu; View details for <skill name> opens a dialog and Remove sits in that dialog" },
+    { "surface": "views", "how": "a skill opens in a dialog with no route; the dialog has no tabs, only the rendered skill, its files and where it is installed" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1 on Asta with full access. Only QA-AUTO custom skills were created and removed through the UI. The six installed VelaCrew skills, the Anthropic and GitHub catalog and the tab counts are live data and never changed; Install is never clicked because it fetches from an external marketplace." }
+  ]
+}

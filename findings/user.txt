@@ -143,3 +143,26 @@ Actual result: no confirmation after Sync; two different explanations for the sa
 Expected result: a visible result for Sync and one consistent explanation.
 Confidence: low (the two texts may depend on how the last attempt ended)
 
+Title: /chat/<id>/skills: Save in Create Skill is enabled while the form is empty and answers with an alert
+Type: UI
+Module: user-skills
+Description: Save stays enabled for an empty Create Skill form; choosing it shows the alert "Name, When to use it, and Steps to follow are required." instead of Save being disabled. A duplicate Skill Name behaves the other way: the field is marked invalid as it is typed and Save is disabled, so the dialog validates in two different ways.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Skills section, then choose Create skill.
+  2. Choose Save with every field empty.
+  3. Close and reopen the dialog, then type the name of a skill that already exists.
+Actual result: step 2 shows an alert with Save still enabled; step 3 marks the field invalid and disables Save.
+Expected result: one consistent way of showing that the form is not valid.
+Confidence: medium (observed; may be intended so that the required list is explained)
+
+Title: /chat/<id>/skills: the source filter buttons expose no pressed state
+Type: accessibility
+Module: user-skills
+Description: The All, VelaCrew, Anthropic and GitHub filters on Browse show which one is chosen only through styling; none exposes aria-pressed or a similar state to assistive technology.
+Steps to reproduce:
+  1. Open Asta's Skills section on Browse.
+  2. Inspect the accessibility tree of the source filters.
+Actual result: four plain buttons with no pressed or selected state.
+Expected result: the chosen filter is announced as pressed or selected.
+Confidence: high (observed in the accessibility snapshot)
+
