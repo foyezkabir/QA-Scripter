@@ -1,0 +1,163 @@
+{
+  "module": "User My Work",
+  "route": "/dashboard/my-work",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "My work",
+    "This week 1"
+  ],
+  "tabs": [],
+  "states": [
+    {
+      "name": "populated",
+      "reached": true,
+      "how": "the account's open tasks are listed in groups by due date, here one task under This week"
+    },
+    {
+      "name": "role-gated:authenticated",
+      "reached": true,
+      "how": "the saved user-1 session opens the page"
+    },
+    {
+      "name": "empty",
+      "reached": false,
+      "why": "the empty state needs every task reassigned or completed, which changes existing project data; the copy was not observed"
+    },
+    {
+      "name": "loading",
+      "reached": false,
+      "why": "the page renders too fast to observe a loading state"
+    },
+    {
+      "name": "error",
+      "reached": false,
+      "why": "no server error can be triggered without changing data"
+    },
+    {
+      "name": "disabled",
+      "reached": false,
+      "why": "no control on the page is disabled"
+    }
+  ],
+  "tables": [],
+  "fields": [
+    {
+      "label": "Filter by project",
+      "type": "combobox",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "All projects",
+          "PRQO · Pilot Release QA - Oct 2026"
+        ]
+      },
+      "state": "custom list; the projects are live data"
+    },
+    {
+      "label": "Sort my work",
+      "type": "combobox",
+      "region": "toolbar",
+      "opens": {
+        "items": [
+          "Sort: Due",
+          "Sort: Priority",
+          "Sort: Project"
+        ]
+      },
+      "state": "custom list"
+    }
+  ],
+  "actions": [
+    {
+      "role": "link",
+      "name": "<task title>",
+      "region": "task row",
+      "href": "/chat/<id>/projects/<project id>?task=<KEY>",
+      "state": "opens the task beside the project dashboard"
+    },
+    {
+      "role": "link",
+      "name": "Open board for <project name>",
+      "region": "task row",
+      "href": "/chat/<id>/projects/<project id>?dash=full&tab=board"
+    },
+    {
+      "role": "link",
+      "name": "Enable 2FA",
+      "region": "banner",
+      "href": "/settings/security",
+      "state": "shell banner; NOT followed"
+    },
+    {
+      "role": "button",
+      "name": "Dismiss",
+      "region": "banner",
+      "state": "shell banner; NOT clicked"
+    },
+    {
+      "role": "link",
+      "name": "My work",
+      "region": "left sidebar",
+      "href": "/dashboard/my-work"
+    }
+  ],
+  "icons": [],
+  "messages": [
+    {
+      "kind": "info",
+      "text": "1 open task.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "Protect your account. Turn on two-factor authentication.",
+      "role": "none (plain text)"
+    }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    {
+      "trigger": "Filter by project",
+      "opens": {
+        "items": [
+          "All projects",
+          "PRQO · Pilot Release QA - Oct 2026"
+        ]
+      }
+    },
+    {
+      "trigger": "Sort my work",
+      "opens": {
+        "items": [
+          "Sort: Due",
+          "Sort: Priority",
+          "Sort: Project"
+        ]
+      }
+    }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    {
+      "surface": "create-edit-delete",
+      "how": "My work is a read-only list: it has no control to create, edit or delete a task; tasks are changed in their project"
+    },
+    {
+      "surface": "modals",
+      "how": "no dialog opens from this page's own controls"
+    },
+    {
+      "surface": "views",
+      "how": "a task row opens the project dashboard with the task beside it at /chat/<id>/projects/<project id>?task=<KEY>, which is the Project detail module; My work itself is a single list view"
+    }
+  ],
+  "changelog": [
+    {
+      "date": "2026-10-09",
+      "note": "Initial capture as user 1. The list shows the account's real tasks, which are live data: tests never assert a task name, key, status or due date and never change a task. The task panel and project dashboard it opens are the Project detail module."
+    }
+  ]
+}
