@@ -4,7 +4,7 @@ Depth: **standard**. Source: live UI only, no Jira/Figma/Gherkin. Baseline: `bas
 
 Spec file: `user-projects.spec.ts`. Runs signed in as **DEV user 1** through the default `.auth/user.json`, in Asta's Projects section.
 
-Setup: none. Every test only reads or cancels: nothing is saved, archived, trashed, restored, imported or deleted. Project names, counts, the people list, the trash rows and the Jira and Huly project lists are shared live data and are never asserted by value; tests only check that cards, rows and buttons exist. A card is opened through its Open project link, so no project is named in the tests. Plain-text messages have no ARIA role. The project detail view (Overview, Board, Progress, Risks, Digest, People and Budget tabs, New task, Board settings) is its own module.
+Setup: TC-01 to TC-18 only read or cancel: nothing is saved, archived, trashed, restored, imported or deleted. TC-19 to TC-28 (full access granted on this Dev account) create, rename, archive, restore, trash and delete QA-AUTO projects: tests that need a project get one from the `createdProject` fixture (precondition built through New Project, because the page has no API seeding path) and the `projectCleanup` fixture, which also covers TC-19, moves every project whose name starts with QA-AUTO to the trash and deletes it forever through the UI, even after a failure; a failed cleanup is attached, never thrown. The spec runs its tests one after another because the cleanup sweeps every QA-AUTO project. Existing projects are never touched. Project names, counts, the people list, the trash rows and the Jira and Huly project lists are shared live data and are never asserted by value; tests only check that cards, rows and buttons exist. A card is opened through its Open project link, so no project is named in the tests. Plain-text messages have no ARIA role. The project detail view (Overview, Board, Progress, Risks, Digest, People and Budget tabs, New task, Board settings) is its own module.
 
 ## Projects page
 
@@ -44,12 +44,27 @@ Setup: none. Every test only reads or cancels: nothing is saved, archived, trash
 | Import from Jira dialog | populated | Import from Jira opens a dialog with "Import creates a local copy. Re-import adds issues that are new in Jira; it never changes tasks you already have.", Search projects…, the checkbox "On a first import, create board columns from the tracker's statuses" and an Import button per project | TC-17 | @regression |
 | Import from Huly dialog | populated | Import from Huly opens a dialog with "Import creates a local copy. Re-import adds issues that are new in Huly; it never changes tasks you already have.", Search projects…, the same checkbox and an Import button per project | TC-18 | @regression |
 
+## Create, change and put away a project
+
+| View | State | Action / rule | TC | Tag |
+|---|---|---|---|---|
+| Create Project dialog | populated | Save with a project name shows the toast "Project created successfully" and lists the project | TC-19 | @critical |
+| Project card | populated | a new project card shows "Last updated", "0 of 0 milestones done" and "No milestones planned yet" | TC-20 | @regression |
+| Project Settings dialog | populated | changing Project Name and choosing Save shows the toast "Project updated successfully" and the card carries the new name | TC-21 | @critical |
+| Archive dialog | populated | Archive asks 'Archive "<name>"?' with "It leaves your project list and the agent stops tracking it. Restore it any time from Trash & Archive." and Cancel keeps the project listed | TC-22 | @regression |
+| Archive dialog | terminal | Yes, archive it shows the toast "Project archived", removes the card and lists the project under Archived with its date, milestones and chats, Restore and Move to trash | TC-23 | @critical |
+| Restore dialog | populated | Restore asks 'Restore "<name>"?' with "It goes back into your active projects, and the agent starts tracking it again." and Yes, restore shows the toast "Restored" and brings the project back | TC-24 | @critical |
+| Move to trash dialog | populated | Move to Trash asks 'Move "<name>" to trash?' with "It stays restorable for 30 days in Trash & Archive, then it's deleted permanently - milestones and files included." and Cancel keeps the project listed | TC-25 | @regression |
+| Move to trash dialog | terminal | Move to trash shows the toast "Project moved to trash", removes the card and lists the project under Trash with Delete forever | TC-26 | @critical |
+| Delete forever dialog | populated | Delete forever asks 'Delete "<name>" forever?' with the permanent-removal warning and Keep it leaves the project in the trash | TC-27 | @regression |
+| Delete forever dialog | terminal | Yes, delete shows the toast "Project permanently deleted" and the project is gone from the trash | TC-28 | @critical |
+
 ## Out of scope (recorded, not tested)
 
 - The toolbar buttons **People (2 pending)** and **Trash & Archive (18)** carry live counts in their names; tests match them by their leading words. The pending-approval state of the People dialog depends on live agent proposals and is not forced.
-- **Save** in Create Project and Project Settings creates or changes a project, **Archive** and **Move to Trash** put a project away, and **Everyone in your Team Space** and **Only people I add** change who can see a board; all are shown and never clicked.
+- **Everyone in your Team Space** and **Only people I add** change who can see a board and are shown, never clicked. **Save**, **Archive** and **Move to Trash** are used only on projects the tests created (TC-19 to TC-28); **Cancel** closes the dialogs without saving.
 - **Approve**, **Reject**, **Add Person**, **Edit person** and **Remove person** in the People dialog change the shared contact book and are only checked for presence. **Search people** is not typed into.
-- **Restore project** and **Delete project forever** in Trash & Archive change shared project data and are only checked for presence. The message "Nothing archived." belongs to the Archived tab and depends on live data, so it is not asserted.
+- **Restore project** and **Delete project forever** in Trash & Archive are used only on projects the tests created (TC-24, TC-27, TC-28); trashed projects that the tests did not create are never restored or deleted. **Move <project name> to trash** on an Archived row moves an archived project to the trash with no confirmation; TC-23 only checks that it is offered and the cleanup uses it for QA-AUTO projects. The message "Nothing archived." belongs to the Archived tab and depends on live data, so it is not asserted.
 - **Import**, **Re-import** and the first-import checkbox create or change project data; **Search projects…** in the import dialogs is not typed into.
-- The empty project list, loading and error states and the terminal states (archived, trashed, restored, deleted) are not reached: they need removing projects or a failing request.
+- The empty project list, loading and error states are not reached: they need removing projects or a failing request. A duplicate project name and a very long name are not tested.
 - The sidebar controls **Back**, **Collapse sidebar**, **New Chat**, **Open command palette**, **Filter chats by time**, **Team Spaces**, **More options**, **Switch agent**, **Notifications** and **Settings** belong to the chat and shell modules. The Project detail view is its own module.

@@ -74,8 +74,18 @@
     },
     {
       "name": "terminal",
-      "reached": false,
-      "why": "Archive, Move to Trash, Restore and Delete forever change shared project data and are never clicked"
+      "reached": true,
+      "how": "a QA-AUTO project is archived, restored, moved to the trash and deleted forever, each after a confirmation and with a toast"
+    },
+    {
+      "name": "created",
+      "reached": true,
+      "how": "New Project with a name shows the toast 'Project created successfully' and a card with 0 of 0 milestones"
+    },
+    {
+      "name": "archived",
+      "reached": true,
+      "how": "Yes, archive it shows 'Project archived'; Trash & Archive lists it under Archived with 'Archived <date> · 0 milestones · 0 chats', Restore <name> and Move <name> to trash"
     }
   ],
   "tables": [],
@@ -248,7 +258,7 @@
       "role": "button",
       "name": "Archive",
       "region": "Project Settings",
-      "state": "puts the project away; NOT clicked"
+      "state": "asks to confirm; used only on QA-AUTO projects"
     },
     {
       "role": "button",
@@ -410,6 +420,41 @@
       "name": "Settings",
       "region": "floating",
       "state": "shell control"
+    },
+    {
+      "role": "button",
+      "name": "Yes, archive it",
+      "region": "Archive dialog",
+      "state": "archives the project"
+    },
+    {
+      "role": "button",
+      "name": "Yes, restore",
+      "region": "Restore dialog",
+      "state": "restores the project"
+    },
+    {
+      "role": "button",
+      "name": "Move to trash",
+      "region": "Move to trash dialog",
+      "state": "moves the project to the trash"
+    },
+    {
+      "role": "button",
+      "name": "Keep it",
+      "region": "Delete forever dialog"
+    },
+    {
+      "role": "button",
+      "name": "Yes, delete",
+      "region": "Delete forever dialog",
+      "state": "deletes the project forever"
+    },
+    {
+      "role": "button",
+      "name": "Move <project name> to trash",
+      "region": "Trash & Archive, Archived row",
+      "state": "moves an archived project to the trash with no confirmation"
     }
   ],
   "icons": [],
@@ -462,6 +507,56 @@
     {
       "kind": "info",
       "text": "Import creates a local copy. Re-import adds issues that are new in Huly; it never changes tasks you already have.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "toast",
+      "text": "Project created successfully",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "toast",
+      "text": "Project updated successfully",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "toast",
+      "text": "Project archived. Restore it any time from Trash & Archive.",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "toast",
+      "text": "Restored \"<name>\"",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "toast",
+      "text": "Project moved to trash. It stays restorable for 30 days in Trash & Archive.",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "toast",
+      "text": "Project permanently deleted",
+      "role": "none (item in the Notifications region)"
+    },
+    {
+      "kind": "info",
+      "text": "It leaves your project list and the agent stops tracking it. Restore it any time from Trash & Archive.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "It goes back into your active projects, and the agent starts tracking it again.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "It stays restorable for 30 days in Trash & Archive, then it's deleted permanently - milestones and files included.",
+      "role": "none (plain text)"
+    },
+    {
+      "kind": "info",
+      "text": "This permanently removes the project, its milestones, its rounds of work and its files. Your chats stay in your history, just ungrouped. This can't be undone.",
       "role": "none (plain text)"
     }
   ],
@@ -519,6 +614,41 @@
         "Import",
         "Re-import"
       ]
+    },
+    {
+      "name": "Archive \"<name>\"?",
+      "trigger": "Archive",
+      "actions": [
+        "Cancel",
+        "Yes, archive it",
+        "Close"
+      ]
+    },
+    {
+      "name": "Restore \"<name>\"?",
+      "trigger": "Restore <project name>",
+      "actions": [
+        "Cancel",
+        "Yes, restore",
+        "Close"
+      ]
+    },
+    {
+      "name": "Move \"<name>\" to trash?",
+      "trigger": "Move to Trash",
+      "actions": [
+        "Cancel",
+        "Move to trash",
+        "Close"
+      ]
+    },
+    {
+      "name": "Delete \"<name>\" forever?",
+      "trigger": "Delete <project name> forever",
+      "actions": [
+        "Keep it",
+        "Yes, delete"
+      ]
     }
   ],
   "views": [
@@ -558,6 +688,10 @@
     {
       "date": "2026-10-08",
       "note": "Initial capture as user 1 on Asta's Projects section. Project names, counts, people, trash rows and Jira/Huly project lists are shared live data and never asserted by value. Only read-only controls are used; the Create Project and Project Settings dialogs are cancelled, nothing is saved, archived, trashed, restored, imported or deleted. The project detail view is a separate module."
+    },
+    {
+      "date": "2026-10-09",
+      "note": "Mutations added with full access: only QA-AUTO projects are created, renamed, archived, restored, trashed and deleted forever through the UI; existing projects, people and trash rows are never touched."
     }
   ]
 }
