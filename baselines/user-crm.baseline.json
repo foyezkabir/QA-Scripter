@@ -1,0 +1,173 @@
+{
+  "module": "User CRM",
+  "route": "/chat/<assistant id>/crm (landing) and /chat/<assistant id>/crm?open=1 (workspace)",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "CRM",
+    "Archive & Trash",
+    "New person",
+    "Add someone to the team",
+    "New dashboard",
+    "Delete 1 record?",
+    "Open pipeline",
+    "Open opportunities",
+    "Won",
+    "Overdue tasks",
+    "Six checks",
+    "Notes",
+    "Tasks"
+  ],
+  "tabs": [
+    { "name": "Dashboards", "region": "CRM records", "state": "button" },
+    { "name": "Companies 19", "region": "CRM records", "state": "button; the count is live" },
+    { "name": "People 7", "region": "CRM records", "state": "button; the count is live" },
+    { "name": "Opportunities 7", "region": "CRM records", "state": "button; the count is live" },
+    { "name": "Notes 17", "region": "CRM records", "state": "button; the count is live" },
+    { "name": "Tasks 6", "region": "CRM records", "state": "button; the count is live" },
+    { "name": "Team", "region": "CRM records", "state": "button" },
+    { "name": "Setup", "region": "CRM records", "state": "button" },
+    { "name": "Overview", "region": "dashboard", "state": "role tab" },
+    { "name": "Work", "region": "dashboard", "state": "role tab" },
+    { "name": "Archived (0)", "region": "Archive & Trash dialog", "state": "role tab; the count is live" },
+    { "name": "Trash (2)", "region": "Archive & Trash dialog", "state": "role tab; the count is live" }
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "one CRM card on the landing page; Companies, People, Opportunities, Notes, Tasks and Team hold records" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session (the CRM owner) opens the page" },
+    { "name": "empty", "reached": true, "how": "a new person shows 'None yet.' under Notes and Tasks; Archived shows 'Nothing archived.'; a new dashboard shows 'Nothing here yet. Add a widget from the bar above.'" },
+    { "name": "created", "reached": true, "how": "creating a person shows the toast 'Person created' and opens its record" },
+    { "name": "deleted", "reached": true, "how": "Delete moves the record to the trash with the toast 'Deleted'; Archive & Trash lists it as 'person · deleted today' with Restore and Delete forever" },
+    { "name": "terminal", "reached": true, "how": "Delete forever removes the record for good with the toast '\"<name>\" deleted forever'" },
+    { "name": "disabled", "reached": true, "how": "Add to team and Create dashboard are disabled while their name is empty" },
+    { "name": "error", "reached": true, "how": "Create with an empty name shows the inline text 'Name cannot be empty.'" },
+    { "name": "dirty", "reached": true, "how": "Edit on a record field opens an inline editor with Save and Cancel" },
+    { "name": "selected-rows", "reached": true, "how": "selecting a row shows 1 selected with Delete and Clear" },
+    { "name": "loading", "reached": false, "why": "no loading indicator was seen; data renders after hydration" },
+    { "name": "role-gated:non-owner", "reached": false, "why": "only user 1, the CRM owner, is tested" }
+  ],
+  "tables": [
+    { "name": "Companies", "columns": ["Name", "Domain", "Revenue", "Account owner", "Location", "Last contact", "Contacts", "Open opportunities", "Open value"], "rowActions": ["Select row", "Edit Name", "Edit all fields"] },
+    { "name": "People", "columns": ["Name", "Job title", "Email", "Company", "They last replied", "We last wrote", "Reply debt"], "rowActions": ["Select row", "Edit Name", "Edit all fields"] },
+    { "name": "Opportunities", "columns": ["Opportunity", "Stage", "Amount", "Close date", "Company", "Point of contact", "Owner", "Days to close", "Since contact", "Age", "Risk signals"], "rowActions": ["Select row", "Edit Name", "Edit all fields"] },
+    { "name": "Notes", "columns": ["Title", "About", "Body", "Written"], "rowActions": ["Select row", "Edit Title", "Edit all fields"] },
+    { "name": "Tasks", "columns": ["Task", "Status", "Due", "Timing", "Assignee", "About"], "rowActions": ["Select row", "Edit Title", "Edit all fields"] }
+  ],
+  "fields": [
+    { "label": "Search companies", "type": "textbox", "region": "Companies" },
+    { "label": "Search people", "type": "textbox", "region": "People" },
+    { "label": "Search opportunities", "type": "textbox", "region": "Opportunities" },
+    { "label": "Search notes", "type": "textbox", "region": "Notes" },
+    { "label": "Search tasks", "type": "textbox", "region": "Tasks" },
+    { "label": "First", "type": "textbox", "region": "New person dialog", "state": "part of the required Name" },
+    { "label": "Last", "type": "textbox", "region": "New person dialog", "state": "part of the required Name" },
+    { "label": "Job title", "type": "textbox", "region": "New person dialog and record" },
+    { "label": "Email", "type": "textbox", "region": "New person dialog", "state": "placeholder name@company.com; any text is accepted" },
+    { "label": "Name*", "type": "textbox", "region": "Add someone to the team dialog", "state": "required" },
+    { "label": "Name", "type": "textbox", "region": "New dashboard dialog", "state": "placeholder Pipeline health; hint 'You can rename it at any time.'" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Archive & Trash (1)", "region": "CRM landing", "opens": { "items": ["Archive & Trash"] } },
+    { "role": "link", "name": "Open <CRM name>", "region": "CRM landing card", "state": "opens the workspace at ?open=1" },
+    { "role": "button", "name": "CRM setup", "region": "CRM landing card", "state": "opens the Setup tab" },
+    { "role": "button", "name": "Choose which tabs to show", "region": "tab bar", "opens": { "items": ["Companies", "People", "Opportunities", "Notes", "Tasks", "Team"] } },
+    { "role": "button", "name": "Choose a dashboard", "region": "Dashboards", "opens": { "items": ["Star", "New dashboard", "Rename", "Duplicate dashboard", "Comfortable layout", "Compact layout", "Delete dashboard"] } },
+    { "role": "button", "name": "Edit", "region": "Dashboards", "state": "dashboard edit mode; NOT used" },
+    { "role": "button", "name": "New", "region": "table toolbar", "opens": { "items": ["New person"] } },
+    { "role": "button", "name": "Filter by field", "region": "table toolbar", "opens": { "items": ["field", "operator", "Value", "Add", "Cancel"] } },
+    { "role": "button", "name": "Name column options", "region": "column header", "opens": { "items": ["Sort ascending", "Sort descending", "Move left", "Move right", "Hide column"] } },
+    { "role": "button", "name": "Columns - show, hide, reorder or add", "region": "table header", "state": "NOT used" },
+    { "role": "button", "name": "Owes us a reply", "region": "People filter chips", "state": "toggle; also Never replied and Exec level" },
+    { "role": "button", "name": "Has open opportunity", "region": "Companies filter chips", "state": "toggle; also Dark over 30d and Single-threaded" },
+    { "role": "button", "name": "Open only", "region": "Opportunities filter chips", "state": "toggle; also 2+ risk signals, Dark over 30d, Close date passed, Closing in 30 days and Single-threaded" },
+    { "role": "button", "name": "Last 14 days", "region": "Notes filter chips", "state": "toggle; also About a deal" },
+    { "role": "button", "name": "Not done", "region": "Tasks filter chips", "state": "toggle; also Overdue and Due this week" },
+    { "role": "button", "name": "Table view", "region": "Opportunities toolbar", "state": "also Kanban view; NOT used" },
+    { "role": "checkbox", "name": "Select row", "region": "table row", "state": "shows 1 selected with Delete and Clear" },
+    { "role": "button", "name": "Delete", "region": "selection bar and record", "opens": { "items": ["Delete 1 record?", "Delete <name>?"] } },
+    { "role": "button", "name": "Clear", "region": "selection bar" },
+    { "role": "button", "name": "Create person", "region": "New person dialog" },
+    { "role": "button", "name": "Cancel", "region": "dialogs" },
+    { "role": "button", "name": "Close", "region": "dialogs" },
+    { "role": "button", "name": "Edit all", "region": "record", "state": "opens the edit dialog; NOT used" },
+    { "role": "button", "name": "Edit Job title", "region": "record", "state": "opens an inline editor with Save and Cancel" },
+    { "role": "button", "name": "Save", "region": "inline editor" },
+    { "role": "button", "name": "Keep it", "region": "Delete dialogs" },
+    { "role": "button", "name": "Yes, delete", "region": "Delete <name>? and Delete forever dialogs" },
+    { "role": "button", "name": "Yes, delete 1", "region": "Delete 1 record? dialog" },
+    { "role": "button", "name": "Restore <name>", "region": "Archive & Trash", "state": "NOT used" },
+    { "role": "button", "name": "Delete <name> forever", "region": "Archive & Trash", "opens": { "items": ["Delete \"<name>\" forever?"] } },
+    { "role": "button", "name": "Add person", "region": "Team", "opens": { "items": ["Add someone to the team"] } },
+    { "role": "button", "name": "Add to team", "region": "Add someone to the team dialog", "state": "disabled until a name is typed" },
+    { "role": "button", "name": "Edit <person>", "region": "Team card", "state": "NOT used" },
+    { "role": "button", "name": "Remove <person> from the team", "region": "Team card", "opens": { "items": ["Remove <person> from the team?"] } },
+    { "role": "button", "name": "Yes, remove", "region": "Remove from the team dialog" },
+    { "role": "menuitem", "name": "New dashboard", "region": "Choose a dashboard menu", "opens": { "items": ["New dashboard"] } },
+    { "role": "button", "name": "Create dashboard", "region": "New dashboard dialog", "state": "disabled while Name is empty" },
+    { "role": "menuitem", "name": "Delete dashboard", "region": "Choose a dashboard menu", "opens": { "items": ["Delete \"<name>\"?"] } },
+    { "role": "button", "name": "Yes, delete the dashboard", "region": "Delete dashboard dialog" },
+    { "role": "button", "name": "Use Gmail", "region": "Setup, Email & meetings", "state": "connects an external account; NOT clicked" },
+    { "role": "button", "name": "Archive", "region": "Setup, Put this CRM away", "state": "hides the CRM; NOT clicked" },
+    { "role": "button", "name": "Move to Trash", "region": "Setup, Put this CRM away", "state": "trashes the CRM; NOT clicked" },
+    { "role": "button", "name": "Add object", "region": "Setup, Data model", "state": "NOT used" },
+    { "role": "link", "name": "CRM", "region": "Agent sections", "href": "/chat/<id>/crm" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Your book of business in one place, so your assistant always knows who matters and what is at risk", "role": "none (plain text)" },
+    { "kind": "info", "text": "Nothing here is gone. Put anything back where it was, or clear out what you are sure about.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Saved to your VelaCrew CRM as soon as you create it.", "role": "none (plain text)" },
+    { "kind": "error", "text": "Name cannot be empty.", "role": "none (plain text next to the field)" },
+    { "kind": "toast", "text": "Person created. It is in your VelaCrew CRM now.", "role": "none (item in the Notifications region)" },
+    { "kind": "toast", "text": "Deleted. <name> is in your CRM's trash and can be restored there.", "role": "none (item in the Notifications region)" },
+    { "kind": "toast", "text": "1 deleted. They are in your CRM's trash and can be restored there.", "role": "none (item in the Notifications region)" },
+    { "kind": "toast", "text": "\"<name>\" deleted forever", "role": "none (item in the Notifications region)" },
+    { "kind": "toast", "text": "Removed. <name> is no longer on the team.", "role": "none (item in the Notifications region)" },
+    { "kind": "info", "text": "It moves to your CRM's trash, where it can be restored. VelaCrew also keeps a copy in the change log.", "role": "none (plain text)" },
+    { "kind": "info", "text": "This removes the person from your CRM for good. VelaCrew keeps a copy in the change log, but nothing in the CRM will hold it again. This cannot be undone.", "role": "none (plain text)" },
+    { "kind": "info", "text": "They become selectable as an owner or assignee straight away. This does not create a VelaCrew account, send an invitation, or give anybody access to your workspace.", "role": "none (plain text)" },
+    { "kind": "info", "text": "They have nothing assigned. They will stop appearing in owner and assignee pickers.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Everyone whose agent is bound to this CRM workspace will see it.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Every agent on this workspace loses it. The records it charted are untouched.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "None yet.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Nothing archived.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    { "name": "Archive & Trash", "trigger": "Archive & Trash (1)", "actions": ["Close", "Restore <name>", "Delete <name> forever"] },
+    { "name": "New person", "trigger": "New", "actions": ["Create person", "Cancel", "Close"] },
+    { "name": "Delete <name>?", "trigger": "Delete", "actions": ["Keep it", "Yes, delete"] },
+    { "name": "Delete 1 record?", "trigger": "Delete", "actions": ["Keep it", "Yes, delete 1"] },
+    { "name": "Delete \"<name>\" forever?", "trigger": "Delete <name> forever", "actions": ["Keep it", "Yes, delete"] },
+    { "name": "Add someone to the team", "trigger": "Add person", "actions": ["Add to team", "Cancel", "Close"] },
+    { "name": "Remove <person> from the team?", "trigger": "Remove <person> from the team", "actions": ["Keep it", "Yes, remove"] },
+    { "name": "New dashboard", "trigger": "New dashboard", "actions": ["Create dashboard", "Cancel", "Close"] },
+    { "name": "Delete \"<name>\"?", "trigger": "Delete dashboard", "actions": ["Keep it", "Yes, delete the dashboard"] }
+  ],
+  "views": [
+    {
+      "name": "CRM workspace",
+      "route": "/chat/<assistant id>/crm?open=1",
+      "states": [
+        { "name": "populated", "reached": true, "how": "the tab bar and the table of the chosen tab" },
+        { "name": "setup", "reached": false, "why": "the Setup tab (data model, fields, email and calendar connections, Put this CRM away) changes the CRM schema or connects external accounts and is only listed" }
+      ]
+    }
+  ],
+  "menus": [
+    { "trigger": "Choose a dashboard", "opens": { "items": ["Star", "New dashboard", "Rename", "Duplicate dashboard", "Comfortable layout", "Compact layout", "Delete dashboard"] } },
+    { "trigger": "Name column options", "opens": { "items": ["Sort ascending", "Sort descending", "Move left", "Move right", "Hide column"] } },
+    { "trigger": "Choose which tabs to show", "opens": { "items": ["Companies", "People", "Opportunities", "Notes", "Tasks", "Team"] } }
+  ],
+  "findings": [
+    "a person created with the email 'not-an-email' is accepted with no validation",
+    "Add link opens the generic New field dialog rather than a link-specific form",
+    "a field saved with an empty label shows a raw server validation message in the toast"
+  ],
+  "verifiedAbsent": [
+    { "surface": "toast-role", "how": "toasts are list items in the Notifications region (polite live region) with a Close toast button; none has role status or alert" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1 on Asta with full access. Only QA-AUTO people, team members and dashboards are created and removed through the UI and then deleted forever from the CRM trash; the existing companies, people, deals, notes, tasks, team and the CRM itself are never changed. The Setup tab (data model, fields, connections, Archive and Move to Trash of the CRM) and the dashboard Six checks actions are only listed. Record counts are live data and never asserted." }
+  ]
+}

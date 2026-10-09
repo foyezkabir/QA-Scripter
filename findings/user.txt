@@ -166,3 +166,36 @@ Actual result: four plain buttons with no pressed or selected state.
 Expected result: the chosen filter is announced as pressed or selected.
 Confidence: high (observed in the accessibility snapshot)
 
+Title: /chat/<id>/crm: a person's email is accepted without any validation
+Type: validation
+Module: user-crm
+Description: New person accepts any text in Email: a person created with the email "not-an-email" was saved and shown as typed, with no inline error.
+Steps to reproduce:
+  1. Sign in as the CRM owner and open Asta's CRM section, then the People tab.
+  2. Choose New, type a name and "not-an-email" in Email, and choose Create person.
+Actual result: the person is created with the invalid email.
+Expected result: an inline error such as "Enter an email like name@company.com" and no record.
+Confidence: high (observed during the crawl)
+
+Title: /chat/<id>/crm: saving a field with an empty label shows a raw server validation message in the toast
+Type: UI
+Module: user-crm
+Description: In Setup, clearing a field's label and choosing Save shows the toast "Could not save that field" with the raw message "Invalid request body - label: Too small: expected string to have >=1 characters".
+Steps to reproduce:
+  1. Open Asta's CRM, then Setup and a custom object's field editor.
+  2. Clear the field name and choose Save.
+Actual result: the toast shows the server's schema error text.
+Expected result: a plain message such as "Give the field a name".
+Confidence: medium (seen once during the crawl; the Setup tab is not covered by tests)
+
+Title: /chat/<id>/crm: Add link opens the generic New field dialog, and toasts have no status or alert role
+Type: UI
+Module: user-crm
+Description: Add link in a custom object's Links section opens the generic "New field on <object>" dialog with Text preselected instead of a link-specific form. Separately, every CRM toast is a list item in the Notifications region with no role status or alert, so the confirmations (Person created, Deleted, Removed) are not announced as alerts.
+Steps to reproduce:
+  1. Open Asta's CRM, Setup, a custom object, and choose Add link.
+  2. Create a person and watch the Notifications region in the accessibility tree.
+Actual result: a generic field dialog; toasts without a status role.
+Expected result: a link-specific form; toasts announced politely or assertively.
+Confidence: medium (observed during the crawl)
+
