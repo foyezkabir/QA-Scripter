@@ -1,0 +1,130 @@
+{
+  "module": "User Team Space",
+  "route": "/space/<space id>[/projects|/work|/schedules|/workspace|/members|/settings|/autopilot|/skills|/connections|/audit]",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Activity",
+    "Projects",
+    "Work",
+    "Routines",
+    "Files",
+    "People",
+    "General",
+    "Autopilot",
+    "Skills",
+    "Connections",
+    "History",
+    "Ask the team",
+    "Invite people",
+    "Create routine"
+  ],
+  "tabs": [
+    { "name": "All", "region": "Activity, with a count", "state": "role tab; the counts are live" },
+    { "name": "Needs you", "region": "Activity, with a count", "state": "role tab" },
+    { "name": "Working", "region": "Activity, with a count", "state": "role tab" },
+    { "name": "Done", "region": "Activity, with a count", "state": "role tab" },
+    { "name": "Overview", "region": "routine dialog", "state": "role tab" },
+    { "name": "Runs", "region": "routine dialog", "state": "role tab; the count is live" }
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "Activity lists closed threads, Work lists tasks, Routines lists a routine, Files lists entries, Team lists members" },
+    { "name": "role-gated:admin", "reached": true, "how": "the saved user-1 session is an Admin of the space: Team shows Manage, Invite people; Setup is editable" },
+    { "name": "empty", "reached": true, "how": "Activity Needs you and Working show 'Nothing in this view right now.'; a Work search with no match shows 'No tasks here yet'; Skills shows 'No shared skills yet'" },
+    { "name": "terminal", "reached": true, "how": "Activity threads are all Closed, with a Reopen button" },
+    { "name": "disabled", "reached": true, "how": "Ask and Send invitation are disabled while their text is empty; Create routine is disabled with the hint 'Give it a name.'; the premade Daily standup tile is disabled because it already exists" },
+    { "name": "filtered", "reached": true, "how": "Assigned to me and List add ?assignee=me and ?view=list to the Work address" },
+    { "name": "loading", "reached": false, "why": "content renders before a skeleton can be observed" },
+    { "name": "error", "reached": false, "why": "no error appears without sending, saving or creating, which would notify other people" },
+    { "name": "role-gated:member", "reached": false, "why": "the account is an Admin of the space; the member view is not reached" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Reply", "type": "textbox", "region": "Activity thread", "state": "NOT typed into: it is sent to a teammate's agent" },
+    { "label": "Assign this thread", "type": "combobox", "region": "Activity thread", "state": "NOT changed" },
+    { "label": "Search tasks", "type": "textbox", "region": "Work", "state": "filters the tasks" },
+    { "label": "Search routines", "type": "searchbox", "region": "Routines" },
+    { "label": "Ask", "type": "textbox", "region": "Ask the team dialog", "state": "placeholder What's your status on the release?; NOT typed into" },
+    { "label": "teammate@company.com", "type": "textbox", "region": "Invite people dialog", "state": "NOT typed into" },
+    { "label": "Name", "type": "textbox", "region": "Create routine dialog and Setup General", "state": "NOT typed into" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Ask the team", "region": "left panel", "opens": { "items": ["Ask the team"] } },
+    { "role": "button", "name": "Autopilot · Balanced", "region": "left panel", "opens": { "items": ["Autopilot"] } },
+    { "role": "button", "name": "<space name> 2 people · Admin", "region": "space switcher", "opens": { "items": ["Invite people", "Setup"] } },
+    { "role": "link", "name": "Asta Represents you here · Ready", "region": "left panel", "href": "/chat/<asta id>" },
+    { "role": "button", "name": "Collapse sidebar", "region": "left panel" },
+    { "role": "button", "name": "Reopen", "region": "Activity thread", "state": "reopens a closed thread; NOT clicked" },
+    { "role": "button", "name": "Send", "region": "Activity thread", "state": "disabled while the reply is empty; NOT used" },
+    { "role": "button", "name": "More actions", "region": "Activity thread message", "opens": { "items": ["Block this and undo what it did"] }, "state": "NOT used" },
+    { "role": "button", "name": "Roll back these changes", "region": "Activity thread message", "state": "NOT used" },
+    { "role": "link", "name": "Open", "region": "Projects card", "href": "/space/<id>/projects/<project id>" },
+    { "role": "button", "name": "Every project", "region": "Work toolbar", "opens": { "items": ["PRQO · Pilot Release QA - Oct 2026", "QPUT · QA Private Unshared Test"] } },
+    { "role": "button", "name": "Assigned to me", "region": "Work toolbar", "state": "toggle" },
+    { "role": "button", "name": "List", "region": "Work toolbar", "state": "view toggle" },
+    { "role": "button", "name": "Board", "region": "Work toolbar", "state": "view toggle, pressed by default" },
+    { "role": "button", "name": "Create routine", "region": "Routines header", "opens": { "items": ["Create routine"] } },
+    { "role": "switch", "name": "Turn off Daily standup", "region": "routine row", "state": "NOT clicked" },
+    { "role": "button", "name": "Daily standup", "region": "routine row", "opens": { "items": ["Daily standup"] } },
+    { "role": "button", "name": "Run now", "region": "routine dialog", "state": "NOT used" },
+    { "role": "button", "name": "Edit", "region": "routine dialog", "state": "NOT used" },
+    { "role": "button", "name": "Remove", "region": "routine dialog", "state": "NOT used" },
+    { "role": "button", "name": "Morning chase", "region": "Start from a premade", "state": "premade tile (also End-of-day check-in, Weekly roadmap brief, Weekly review sweep, Friday wrap, Pipeline nudge, Monday health check, Daily standup); NOT used" },
+    { "role": "button", "name": "Upload file", "region": "Files toolbar", "state": "NOT used" },
+    { "role": "button", "name": "Upload folder", "region": "Files toolbar", "state": "NOT used" },
+    { "role": "button", "name": "Advanced view", "region": "Files toolbar", "state": "switches the view; Simple view returns" },
+    { "role": "button (row menu)", "name": "Actions", "region": "Files rows", "opens": { "items": ["Preview", "Download", "Rename", "Delete", "Open", "Download as zip"] }, "state": "NOT used" },
+    { "role": "button", "name": "Invite people", "region": "Team header", "opens": { "items": ["Invite people"] } },
+    { "role": "button", "name": "Send invitation", "region": "Invite people dialog", "state": "disabled until an email is typed; NOT used" },
+    { "role": "button", "name": "Change agent", "region": "Team, Your agent in this space", "state": "NOT used" },
+    { "role": "button", "name": "Detach", "region": "Team, Your agent in this space", "state": "NOT used" },
+    { "role": "button", "name": "Manage <member>", "region": "Team member row", "opens": { "items": ["Change to member", "Suspend"] }, "state": "NOT used" },
+    { "role": "button", "name": "Their agent can message you", "region": "Team member row", "state": "toggle; NOT clicked" },
+    { "role": "button", "name": "Ask", "region": "Team member row and Ask dialogs", "opens": { "items": ["Ask <member>"] } },
+    { "role": "button", "name": "Development", "region": "Autopilot presets", "state": "changes the space policy; NOT used (also Project, Sales / Business, HR)" },
+    { "role": "button", "name": "Share", "region": "Setup Skills and Connections", "state": "shares with the space; NOT used" },
+    { "role": "button", "name": "Stop sharing <tool>", "region": "Setup Connections", "state": "NOT used" },
+    { "role": "button", "name": "Leave space", "region": "Setup General, Space actions", "state": "NOT used" },
+    { "role": "button", "name": "Close", "region": "dialogs" },
+    { "role": "button", "name": "Cancel", "region": "dialogs" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "All quiet - nothing needs you.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Boards shared with this space.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Every task across the projects you can see in this space.", "role": "none (plain text)" },
+    { "kind": "info", "text": "The team's rhythms - a morning check-in, a weekly brief. They send as you, so opt-ins still apply.", "role": "none (plain text)" },
+    { "kind": "info", "text": "The one place this space's agents can see each other's work.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Nothing in this view right now.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No tasks here yet", "role": "none (plain text)" },
+    { "kind": "empty", "text": "No shared skills yet", "role": "none (plain text)" },
+    { "kind": "info", "text": "One question to everyone's assistant. The answers come back in a single Activity thread.", "role": "none (plain text)" },
+    { "kind": "info", "text": "How much your teammates' agents do on their own in this space.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Up to 10 people including you. Each brings their own agent.", "role": "none (plain text)" },
+    { "kind": "hint", "text": "Give it a name.", "role": "none (plain text)" }
+  ],
+  "modals": [
+    { "name": "Ask the team", "trigger": "Ask the team", "actions": ["Close", "Ask"] },
+    { "name": "Autopilot", "trigger": "Autopilot · Balanced", "actions": ["Close"] },
+    { "name": "Invite people", "trigger": "Invite people", "actions": ["Close", "Send invitation"] },
+    { "name": "Create routine", "trigger": "Create routine", "actions": ["Close", "Create routine"] },
+    { "name": "Daily standup", "trigger": "Daily standup", "actions": ["Close", "Run now", "Edit", "Remove"] },
+    { "name": "Ask <member>", "trigger": "Ask", "actions": ["Close", "Ask"] }
+  ],
+  "views": [
+    { "name": "Project", "route": "/space/<id>/projects/<project id>", "states": [{ "name": "populated", "reached": false, "why": "the space's project detail is a shared board; it is the Project detail module and was not crawled here" }] }
+  ],
+  "menus": [
+    { "trigger": "<space name> 2 people · Admin", "opens": { "items": ["Invite people", "Setup"] } },
+    { "trigger": "Every project", "opens": { "items": ["PRQO · Pilot Release QA - Oct 2026", "QPUT · QA Private Unshared Test"] } },
+    { "trigger": "Manage <member>", "opens": { "items": ["Change to member", "Suspend"] } }
+  ],
+  "findings": [],
+  "verifiedAbsent": [
+    { "surface": "toast", "how": "nothing was sent, saved or created, so no toast appeared; the Notifications region stayed empty" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1, an Admin of the space 'VOPS-358 Retest Space'. The space is shared with another person, so nothing was sent, invited, shared, saved or changed: dialogs were opened and closed. Thread contents, counts, members and the project and routine names are live data and are never asserted by value." }
+  ]
+}
