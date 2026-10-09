@@ -255,3 +255,43 @@ export const newBoardTaskTitle = () => DataHelper.unique('Task');
 export const TEAM_PROJECT_TOAST = 'Team project created';
 
 export const MY_WORK_SORT_OPTIONS = ['Sort: Due', 'Sort: Priority', 'Sort: Project'] as const;
+
+export const SPACE = { id: 'nry0na2MG9eOKeW2omSoR4208aexwyw9', name: 'VOPS-358 Retest Space' } as const;
+
+export const SPACE_PATHS = {
+  activity: '',
+  projects: '/projects',
+  work: '/work',
+  routines: '/schedules',
+  files: '/workspace',
+  team: '/members',
+  setup: '/settings',
+  autopilot: '/autopilot',
+  skills: '/skills',
+  connections: '/connections',
+  history: '/audit',
+} as const;
+
+export type SpaceSection = keyof typeof SPACE_PATHS;
+
+export const SPACE_SECTIONS = ['Activity', 'Projects', 'Work', 'Routines', 'Files', 'Team', 'Setup'] as const;
+
+export const ACTIVITY_TABS = ['All', 'Needs you', 'Working', 'Done'] as const;
+
+export const AUTOPILOT_PRESETS = ['Development', 'Project', 'Sales / Business', 'HR'] as const;
+
+export const WORK_COLUMNS = ['To do', 'Being worked on', 'Waiting on someone', 'Ready to hand over', 'Done'] as const;
+
+export const ROUTINE_FIGURES = ['Switched on', 'Needs you', 'Next run', 'Answered'] as const;
+
+export const ROUTINE_KINDS = ['Chase', 'Round', 'Brief', 'Upkeep'] as const;
+
+export const SETUP_LINKS = ['General', 'Autopilot', 'Skills', 'Connections', 'History'] as const;
+
+export const SETUP_GENERAL_SECTIONS = ['Identity', 'Agent runs', 'Shared drive', 'Kind of project', 'Kinds of work', 'Long days', 'Board templates', 'Post to a team channel', 'Space actions', 'Danger zone'] as const;
+
+export const SETUP_AUTOPILOT_SECTIONS = ['SHARED KNOWLEDGE', 'SKILLS & TOOLS', 'MESSAGING', 'AUTONOMY & SAFETY', 'PROJECTS'] as const;
+
+export const HISTORY_FILTERS = ['Everything', 'People', 'Configuration', 'Sharing', 'Messages & safety', 'Files'] as const;
+
+export const SPACE_NO_MATCH_SEARCH = 'zzqq-no-such-task';
