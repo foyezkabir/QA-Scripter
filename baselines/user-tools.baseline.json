@@ -1,0 +1,77 @@
+{
+  "module": "User Tools",
+  "route": "/chat/<assistant id>/tools",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Tools"
+  ],
+  "tabs": [
+    { "name": "Browse Tool", "region": "tool views", "state": "button; shows every tool by category" },
+    { "name": "Connected (15)", "region": "tool views", "state": "button; the count is the number of connected tools and is live" }
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "Browse Tool lists 24 tool cards in 7 categories; Connected lists the connected tools" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page" },
+    { "name": "connected", "reached": true, "how": "connected cards show a Connected check, the account and a Manage menu" },
+    { "name": "not-connected", "reached": true, "how": "unconnected cards show an icon-only Connect button" },
+    { "name": "read-only", "reached": true, "how": "a card's permission group has Read only pressed, with the note that the limit is enforced by VelaCrew or by the provider" },
+    { "name": "read-write", "reached": true, "how": "a card's permission group has Read & write pressed" },
+    { "name": "empty", "reached": true, "how": "a search that matches nothing shows 'Nothing matches “<query>”. Try a different name or clear the search.'" },
+    { "name": "loading", "reached": true, "how": "Sync is disabled for about three seconds after it is clicked" },
+    { "name": "error", "reached": true, "how": "the Scheduling cards show a Connection error button whose popover says 'The sign-in window closed before authorization finished. Click Try again to retry.'" },
+    { "name": "collapsed", "reached": true, "how": "a category header collapses and expands its cards" },
+    { "name": "empty-connections", "reached": false, "why": "needs every tool disconnected, which changes the user's real connections" },
+    { "name": "role-gated", "reached": false, "why": "only one role (user) is tested" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Search tools…", "type": "textbox", "region": "Browse Tool", "state": "filters by tool name and by category name" },
+    { "label": "Search connected tools…", "type": "textbox", "region": "Connected", "state": "filters the connected tools" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Browse Tool", "region": "tool views" },
+    { "role": "button", "name": "Connected (15)", "region": "tool views" },
+    { "role": "button", "name": "Sync", "region": "Connected view", "state": "disabled while syncing; no toast" },
+    { "role": "button", "name": "Google Workspace 5", "region": "category header", "state": "collapses and expands the category; also Microsoft 365, Atlassian, Productivity, Developer, Scheduling and Finance & Accounting" },
+    { "role": "button", "name": "Connect", "region": "card header, unconnected tools", "state": "icon-only, title Connect; starts an OAuth sign-in; NOT clicked" },
+    { "role": "button", "name": "Connection error", "region": "card header, Scheduling tools", "opens": { "items": ["The sign-in window closed before authorization finished. Click Try again to retry."] } },
+    { "role": "button (row menu)", "name": "Manage", "region": "Connected card", "opens": { "items": ["Reauthenticate (read-only)", "Reauthenticate (read + write)", "Add account…", "Disconnect"] }, "state": "items vary by tool and permission" },
+    { "role": "menuitem", "name": "Reauthenticate", "region": "Manage menu", "state": "starts an OAuth sign-in; NOT clicked" },
+    { "role": "menuitem", "name": "Add account…", "region": "Manage menu, some tools", "state": "starts an OAuth sign-in; NOT clicked" },
+    { "role": "menuitem", "name": "Disconnect", "region": "Manage menu", "state": "disconnects a real connection; NOT clicked" },
+    { "role": "button", "name": "Read only", "region": "<Tool> permission group", "state": "toggle with aria-pressed; changes what the assistant may do; NOT clicked" },
+    { "role": "button", "name": "Read & write", "region": "<Tool> permission group", "state": "toggle with aria-pressed; NOT clicked" },
+    { "role": "button", "name": "Remove additional account", "region": "Connected, Gmail additional account row", "state": "NOT clicked" },
+    { "role": "link", "name": "Tools", "region": "Agent sections", "href": "/chat/<id>/tools" }
+  ],
+  "icons": [
+    { "name": "tool logos (alt text is the tool name)", "type": "image", "region": "card header" }
+  ],
+  "messages": [
+    { "kind": "info", "text": "Connect the apps you already use so your assistant can do the work for you.", "role": "none (plain text)" },
+    { "kind": "empty", "text": "Nothing matches “<query>”. Try a different name or clear the search.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Enforced by VelaCrew. Your assistant is blocked from write tools. The connection itself can still write, so this limits the assistant, not the account.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Enforced by the provider. The connection itself cannot write.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Read-only limits your assistant, not the account - this provider granted write access anyway.", "role": "none (plain text)" },
+    { "kind": "error", "text": "The sign-in window closed before authorization finished. Click Try again to retry.", "role": "none (popover text)" },
+    { "kind": "absence", "text": "Sync shows no toast", "role": "status and alert regions stay empty" }
+  ],
+  "modals": [],
+  "views": [],
+  "menus": [
+    { "trigger": "Manage", "opens": { "items": ["Reauthenticate (read-only)", "Reauthenticate (read + write)", "Add account…", "Disconnect"] } }
+  ],
+  "findings": [
+    "Sync gives no confirmation or result",
+    "the icon-only Connect buttons have a title but no accessible name"
+  ],
+  "verifiedAbsent": [
+    { "surface": "modals", "how": "no dialog opens from a safe control; Connect, Reauthenticate, Add account and Disconnect start sign-in or change real connections and were not used" },
+    { "surface": "views", "how": "tool cards do not open a detail route; configuration is the Manage menu and the permission toggle" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1 on Asta. The connected tools, their accounts and permission settings are the user's real connections and are live data: tests never connect, reauthenticate, add or remove an account, disconnect or change a permission. Which tools are connected is never asserted." }
+  ]
+}

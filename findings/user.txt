@@ -111,3 +111,35 @@ Actual result: no toast, status or alert text.
 Expected result: a visible, announced confirmation for each action.
 Confidence: medium (observed in the accessibility tree and with a MutationObserver during the crawl)
 
+Title: /chat/<id>/tools: the icon-only Connect buttons have no accessible name
+Type: accessibility
+Module: user-tools
+Description: On tools that are not connected, the Connect button is an icon with only a title attribute, so a screen reader announces an unnamed button and role-and-name locators cannot find it. The permission toggles also rely on titles for their meaning.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Tools section.
+  2. Inspect the accessibility tree of a tool that is not connected.
+Actual result: an unnamed button whose only label is title="Connect".
+Expected result: an accessible name such as "Connect Slack".
+Confidence: high (observed in the accessibility snapshot)
+
+Title: /chat/<id>/tools: the Huly card has no logo image
+Type: UI
+Module: user-tools
+Description: Every tool card shows a logo image named after the tool except Huly, which has a name and description but no image.
+Steps to reproduce:
+  1. Open Asta's Tools section on Browse Tool and look at the Productivity category.
+Actual result: 24 logos for 25 tools; Huly has none.
+Expected result: a logo, or a consistent placeholder, on every card.
+Confidence: medium (seen in the accessibility tree; the visual may show a fallback)
+
+Title: /chat/<id>/tools: Sync shows no confirmation and the Connection error text changes
+Type: UI
+Module: user-tools
+Description: Sync disables its button for about three seconds and re-enables it without a toast or any result. The popover on a Connection error card read "The sign-in window closed before authorization finished" in one session and "A previous sign-in attempt was left unfinished" in another.
+Steps to reproduce:
+  1. Open Asta's Tools section, choose Connected and click Sync.
+  2. Open the Connection error button on a Scheduling tool at different times.
+Actual result: no confirmation after Sync; two different explanations for the same failed state.
+Expected result: a visible result for Sync and one consistent explanation.
+Confidence: low (the two texts may depend on how the last attempt ended)
+
