@@ -199,3 +199,25 @@ Actual result: a generic field dialog; toasts without a status role.
 Expected result: a link-specific form; toasts announced politely or assertively.
 Confidence: medium (observed during the crawl)
 
+Title: /settings: every switch and select on the account settings pages has no accessible name
+Type: accessibility
+Module: user-account-settings
+Description: The Chat Preferences, Email Notifications, Browser Notifications and Quiet Hours switches, the My Information switch, the Auto-logout after select and the two quiet hours selects are unnamed role=switch and role=combobox elements; their labels are separate plain text.
+Steps to reproduce:
+  1. Sign in as a user and open /settings, /settings/notifications and /settings/privacy.
+  2. Inspect the accessibility tree.
+Actual result: 21 unnamed switches and 3 unnamed selects.
+Expected result: each control is named for the setting it changes.
+Confidence: high (observed in the accessibility snapshot)
+
+Title: /settings: the dialog has a Preferences section but the pages have no preferences route, and changes show no feedback
+Type: UI
+Module: user-account-settings
+Description: The Settings dialog offers Preferences (Appearance and Language) but /settings/preferences and /settings/general return 404 and the settings pages navigation has no Preferences link. Switching Compact mode or Product updates saves at once with no toast or confirmation.
+Steps to reproduce:
+  1. Open /settings/preferences, or open /settings and look for Preferences in the navigation.
+  2. Switch Compact mode off and watch the notifications region.
+Actual result: a 404 and no Preferences link; no confirmation after the switch.
+Expected result: the same sections in the dialog and on the pages, and a visible confirmation after a change.
+Confidence: medium (observed; the dialog and pages may be intentionally different)
+

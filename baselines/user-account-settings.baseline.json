@@ -1,0 +1,141 @@
+{
+  "module": "User Account Settings",
+  "route": "/settings, /settings/notifications, /settings/security, /settings/usage, /settings/privacy (and the Settings dialog over any page)",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Settings",
+    "General",
+    "Chat Preferences",
+    "DeepSeek API key (internal)",
+    "Anthropic (Claude) API key (internal)",
+    "OpenAI API key (internal)",
+    "Session",
+    "Preferences",
+    "Appearance",
+    "Language",
+    "Notifications",
+    "Browser Notifications",
+    "Email Notifications",
+    "Quiet Hours",
+    "Security",
+    "Password",
+    "Two-factor authentication",
+    "Usage",
+    "Usage and Analytics",
+    "Your Balance",
+    "Analytics",
+    "Want more power?",
+    "Privacy",
+    "Downloads",
+    "My Information",
+    "Danger Zone",
+    "Your Privacy Matters"
+  ],
+  "tabs": [
+    { "name": "General", "region": "Settings dialog navigation", "state": "button; also Preferences, Notifications, Security, Usage and Privacy" },
+    { "name": "Notification", "region": "settings pages navigation", "state": "link to /settings/notifications; also General, Security, Usage and Analytics, and Data Control and Privacy" }
+  ],
+  "states": [
+    { "name": "populated", "reached": true, "how": "every section of the dialog and the five /settings pages loads with data" },
+    { "name": "role-gated:admin", "reached": true, "how": "the three API key (internal) cards are labelled Admin-only and are visible to this account" },
+    { "name": "key-set", "reached": true, "how": "the DeepSeek and OpenAI cards show a 'Key set' pill with Replace key and Remove key; the Anthropic card shows 'sk-ant-...' with Save key" },
+    { "name": "disabled", "reached": true, "how": "Replace key, Save key, Update password, Adjust plan and See Plans are disabled until their inputs are filled" },
+    { "name": "toggled", "reached": true, "how": "switching Compact mode off and on again saves at once with no toast" },
+    { "name": "empty", "reached": false, "why": "no empty variant exists without removing data" },
+    { "name": "loading", "reached": false, "why": "sections render immediately after hydration" },
+    { "name": "error", "reached": false, "why": "password and key validation messages need a typed value, which is never done" },
+    { "name": "terminal", "reached": false, "why": "Delete Account is irreversible and is never used" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Replace key (DeepSeek)", "type": "textbox", "region": "General, DeepSeek API key (internal)", "state": "masked; NOT typed into" },
+    { "label": "API key (Anthropic)", "type": "textbox", "region": "General, Anthropic (Claude) API key (internal)", "state": "masked, placeholder sk-ant-...; NOT typed into" },
+    { "label": "Replace key (OpenAI)", "type": "textbox", "region": "General, OpenAI API key (internal)", "state": "masked; NOT typed into" },
+    { "label": "Current password", "type": "textbox", "region": "Security, Password", "state": "masked, required; NOT typed into" },
+    { "label": "New password", "type": "textbox", "region": "Security, Password", "state": "masked, required; hint 'At least 10 characters.'; NOT typed into" },
+    { "label": "Confirm new password", "type": "textbox", "region": "Security, Password", "state": "masked, required; NOT typed into" },
+    { "label": "Auto-logout after", "type": "combobox", "region": "General, Session", "opens": { "items": ["15 min of inactivity", "30 min of inactivity", "1 hr of inactivity", "4 hrs of inactivity", "Never"] }, "state": "NOT changed" },
+    { "label": "Quiet hours Start", "type": "combobox", "region": "Notifications, Quiet Hours", "state": "24 hourly options; NOT changed" },
+    { "label": "Quiet hours End", "type": "combobox", "region": "Notifications, Quiet Hours", "state": "24 hourly options; NOT changed" },
+    { "label": "Appearance", "type": "radiogroup", "region": "Preferences", "opens": { "items": ["System", "Light", "Dark"] }, "state": "System by default" },
+    { "label": "Sound effects", "type": "switch", "region": "General, Chat Preferences", "state": "hint 'Play sound on new message.'" },
+    { "label": "Compact mode", "type": "switch", "region": "General, Chat Preferences", "state": "hint 'Denser message view.'; saves at once with no toast" },
+    { "label": "Remember me", "type": "switch", "region": "General, Chat Preferences", "state": "hint 'Stay signed in.'" },
+    { "label": "Notify when an AI response completes", "type": "switch", "region": "Notifications, Browser Notifications" },
+    { "label": "Play a chime when a response completes", "type": "switch", "region": "Notifications, Browser Notifications" },
+    { "label": "Agent activity summary", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Weekly performance digest", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Error alerts", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Billing receipts", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Team Space activity", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Task assigned to you", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Mentions", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Comments on watched tasks", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Watched task moved", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Due soon", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Watched task updated", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Budget alerts", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Costs", "type": "switch", "region": "Notifications, Email Notifications" },
+    { "label": "Product updates", "type": "switch", "region": "Notifications, Email Notifications", "state": "off by default" },
+    { "label": "Enable quiet hours", "type": "switch", "region": "Notifications, Quiet Hours", "state": "hint 'No alerts during this window.'" },
+    { "label": "Help us improve VelaCrew", "type": "switch", "region": "Privacy, My Information", "state": "NOT toggled" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Preferences", "region": "Settings dialog navigation", "state": "also General, Notifications, Security, Usage and Privacy" },
+    { "role": "button", "name": "Close", "region": "Settings dialog" },
+    { "role": "button", "name": "Show key", "region": "key inputs", "state": "NOT clicked" },
+    { "role": "button", "name": "Replace key", "region": "DeepSeek and OpenAI cards", "state": "disabled until a key is typed" },
+    { "role": "button", "name": "Remove key", "region": "DeepSeek and OpenAI cards", "state": "destructive; NOT clicked" },
+    { "role": "button", "name": "Save key", "region": "Anthropic card", "state": "disabled until a key is typed" },
+    { "role": "button", "name": "Sign out all other sessions", "region": "General, Session", "state": "NOT clicked" },
+    { "role": "button", "name": "Show password", "region": "Security, password inputs", "state": "reveals an empty field's text type" },
+    { "role": "button", "name": "Update password", "region": "Security, Password", "state": "disabled until the fields are filled" },
+    { "role": "button", "name": "Enable", "region": "Security, Two-factor authentication", "state": "NOT clicked" },
+    { "role": "button", "name": "Adjust plan", "region": "Usage plan card", "state": "disabled" },
+    { "role": "button", "name": "See Plans", "region": "Usage, Want more power?", "state": "disabled" },
+    { "role": "button", "name": "Export Data", "region": "Privacy, Downloads", "state": "starts a download; NOT clicked" },
+    { "role": "button", "name": "Delete Account", "region": "Privacy, Danger Zone", "state": "destructive; NOT clicked" },
+    { "role": "button", "name": "Go back", "region": "settings pages", "state": "returns to the previous page" },
+    { "role": "link", "name": "Usage and Analytics", "region": "settings pages navigation", "href": "/settings/usage" },
+    { "role": "link", "name": "Data Control and Privacy", "region": "settings pages navigation", "href": "/settings/privacy" },
+    { "role": "link", "name": "Enable 2FA", "region": "banner", "href": "/settings/security" },
+    { "role": "button", "name": "Dismiss", "region": "banner", "state": "NOT clicked" }
+  ],
+  "icons": [
+    { "name": "Show key / Show password (eye)", "type": "icon-button", "region": "inside the inputs" }
+  ],
+  "messages": [
+    { "kind": "info", "text": "Manage your settings and usage.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Stored encrypted at rest. It is never shown again after saving.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Places where you're logged into VelaCrew.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Follow your operating system, or pick one and stay with it.", "role": "none (plain text)" },
+    { "kind": "info", "text": "English. Other languages are not available yet.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Change your account password. All other sessions will be signed out.", "role": "none (plain text)" },
+    { "kind": "info", "text": "At least 10 characters.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Add an extra layer of protection. You'll need a password before you can enable 2FA.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Your usage over the last 30 days. Your balance above tracks all-time spend, so the two can differ.", "role": "none (plain text)" },
+    { "kind": "info", "text": "All conversations are kept private. We may collect anonymous insights or flagged content to improve quality, but nothing is tied to your identity. You can also report issues anytime.", "role": "none (plain text)" },
+    { "kind": "absence", "text": "toggling Compact mode shows no toast", "role": "status and alert regions stay empty" }
+  ],
+  "modals": [
+    { "name": "Settings", "trigger": "Settings", "actions": ["Close"] }
+  ],
+  "views": [
+    { "name": "Settings pages", "route": "/settings, /settings/notifications, /settings/security, /settings/usage, /settings/privacy", "states": [{ "name": "populated", "reached": true, "how": "each page loads with its section" }] }
+  ],
+  "menus": [
+    { "trigger": "Auto-logout after", "opens": { "items": ["15 min of inactivity", "30 min of inactivity", "1 hr of inactivity", "4 hrs of inactivity", "Never"] } }
+  ],
+  "findings": [
+    "the dialog has a Preferences section but the settings pages have no preferences route (/settings/preferences returns 404)",
+    "no toast or confirmation after changing a switch"
+  ],
+  "verifiedAbsent": [
+    { "surface": "toast", "how": "toggling Compact mode produced no status or alert text" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1. Only Compact mode and Product updates are ever switched by tests and are put back through the UI by a fixture. Password and key inputs are never typed into; Update password, Replace key, Save key, Remove key, Sign out all other sessions, Enable (2FA), Export Data, Delete Account, Adjust plan and See Plans are never used. Balances, figures and key state are live data and never asserted by value." }
+  ]
+}
