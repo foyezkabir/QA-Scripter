@@ -141,3 +141,15 @@ export const TASK_RENAME_SUFFIX = ' renamed';
 export const TASK_TEMPLATE_WORDS = ['Goal', 'Context', 'Steps', 'Output'] as const;
 
 export const DEFAULT_SCHEDULE_LABEL = 'Every day at 9:00am';
+
+export const newWorkspaceName = (kind: string, extension: string) => `${DataHelper.unique(kind).replaceAll(' ', '-')}${extension}`;
+
+export const WORKSPACE_FILE_CONTENT = 'QA-AUTO workspace file used by automated tests';
+
+export const WORKSPACE_EDIT_TEXT = 'Edited by an automated test';
+
+export const WORKSPACE_FILE_MENU = ['Preview', 'Download', 'Share to', 'Rename', 'Delete'] as const;
+
+export const WORKSPACE_FOLDER_MENU = ['New file', 'New folder', 'Upload file', 'Upload folder', 'Download as zip', 'Share to', 'Rename', 'Delete'] as const;
+
+export const WORKSPACE_ADVANCED_BUTTONS = ['New file', 'New folder', 'Upload file', 'Upload folder', 'Show hidden', 'Simple view'] as const;
