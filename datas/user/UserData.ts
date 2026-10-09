@@ -253,3 +253,5 @@ export const newTeamProjectName = () => DataHelper.unique('Team');
 export const newBoardTaskTitle = () => DataHelper.unique('Task');
 
 export const TEAM_PROJECT_TOAST = 'Team project created';
+
+export const MY_WORK_SORT_OPTIONS = ['Sort: Due', 'Sort: Priority', 'Sort: Project'] as const;
