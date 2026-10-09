@@ -77,3 +77,37 @@ Actual result: the message appeared once inside the closing sheet; the task was 
 Expected result: no error message after a successful save.
 Confidence: low (seen once during the crawl, not reproduced)
 
+Title: /chat/<id>/workspace: an uploaded file is stored in the directory folder and its name has spaces turned into underscores
+Type: functional
+Module: user-workspace
+Description: Upload file in Simple view stores the file as directory/<name> (shown in the delete dialog) rather than in the workspace root, even when another folder is the upload target, and replaces spaces in the name with underscores. In Advanced view the file is not at the root of the tree, so it is easy to miss.
+Steps to reproduce:
+  1. Sign in as a user and open Asta's Workspace section.
+  2. Upload a small file named "my note.txt" in Simple view, with another folder selected in Advanced view first.
+  3. Look for the file at the root of the tree, then open its Actions menu and choose Delete.
+Actual result: the file is listed as my_note.txt, and the delete dialog names it directory/my_note.txt.
+Expected result: the file is saved where the upload target says, with the name the user gave it, or the page says where it went.
+Confidence: medium (seen with uploads of QA-AUTO files; the upload target selection was only tried in one way)
+
+Title: /chat/<id>/workspace: New folder accepts a name with a slash and creates nested folders, and shows no length limit
+Type: validation
+Module: user-workspace
+Description: A folder name such as a/b creates a folder a with a subfolder b, and a 314-character name was accepted by the form (Create folder enabled); no limit or hint is shown.
+Steps to reproduce:
+  1. Open Asta's Workspace section, switch to Advanced view and choose New folder.
+  2. Type a name containing a slash, or a very long name.
+Actual result: Create folder is enabled; the slash creates nested folders (the long name was not submitted).
+Expected result: a slash or a name over the limit is rejected or explained.
+Confidence: medium (nested creation observed during the crawl; the long name was not submitted)
+
+Title: /chat/<id>/workspace: no toast or confirmation after creating, renaming or deleting a file or folder
+Type: UI
+Module: user-workspace
+Description: New folder, New file, Rename and Delete take effect silently; the status and alert regions stay empty. Only the Upload activity panel and a "Saved HH:MM" text appear for uploads and editor saves.
+Steps to reproduce:
+  1. Open Asta's Workspace section in Advanced view.
+  2. Create a folder, rename it and delete it, watching the notifications region.
+Actual result: no toast, status or alert text.
+Expected result: a visible, announced confirmation for each action.
+Confidence: medium (observed in the accessibility tree and with a MutationObserver during the crawl)
+

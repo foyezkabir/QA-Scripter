@@ -1,0 +1,116 @@
+{
+  "module": "User Workspace",
+  "route": "/chat/<assistant id>/workspace",
+  "createdAt": "2026-10-09",
+  "updatedAt": "2026-10-09",
+  "buildRef": "DEV https://dev.app.velaops.ai (no ticket)",
+  "headings": [
+    "Workspace",
+    "New folder",
+    "New file",
+    "Rename",
+    "Delete file?",
+    "Delete folder?"
+  ],
+  "tabs": [],
+  "states": [
+    { "name": "populated", "reached": true, "how": "Simple view lists the workspace files in a two-column grid; Advanced view shows a folder tree, a storage panel and a viewer pane" },
+    { "name": "role-gated:authenticated", "reached": true, "how": "the saved user-1 session opens the page; a signed-out visit redirects to /auth/signin" },
+    { "name": "view:simple", "reached": true, "how": "the default view: Upload file, Upload folder and Advanced view above a flat file list" },
+    { "name": "view:advanced", "reached": true, "how": "Advanced view shows 'Uploading to Workspace', New file, New folder, Show hidden, Simple view, the storage panel and the tree; the viewer shows 'Pick a file to view or edit' until a file is chosen" },
+    { "name": "hidden-shown", "reached": true, "how": "Show hidden turns into Hide hidden and the tree also lists system folders and files" },
+    { "name": "viewer:rendered", "reached": true, "how": "a chosen file opens in the viewer with Rendered pressed" },
+    { "name": "viewer:edit", "reached": true, "how": "Edit shows Back to preview, Download, Save (disabled until the content changes) and a text area" },
+    { "name": "saved", "reached": true, "how": "Save shows an inline 'Saved HH:MM' text" },
+    { "name": "error", "reached": true, "how": "a duplicate folder name in New folder or Rename shows an inline alert: A folder named \"<name>\" already exists here. Pick a different name." },
+    { "name": "disabled", "reached": true, "how": "Create folder, Create file and Rename are disabled while Name is empty or only spaces; Save in the editor is disabled until the content changes" },
+    { "name": "terminal", "reached": true, "how": "Delete file? and Delete folder? confirm permanent deletion; Delete removes the item" },
+    { "name": "empty", "reached": false, "why": "the workspace root cannot be emptied without deleting existing items" },
+    { "name": "loading", "reached": false, "why": "no loading indicator was seen; content renders after hydration" }
+  ],
+  "tables": [],
+  "fields": [
+    { "label": "Name", "type": "textbox", "region": "New folder dialog", "state": "placeholder 'documents'; no length limit shown; a name with '/' creates nested folders" },
+    { "label": "Name", "type": "textbox", "region": "New file dialog", "state": "placeholder 'example.md'" },
+    { "label": "Name", "type": "textbox", "region": "Rename dialog", "state": "prefilled with the current name" },
+    { "label": "file content", "type": "textarea", "region": "viewer, Edit", "state": "placeholder 'Empty file - start typing...'" },
+    { "label": "file input", "type": "input[type=file]", "region": "toolbar, hidden", "state": "two inputs: files (multiple) and a folder picker" }
+  ],
+  "actions": [
+    { "role": "button", "name": "Workspace", "region": "breadcrumb" },
+    { "role": "button", "name": "Upload file", "region": "toolbar", "state": "opens the file picker" },
+    { "role": "button", "name": "Upload folder", "region": "toolbar", "state": "opens the folder picker; NOT used" },
+    { "role": "button", "name": "Advanced view", "region": "toolbar, simple view", "state": "switches to the advanced view" },
+    { "role": "button", "name": "Simple view", "region": "toolbar, advanced view", "state": "switches back" },
+    { "role": "button", "name": "New file", "region": "toolbar, advanced view", "opens": { "items": ["New file"] } },
+    { "role": "button", "name": "New folder", "region": "toolbar, advanced view", "opens": { "items": ["New folder"] } },
+    { "role": "button", "name": "Show hidden", "region": "toolbar, advanced view", "state": "becomes Hide hidden" },
+    { "role": "button", "name": "Add more storage", "region": "storage panel", "state": "billing; NOT clicked" },
+    { "role": "button", "name": "Workspace ACTIVE", "region": "tree root", "state": "selects the workspace root as the upload target" },
+    { "role": "button", "name": "Expand", "region": "tree row", "state": "one per folder; Collapse once open" },
+    { "role": "button (row menu)", "name": "Actions", "region": "file and folder rows", "opens": { "items": ["Preview", "Download", "Share to", "Rename", "Delete", "New file", "New folder", "Upload file", "Upload folder", "Download as zip"] } },
+    { "role": "menuitem", "name": "Preview", "region": "file Actions, simple view" },
+    { "role": "menuitem", "name": "Download", "region": "file Actions", "state": "NOT clicked" },
+    { "role": "menuitem", "name": "Share to", "region": "file and folder Actions", "state": "shares to a team space; NOT clicked" },
+    { "role": "menuitem", "name": "Download as zip", "region": "folder Actions", "state": "NOT clicked" },
+    { "role": "menuitem", "name": "Rename", "region": "file and folder Actions", "opens": { "items": ["Rename"] } },
+    { "role": "menuitem", "name": "Delete", "region": "file and folder Actions", "opens": { "items": ["Delete file?", "Delete folder?"] } },
+    { "role": "button", "name": "Cancel", "region": "New folder, New file, Rename and Delete dialogs" },
+    { "role": "button", "name": "Close", "region": "dialogs" },
+    { "role": "button", "name": "Create folder", "region": "New folder dialog", "state": "disabled while Name is empty" },
+    { "role": "button", "name": "Create file", "region": "New file dialog", "state": "disabled while Name is empty" },
+    { "role": "button", "name": "Rename", "region": "Rename dialog", "state": "disabled while Name is empty" },
+    { "role": "button", "name": "Delete", "region": "Delete file? and Delete folder? dialogs", "state": "deletes permanently" },
+    { "role": "button", "name": "Rendered", "region": "viewer", "state": "pressed by default" },
+    { "role": "button", "name": "Source", "region": "viewer" },
+    { "role": "button", "name": "Copy source", "region": "viewer", "state": "NOT clicked" },
+    { "role": "button", "name": "Download", "region": "viewer", "state": "NOT clicked" },
+    { "role": "button", "name": "More download formats", "region": "viewer", "opens": { "items": ["PDF document .pdf", "Word document .docx"] } },
+    { "role": "button", "name": "Edit", "region": "viewer", "state": "opens the editor" },
+    { "role": "button", "name": "Back to preview", "region": "viewer, edit mode" },
+    { "role": "button", "name": "Save", "region": "viewer, edit mode", "state": "disabled until the content changes" },
+    { "role": "button", "name": "Cancel upload", "region": "Upload activity panel", "state": "NOT clicked" },
+    { "role": "button", "name": "Minimize upload activity", "region": "Upload activity panel" },
+    { "role": "button", "name": "Close upload panel", "region": "Upload activity panel" },
+    { "role": "link", "name": "Workspace", "region": "Agent sections", "href": "/chat/<id>/workspace" },
+    { "role": "button", "name": "Back", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Collapse sidebar", "region": "sidebar", "state": "shell control" },
+    { "role": "button", "name": "Switch agent", "region": "sidebar footer", "state": "shell control" }
+  ],
+  "icons": [],
+  "messages": [
+    { "kind": "info", "text": "Uploading to Workspace", "role": "none (plain text)" },
+    { "kind": "info", "text": "Pick a file to view or edit", "role": "none (plain text)" },
+    { "kind": "info", "text": "Create a new folder at the workspace root.", "role": "none (plain text)" },
+    { "kind": "info", "text": "Create a new file at the workspace root.", "role": "none (plain text)" },
+    { "kind": "info", "text": "\"<name>\" will be permanently deleted. This cannot be undone.", "role": "none (plain text)" },
+    { "kind": "info", "text": "\"<name>\" will be permanently deleted along with everything inside it. This cannot be undone.", "role": "none (plain text)" },
+    { "kind": "error", "text": "A folder named \"<name>\" already exists here. Pick a different name.", "role": "alert" },
+    { "kind": "status", "text": "Saved HH:MM", "role": "none (plain text)" },
+    { "kind": "status", "text": "1 upload complete | Uploaded to Workspace", "role": "none (list in the Upload activity region)" },
+    { "kind": "absence", "text": "no toast appears for creating a folder or file, renaming or deleting", "role": "status and alert regions stay empty" }
+  ],
+  "modals": [
+    { "name": "New folder", "trigger": "New folder", "actions": ["Cancel", "Create folder", "Close"] },
+    { "name": "New file", "trigger": "New file", "actions": ["Cancel", "Create file", "Close"] },
+    { "name": "Rename", "trigger": "Rename", "actions": ["Cancel", "Rename", "Close"] },
+    { "name": "Delete file?", "trigger": "Delete", "actions": ["Cancel", "Delete", "Close"] },
+    { "name": "Delete folder?", "trigger": "Delete", "actions": ["Cancel", "Delete", "Close"] }
+  ],
+  "views": [],
+  "menus": [
+    { "trigger": "Actions (file, simple view)", "opens": { "items": ["Preview", "Download", "Share to", "Rename", "Delete"] } },
+    { "trigger": "Actions (folder, advanced view)", "opens": { "items": ["New file", "New folder", "Upload file", "Upload folder", "Download as zip", "Share to", "Rename", "Delete"] } }
+  ],
+  "findings": [
+    "uploading a file renames spaces to underscores and stores it in the directory folder (the delete dialog shows directory/<name>) even when another folder is selected",
+    "New folder accepts a name with a slash and creates nested folders; no length limit"
+  ],
+  "verifiedAbsent": [
+    { "surface": "views", "how": "the page is one file manager with a simple and an advanced mode; previews and the editor open inline with no URL change" },
+    { "surface": "toast", "how": "after creating, renaming or deleting an item the status and alert regions stayed empty" }
+  ],
+  "changelog": [
+    { "date": "2026-10-09", "note": "Initial capture as user 1 on Asta with full access. Only QA-AUTO items were created, renamed, edited and deleted through the UI; the existing workspace files and folders, the storage figures and the team space named in Share to are live data and never touched or asserted. Download, Share to, Add more storage and Upload folder are never used." }
+  ]
+}
