@@ -4,7 +4,7 @@ import { OWN_AGENT } from '../datas/admin/AdminData';
 import { test as admin } from './admin';
 import { test as pages } from './pages';
 
-export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string; crmCleanup: void; createdPerson: NewPerson; createdMember: NewMember; createdDashboard: string; teamProjectCleanup: void; createdTeamProject: string }>({
+export const test = mergeTests(admin, pages).extend<{ ownAgent: string; chatCleanup: void; sentChat: ChatMessage; restoredSettings: void; taskCleanup: void; createdTask: NewTask; workspaceCleanup: void; uploadCleanup: void; workspaceFile: string; workspaceFolder: string; skillCleanup: void; createdSkill: NewSkill; projectCleanup: void; createdProject: string; crmCleanup: void; createdPerson: NewPerson; createdMember: NewMember; createdDashboard: string; teamProjectCleanup: void; createdTeamProject: string; restoredPreferences: void }>({
   /**
    * Hands a test the user's own agent and puts it back afterwards: Start if the test left it
    * stopped, Reset to default if it left a custom quota. Teardown ladder rung 3 (UI): the
@@ -272,6 +272,23 @@ ${String(error)}
     await userProjectsPage.open();
     await userProjectsPage.createTeamProject(projectName);
     await use(projectName);
+  }, { timeout: 60_000 }],
+
+  /**
+   * Puts the account's Compact mode back on and Product updates back off after a test that
+   * switched them. Teardown ladder rung 3 (UI): the settings pages are the only way to set them.
+   * A failed restore is attached, never thrown.
+   */
+  restoredPreferences: [async ({ userAccountSettingsPage }, use, testInfo) => {
+    await use();
+    try {
+      await userAccountSettingsPage.restorePreferences();
+    } catch (error) {
+      await testInfo.attach('preferences-not-restored.txt', {
+        body: `Compact mode or Product updates may still be changed after ${testInfo.title}:\n${String(error)}\n`,
+        contentType: 'text/plain',
+      });
+    }
   }, { timeout: 60_000 }],
 
   /**

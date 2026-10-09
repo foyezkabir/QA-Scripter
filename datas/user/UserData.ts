@@ -295,3 +295,37 @@ export const SETUP_AUTOPILOT_SECTIONS = ['SHARED KNOWLEDGE', 'SKILLS & TOOLS', '
 export const HISTORY_FILTERS = ['Everything', 'People', 'Configuration', 'Sharing', 'Messages & safety', 'Files'] as const;
 
 export const SPACE_NO_MATCH_SEARCH = 'zzqq-no-such-task';
+
+export const ACCOUNT_PATHS = {
+  general: '/settings',
+  notifications: '/settings/notifications',
+  security: '/settings/security',
+  usage: '/settings/usage',
+  privacy: '/settings/privacy',
+} as const;
+
+export type AccountSection = keyof typeof ACCOUNT_PATHS;
+
+export const ACCOUNT_NAV_LINKS = ['General', 'Notification', 'Security', 'Usage and Analytics', 'Data Control and Privacy'] as const;
+
+export const CHAT_PREFERENCE_SWITCHES = [
+  { name: 'Sound effects', hint: 'Play sound on new message.' },
+  { name: 'Compact mode', hint: 'Denser message view.' },
+  { name: 'Remember me', hint: 'Stay signed in.' },
+] as const;
+
+export const API_KEY_CARDS = ['DeepSeek API key (internal)', 'Anthropic (Claude) API key (internal)', 'OpenAI API key (internal)'] as const;
+
+export const AUTO_LOGOUT_OPTIONS = ['15 min of inactivity', '30 min of inactivity', '1 hr of inactivity', '4 hrs of inactivity', 'Never'] as const;
+
+export const BROWSER_NOTIFICATION_SWITCHES = ['Notify when an AI response completes', 'Play a chime when a response completes'] as const;
+
+export const EMAIL_NOTIFICATION_SWITCHES = [
+  'Agent activity summary', 'Weekly performance digest', 'Error alerts', 'Billing receipts', 'Team Space activity',
+  'Task assigned to you', 'Mentions', 'Comments on watched tasks', 'Watched task moved', 'Due soon',
+  'Watched task updated', 'Budget alerts', 'Costs', 'Product updates',
+] as const;
+
+export const USAGE_TILES = ['Tokens', 'Requests', 'Spend (30 days)'] as const;
+
+export const APPEARANCE_CHOICES = ['System', 'Light', 'Dark'] as const;
